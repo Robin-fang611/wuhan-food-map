@@ -1,0 +1,273 @@
+/* ========================================
+   财大周边美食地图 - 页面样式
+   ======================================== */
+
+/* 首屏加载动画 */
+.splash-screen {
+  position: fixed;
+  inset: 0;
+  background: var(--cream-bg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  z-index: 999;
+  transition: opacity 0.5s ease;
+}
+.splash-screen.hide {
+  opacity: 0;
+  pointer-events: none;
+}
+.splash-logo {
+  width: 64px;
+  height: 64px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, var(--lime) 0%, var(--lime-dark) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--text-on-lime);
+  animation: scaleIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+.splash-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+  animation: fadeIn 0.6s ease 0.2s forwards;
+  opacity: 0;
+}
+.splash-subtitle {
+  font-size: 13px;
+  color: var(--text-tertiary);
+  animation: fadeIn 0.6s ease 0.4s forwards;
+  opacity: 0;
+}
+
+/* 校区切换 - 首义/南湖 特殊样式 */
+.campus-toggle-wrap {
+  display: flex;
+  gap: 8px;
+  padding: 12px 16px 0;
+}
+.campus-tab {
+  flex: 1;
+  padding: 10px;
+  border-radius: var(--radius-sm);
+  text-align: center;
+  font-size: 13px;
+  font-weight: 500;
+  background: var(--card-bg);
+  border: 1px solid var(--border-light);
+  color: var(--text-secondary);
+  transition: all var(--transition-fast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+.campus-tab-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+.campus-tab.active {
+  background: var(--lime);
+  border-color: var(--lime);
+  color: var(--text-on-lime);
+  font-weight: 600;
+}
+
+/* 区域统计条 */
+.area-stats {
+  display: flex;
+  gap: 8px;
+  padding: 8px 16px;
+  margin-top: 4px;
+}
+.area-stat-card {
+  flex: 1;
+  background: var(--card-bg);
+  border-radius: var(--radius-md);
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  box-shadow: var(--shadow-sm);
+}
+.area-stat-label {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.area-stat-value {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+.area-stat-value .unit {
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--text-tertiary);
+}
+
+/* 校区信息卡片 */
+.campus-info-card {
+  display: flex;
+  gap: 12px;
+  padding: 12px;
+  background: linear-gradient(135deg, rgba(185, 255, 102, 0.15), rgba(212, 165, 116, 0.1));
+  border-radius: var(--radius-lg);
+  margin-bottom: 12px;
+  align-items: center;
+}
+.campus-info-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--lime);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.campus-info-text {
+  flex: 1;
+}
+.campus-info-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+.campus-info-desc {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+
+/* 收藏列表特殊样式 */
+.favorite-list .shop-card {
+  position: relative;
+}
+.fav-indicator {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  color: var(--coral);
+  z-index: 1;
+}
+.fav-indicator svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* 搜索高亮 */
+.search-highlight {
+  background: rgba(185, 255, 102, 0.3);
+  border-radius: 2px;
+  padding: 0 2px;
+}
+
+/* 地图视图中的底部信息条 */
+.map-info-bar {
+  position: absolute;
+  bottom: 16px;
+  left: 16px;
+  right: 16px;
+  background: var(--card-bg);
+  border-radius: var(--radius-lg);
+  padding: 10px 14px;
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 10;
+}
+.map-info-count {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+.map-info-action {
+  font-size: 12px;
+  color: var(--coral);
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Profile 页面 */
+.profile-section {
+  padding: 16px 0;
+}
+.profile-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background: var(--card-bg);
+  border-radius: var(--radius-lg);
+  margin-bottom: 12px;
+}
+.profile-avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--lime), var(--amber));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+}
+.profile-info {
+  flex: 1;
+}
+.profile-name {
+  font-size: 16px;
+  font-weight: 600;
+}
+.profile-desc {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  margin-top: 2px;
+}
+.profile-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  background: var(--card-bg);
+  border-radius: var(--radius-md);
+  margin-bottom: 8px;
+  cursor: pointer;
+}
+.profile-menu-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: var(--light-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.profile-menu-label {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 500;
+}
+.profile-menu-arrow {
+  color: var(--text-tertiary);
+}
+
+/* 标签页切换内容 */
+.tab-content {
+  display: none;
+}
+.tab-content.active {
+  display: block;
+}

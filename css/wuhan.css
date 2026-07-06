@@ -1,0 +1,283 @@
+/* ========================================
+   武汉全城美食地图 - 页面样式
+   ======================================== */
+
+/* 首屏加载动画 */
+.splash-screen {
+  position: fixed;
+  inset: 0;
+  background: var(--cream-bg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  z-index: 999;
+  transition: opacity 0.5s ease;
+}
+.splash-screen.hide {
+  opacity: 0;
+  pointer-events: none;
+}
+.splash-logo {
+  width: 64px;
+  height: 64px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, var(--amber) 0%, var(--coral) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  font-weight: 700;
+  color: white;
+  animation: scaleIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+.splash-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+  animation: fadeIn 0.6s ease 0.2s forwards;
+  opacity: 0;
+}
+.splash-subtitle {
+  font-size: 13px;
+  color: var(--text-tertiary);
+  animation: fadeIn 0.6s ease 0.4s forwards;
+  opacity: 0;
+}
+
+/* 分类网格 */
+.category-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  padding: 4px 0 8px;
+}
+.category-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+.category-cell:active {
+  transform: scale(0.92);
+}
+.category-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: 700;
+  color: white;
+  position: relative;
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-fast);
+}
+.category-icon::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 14px;
+  border: 2px solid transparent;
+  transition: border-color var(--transition-fast);
+}
+.category-cell.active .category-icon::after {
+  border-color: var(--text-primary);
+}
+.category-label {
+  font-size: 11px;
+  color: var(--text-secondary);
+  font-weight: 500;
+  text-align: center;
+  white-space: nowrap;
+}
+.category-cell.active .category-label {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+.category-count {
+  font-size: 9px;
+  color: var(--text-tertiary);
+  margin-top: -2px;
+}
+
+/* Hero 搜索区 */
+.hero-banner {
+  background: linear-gradient(135deg, var(--amber) 0%, #F5C842 100%);
+  border-radius: var(--radius-lg);
+  padding: 20px 16px;
+  margin-bottom: 12px;
+  position: relative;
+  overflow: hidden;
+}
+.hero-banner::before {
+  content: '';
+  position: absolute;
+  top: -20px;
+  right: -20px;
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+}
+.hero-banner::after {
+  content: '';
+  position: absolute;
+  bottom: -30px;
+  right: 30px;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+}
+.hero-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: white;
+  position: relative;
+  z-index: 1;
+  margin-bottom: 4px;
+}
+.hero-subtitle {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.8);
+  position: relative;
+  z-index: 1;
+}
+
+/* 区域筛选 */
+.area-toggle-wrap {
+  display: flex;
+  gap: 8px;
+  padding: 12px 16px 0;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.area-toggle-wrap::-webkit-scrollbar { display: none; }
+.area-tab {
+  flex-shrink: 0;
+  padding: 7px 14px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 500;
+  background: var(--card-bg);
+  border: 1px solid var(--border-light);
+  color: var(--text-secondary);
+  transition: all var(--transition-fast);
+}
+.area-tab.active {
+  background: var(--amber);
+  border-color: var(--amber);
+  color: white;
+  font-weight: 600;
+  box-shadow: var(--shadow-amber);
+}
+
+/* 加载更多 */
+.load-more {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+/* 必吃徽章 */
+.must-eat-badge {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: var(--coral);
+  color: white;
+  font-size: 10px;
+  font-weight: 600;
+  z-index: 1;
+}
+
+/* 统计栏 */
+.stats-bar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.stat-pill {
+  flex: 1;
+  background: var(--card-bg);
+  border-radius: var(--radius-md);
+  padding: 10px 12px;
+  text-align: center;
+  box-shadow: var(--shadow-sm);
+}
+.stat-pill-value {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+.stat-pill-label {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  margin-top: 2px;
+}
+
+/* Profile 页面 */
+.profile-section {
+  padding: 16px 0;
+}
+.profile-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background: var(--card-bg);
+  border-radius: var(--radius-lg);
+  margin-bottom: 12px;
+}
+.profile-avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--amber), var(--coral));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+}
+.profile-info { flex: 1; }
+.profile-name { font-size: 16px; font-weight: 600; }
+.profile-desc { font-size: 12px; color: var(--text-tertiary); margin-top: 2px; }
+.profile-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  background: var(--card-bg);
+  border-radius: var(--radius-md);
+  margin-bottom: 8px;
+  cursor: pointer;
+}
+.profile-menu-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: var(--light-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.profile-menu-label {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 500;
+}
+.profile-menu-arrow { color: var(--text-tertiary); }
+
+/* 标签页切换 */
+.tab-content { display: none; }
+.tab-content.active { display: block; }
