@@ -6,7 +6,7 @@
   <h1>🍜 鲜城 · 味觉地图</h1>
   <p><b>武汉美食地图 · 新生吃喝玩乐指南</b></p>
   <p>
-    <a href="https://stalwart-sherbet-8ba869.netlify.app" target="_blank">
+    <a href="https://illustrious-croissant-8adc7b.netlify.app" target="_blank">
       <b>🌐 在线体验</b>
     </a>
   </p>
@@ -140,7 +140,7 @@ python -m http.server 8080
     发现武汉好味道
   </p>
   <p>
-    <a href="https://stalwart-sherbet-8ba869.netlify.app" target="_blank">🌐 在线体验</a>
+    <a href="https://illustrious-croissant-8adc7b.netlify.app" target="_blank">🌐 在线体验</a>
     ·
     <a href="https://github.com/Robin-fang611/wuhan-food-map/issues" target="_blank">💬 反馈建议</a>
   </p>
