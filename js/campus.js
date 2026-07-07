@@ -85,7 +85,7 @@
     const splash = el('div', { className: 'splash-screen', id: 'splash' }, [
       el('div', { className: 'splash-logo' }, '味'),
       el('div', { className: 'splash-title' }, '鲜城 · 财大美食地图'),
-      el('div', { className: 'splash-subtitle' }, '学长学姐带你吃遍财大周边'),
+      el('div', { className: 'splash-subtitle' }, '师兄师姐带你吃遍财大周边'),
       el('div', { className: 'loading-dots', style: { marginTop: '8px' } }, [
         el('span'), el('span'), el('span'),
       ]),
