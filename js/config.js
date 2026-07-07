@@ -20,13 +20,13 @@ window.__SOCIAL_CONFIG__ = {
   campus: {
     title: '加入财大吃喝玩乐群',
     subtitle: '学长学姐带你吃遍财大周边',
-    qrCode: 'images/qrcode.jpg',
+    qrCode: 'images/qrcode.png',
     link: '',
   },
   city: {
     title: '加入武汉新生吃喝玩乐群',
     subtitle: '带你吃遍武汉三镇',
-    qrCode: 'images/qrcode.jpg',
+    qrCode: 'images/qrcode.png',
     link: '',
   },
 };
