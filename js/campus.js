@@ -42,6 +42,7 @@
     dom.sortDropdown = document.getElementById('sort-dropdown');
     dom.sortMenu = document.getElementById('sort-menu');
     dom.socialBtn = document.getElementById('social-btn');
+    dom.shareBtn = document.getElementById('share-btn');
     dom.mapView = document.getElementById('map-view');
     dom.mapBackBtn = document.getElementById('map-back-btn');
     dom.mapCanvas = document.getElementById('amap-canvas');
@@ -114,6 +115,7 @@
       chip.appendChild(document.createTextNode(cat));
       chip.addEventListener('click', () => {
         state.activeCategory = cat;
+        if (window.__analytics) window.__analytics.trackFilter('category', cat);
         renderCategoryChips();
         filterAndRender();
       });
@@ -222,7 +224,9 @@
 
   // === 详情弹窗 ===
   function showDetail(shop) {
+    if (window.__analytics) window.__analytics.trackShopClick(shop);
     const modal = createDetailModal(shop, null, (s) => {
+      if (window.__analytics) window.__analytics.trackNavigate(s);
       openNavigation(s.lng, s.lat, s.name);
     });
     document.body.appendChild(modal);
@@ -248,8 +252,9 @@
   const onSearchInput = debounce(() => {
     state.searchQuery = dom.searchInput.value.trim();
     dom.searchClear.style.display = state.searchQuery ? 'flex' : 'none';
+    if (state.searchQuery && window.__analytics) window.__analytics.trackSearch(state.searchQuery);
     filterAndRender();
-  }, 200);
+  }, 400);
 
   // === 排序菜单 ===
   function toggleSortMenu() {
@@ -741,6 +746,7 @@
         dom.campusToggle.querySelectorAll('.toggle-tab').forEach(t => t.classList.remove('active'));
         tab.classList.add('active');
         state.activeCampus = tab.dataset.campus;
+        if (window.__analytics) window.__analytics.trackFilter('campus', tab.dataset.campus);
         filterAndRender();
         if (state.mapLoaded) updateMapMarkers();
       });
@@ -783,8 +789,12 @@
       switchTab('list');
     });
 
+    // 分享按钮
+    dom.shareBtn.addEventListener('click', handleShare);
+
     // 社群按钮
     dom.socialBtn.addEventListener('click', () => {
+      if (window.__analytics) window.__analytics.trackSocial();
       showSocialModal(window.__SOCIAL_CONFIG__.campus);
     });
 

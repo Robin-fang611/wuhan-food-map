@@ -525,3 +525,55 @@ function showSocialModal(config) {
   document.body.appendChild(overlay);
   requestAnimationFrame(() => overlay.classList.add('show'));
 }
+
+/** Toast 提示 */
+function showToast(text) {
+  var existing = document.querySelector('.toast-msg');
+  if (existing) existing.remove();
+  var t = document.createElement('div');
+  t.className = 'toast-msg';
+  t.textContent = text;
+  Object.assign(t.style, {
+    position: 'fixed', bottom: '100px', left: '50%', transform: 'translateX(-50%)',
+    background: 'rgba(26,26,35,0.9)', color: '#fff', padding: '10px 20px',
+    borderRadius: '20px', fontSize: '14px', zIndex: '300',
+    opacity: '0', transition: 'opacity 0.3s ease',
+  });
+  document.body.appendChild(t);
+  requestAnimationFrame(function () { t.style.opacity = '1'; });
+  setTimeout(function () {
+    t.style.opacity = '0';
+    setTimeout(function () { t.remove(); }, 300);
+  }, 2000);
+}
+
+/** 分享功能 */
+function handleShare() {
+  if (window.__analytics) window.__analytics.trackShare('click');
+  var url = window.location.href;
+  var title = document.title;
+  if (navigator.share) {
+    navigator.share({ title: title, url: url }).catch(function () {});
+  } else {
+    copyToClipboard(url);
+    showToast('链接已复制，快去分享给同学吧 🎉');
+  }
+}
+
+/** 复制到剪贴板 */
+function copyToClipboard(text) {
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(text).catch(function () { fallbackCopy(text); });
+  } else {
+    fallbackCopy(text);
+  }
+}
+function fallbackCopy(text) {
+  var ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.position = 'fixed'; ta.style.opacity = '0';
+  document.body.appendChild(ta);
+  ta.select();
+  document.execCommand('copy');
+  document.body.removeChild(ta);
+}
