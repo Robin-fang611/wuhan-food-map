@@ -19,7 +19,7 @@ window.__AMAP_CONFIG__ = {
 window.__SOCIAL_CONFIG__ = {
   campus: {
     title: '加入财大吃喝玩乐群',
-    subtitle: '学长学姐带你吃遍财大周边',
+    subtitle: '师兄师姐带你吃遍财大周边',
     qrCode: 'images/qrcode.png',
     link: '',
   },
