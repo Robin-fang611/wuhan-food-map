@@ -11,6 +11,7 @@
   <meta property="og:image" content="">
   <meta property="og:type" content="website">
   <meta name="description" content="武汉美食地图 · 财大周边50家店 + 全城540+家店，师兄师姐带你吃">
+  <link rel="stylesheet" href="css/common.css">
   <style>
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
     
@@ -307,6 +308,67 @@
       to { opacity: 1; transform: translateY(0); }
     }
     
+    /* 群聊入口 */
+    .group-entry {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      background: linear-gradient(135deg, #FF5A5F 0%, #E85D3C 100%);
+      border-radius: 20px;
+      padding: 18px 24px;
+      margin-bottom: 16px;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 4px 14px rgba(255, 90, 95, 0.25);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      animation: fadeUp 0.6s ease 0.6s forwards;
+      opacity: 0;
+    }
+    .group-entry:active {
+      transform: scale(0.97);
+      box-shadow: 0 4px 20px rgba(255, 90, 95, 0.35);
+    }
+    .group-entry::before {
+      content: '';
+      position: absolute;
+      top: -30px;
+      right: -30px;
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255,255,255,0.15), transparent 70%);
+    }
+    .group-entry-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      z-index: 1;
+    }
+    .group-entry-text {
+      flex: 1;
+      z-index: 1;
+    }
+    .group-entry-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: white;
+      margin-bottom: 2px;
+    }
+    .group-entry-desc {
+      font-size: 12px;
+      color: rgba(255,255,255,0.85);
+    }
+    .group-entry-arrow {
+      z-index: 1;
+      opacity: 0.8;
+    }
+
     @media (prefers-color-scheme: dark) {
       /* 保持暖色调，不跟随系统暗色 */
     }
@@ -398,13 +460,40 @@
       </div>
     </a>
 
+    <!-- 群聊入口 -->
+    <div class="group-entry" id="groupEntry">
+      <div class="group-entry-icon">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+          <path d="M3 5C3 4 4 3 5 3H15C16 3 17 4 17 5V12C17 13 16 14 15 14H8L4 17V5Z" stroke="white" stroke-width="2" stroke-linejoin="round"/>
+          <circle cx="8.5" cy="8.5" r="1" fill="white"/>
+          <circle cx="12.5" cy="8.5" r="1" fill="white"/>
+        </svg>
+      </div>
+      <div class="group-entry-text">
+        <div class="group-entry-title">加入吃喝玩乐群</div>
+        <div class="group-entry-desc">扫码进群，和师兄师姐一起探索</div>
+      </div>
+      <div class="group-entry-arrow">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M7 5L13 10L7 15" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+    </div>
+
     <!-- 底部 -->
     <div class="footer">
       数据来源 · 实地探访 + 社群推荐 + ZUEL周边指南<br>
       坐标系 · GCJ-02（高德坐标系）<br>
       <br>
-      鲜城 · 味觉地图 v1.1.0
+      鲜城 · 味觉地图 v1.2.0
     </div>
   </div>
+  <script src="js/config.js"></script>
+  <script src="js/common.js"></script>
+  <script>
+    document.getElementById('groupEntry').addEventListener('click', function() {
+      if (window.__SOCIAL_CONFIG__ && window.__SOCIAL_CONFIG__.campus) {
+        showSocialModal(window.__SOCIAL_CONFIG__.campus);
+      }
+    });
+  </script>
 </body>
 </html>
