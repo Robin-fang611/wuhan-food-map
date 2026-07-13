@@ -151,6 +151,10 @@
     .card-city::before {
       background: radial-gradient(circle, rgba(212,165,116,0.2), transparent 70%);
     }
+
+    .card-play::before {
+      background: radial-gradient(circle, rgba(139,92,246,0.2), transparent 70%);
+    }
     
     .card-header {
       display: flex;
@@ -178,6 +182,11 @@
     
     .card-city .card-icon {
       background: linear-gradient(135deg, var(--amber), var(--coral));
+      color: white;
+    }
+
+    .card-play .card-icon {
+      background: linear-gradient(135deg, #8B5CF6, #6366F1);
       color: white;
     }
     
@@ -242,6 +251,11 @@
       background: rgba(212, 165, 116, 0.15);
       color: #B8860B;
     }
+
+    .card-play .card-tag {
+      background: rgba(139, 92, 246, 0.15);
+      color: #7C3AED;
+    }
     
     .card-arrow {
       position: absolute;
@@ -283,6 +297,10 @@
       animation: fadeUp 0.6s ease 0.3s forwards;
       opacity: 0;
     }
+    .card:nth-child(4) {
+      animation: fadeUp 0.6s ease 0.45s forwards;
+      opacity: 0;
+    }
     
     @keyframes fadeUp {
       from { opacity: 0; transform: translateY(20px); }
@@ -300,7 +318,7 @@
     <div class="brand-section">
       <div class="brand-logo">味</div>
       <div class="brand-title">鲜城 · 味觉地图</div>
-      <div class="brand-subtitle">带你发现武汉好味道</div>
+      <div class="brand-subtitle">带你发现武汉好味道与好去处</div>
     </div>
     
     <!-- 财大周边版 -->
@@ -354,12 +372,38 @@
       </div>
     </a>
     
+    <!-- 周边游玩版 -->
+    <a href="play.html" class="card card-play">
+      <div class="card-header">
+        <div class="card-icon">🧭</div>
+        <div class="card-title-group">
+          <div class="card-title">周边游玩</div>
+          <div class="card-subtitle">ZUEL周边吃喝玩乐指南</div>
+        </div>
+      </div>
+      <div class="card-stats">
+        <div class="card-stat"><strong>32</strong> 处地点</div>
+        <div class="card-stat"><strong>8</strong> 分类</div>
+        <div class="card-stat"><strong>2</strong> 校区</div>
+      </div>
+      <div class="card-tag-row">
+        <span class="card-tag">景点名胜</span>
+        <span class="card-tag">街道区巷</span>
+        <span class="card-tag">书店打卡</span>
+        <span class="card-tag">寺庙道观</span>
+        <span class="card-tag">纪念馆</span>
+      </div>
+      <div class="card-arrow">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M7 5L13 10L7 15" stroke="#8B5CF6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+    </a>
+
     <!-- 底部 -->
     <div class="footer">
-      数据来源 · 实地探访 + 社群推荐<br>
+      数据来源 · 实地探访 + 社群推荐 + ZUEL周边指南<br>
       坐标系 · GCJ-02（高德坐标系）<br>
       <br>
-      鲜城 · 味觉地图 v1.0.0
+      鲜城 · 味觉地图 v1.1.0
     </div>
   </div>
 </body>

@@ -1,0 +1,173 @@
+/* 周边游玩页面样式 */
+
+.brand-dot.violet {
+  background: #8B5CF6;
+}
+
+/* 地点卡片 */
+.place-card {
+  background: var(--card-bg);
+  border-radius: 16px;
+  margin-bottom: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  cursor: pointer;
+  animation: fadeUp 0.4s ease forwards;
+  opacity: 0;
+}
+
+.place-card:active {
+  transform: scale(0.98);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.place-card-banner {
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 36px;
+  position: relative;
+}
+
+.place-card-banner::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 50%, rgba(0,0,0,0.06));
+}
+
+.place-card-emoji {
+  position: relative;
+  z-index: 1;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+}
+
+.place-card-body {
+  padding: 14px 16px 16px;
+}
+
+.place-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.place-card-name {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.3;
+  flex: 1;
+}
+
+.place-card-cat {
+  flex-shrink: 0;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.place-card-desc {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.place-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  font-size: 12px;
+  color: var(--text-tertiary);
+}
+
+.place-card-meta .meta-campus {
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(139, 92, 246, 0.1);
+  color: #7C3AED;
+  font-weight: 600;
+}
+
+.place-card-meta .meta-addr {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+/* 详情弹窗 */
+.detail-place-hero {
+  height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 56px;
+  border-radius: 16px 16px 0 0;
+  position: relative;
+}
+
+.detail-place-hero::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 60%, rgba(0,0,0,0.08));
+}
+
+.detail-place-tips {
+  margin-top: 12px;
+  padding: 10px 14px;
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.08), rgba(99, 102, 241, 0.06));
+  border-radius: 12px;
+  font-size: 13px;
+  color: #6B46C1;
+  line-height: 1.6;
+  display: flex;
+  gap: 6px;
+  align-items: flex-start;
+}
+
+.detail-place-tips-icon {
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+/* 分类色块 - 紫色系主题 */
+.toggle-tab.active {
+  background: #8B5CF6 !important;
+  color: #fff !important;
+}
+
+.floating-cta-btn {
+  background: linear-gradient(135deg, #8B5CF6, #6366F1) !important;
+}
+
+.tab-item.active {
+  color: #8B5CF6 !important;
+}
+
+.chip.active {
+  background: #8B5CF6 !important;
+  color: #fff !important;
+  border-color: #8B5CF6 !important;
+}
+
+.chip.active .chip-dot {
+  background: #fff !important;
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
