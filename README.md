@@ -1,9 +1,9 @@
 <div align="center">
   <br>
-  <img src="screenshots/city_map.jpg" alt="鲜城 · 味觉地图" width="100%" style="max-width: 800px; border-radius: 16px;">
+  <img src="screenshots/city_map.jpg" alt="江城 · 味觉地图" width="100%" style="max-width: 800px; border-radius: 16px;">
   <br>
   <br>
-  <h1>🍜 鲜城 · 味觉地图</h1>
+  <h1>🍜 江城 · 味觉地图</h1>
   <p><b>武汉美食地图 · 新生吃喝玩乐指南</b></p>
   <p>
     <a href="https://illustrious-croissant-8adc7b.netlify.app" target="_blank">
@@ -136,7 +136,7 @@ python -m http.server 8080
 <div align="center">
   <br>
   <p>
-    <b>鲜城 · 味觉地图</b><br>
+    <b>江城 · 味觉地图</b><br>
     发现武汉好味道
   </p>
   <p>

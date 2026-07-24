@@ -1,499 +1,106 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <meta name="theme-color" content="#F9F4DF">
-  <title>鲜城 · 味觉地图</title>
-  <!-- OG Tags -->
-  <meta property="og:title" content="鲜城 · 味觉地图">
-  <meta property="og:description" content="武汉美食地图 · 财大周边50家店 + 全城540+家店，师兄师姐带你吃">
-  <meta property="og:image" content="">
-  <meta property="og:type" content="website">
-  <meta name="description" content="武汉美食地图 · 财大周边50家店 + 全城540+家店，师兄师姐带你吃">
-  <link rel="stylesheet" href="css/common.css">
-  <style>
-    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-    
-    :root {
-      --cream-bg: #F9F4DF;
-      --lime: #B9FF66;
-      --lime-dark: #65A30D;
-      --coral: #FF5A5F;
-      --amber: #D4A574;
-      --honey: #F5C842;
-      --text-primary: #1A1A23;
-      --text-secondary: #555555;
-      --text-tertiary: #999999;
-      --card-bg: #FFFFFF;
-    }
-    
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
-      background: var(--cream-bg);
-      color: var(--text-primary);
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-      -webkit-font-smoothing: antialiased;
-      overflow-x: hidden;
-    }
-    
-    /* 装饰背景 */
-    body::before {
-      content: '';
-      position: fixed;
-      top: -100px;
-      right: -100px;
-      width: 300px;
-      height: 300px;
-      border-radius: 50%;
-      background: radial-gradient(circle, rgba(185,255,102,0.15), transparent);
-      pointer-events: none;
-    }
-    body::after {
-      content: '';
-      position: fixed;
-      bottom: -100px;
-      left: -100px;
-      width: 300px;
-      height: 300px;
-      border-radius: 50%;
-      background: radial-gradient(circle, rgba(212,165,116,0.15), transparent);
-      pointer-events: none;
-    }
-    
-    .container {
-      max-width: 420px;
-      width: 100%;
-      position: relative;
-      z-index: 1;
-    }
-    
-    /* 品牌区 */
-    .brand-section {
-      text-align: center;
-      margin-bottom: 40px;
-      animation: fadeUp 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-    }
-    
-    .brand-logo {
-      width: 80px;
-      height: 80px;
-      border-radius: 24px;
-      background: linear-gradient(135deg, var(--lime) 0%, var(--amber) 100%);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 40px;
-      font-weight: 800;
-      color: var(--text-primary);
-      margin: 0 auto 16px;
-      box-shadow: 0 8px 24px rgba(185, 255, 102, 0.3);
-    }
-    
-    .brand-title {
-      font-size: 28px;
-      font-weight: 800;
-      letter-spacing: -0.03em;
-      margin-bottom: 8px;
-    }
-    
-    .brand-subtitle {
-      font-size: 14px;
-      color: var(--text-tertiary);
-      line-height: 1.6;
-    }
-    
-    /* 卡片 */
-    .card {
-      display: block;
-      background: var(--card-bg);
-      border-radius: 20px;
-      padding: 24px;
-      margin-bottom: 16px;
-      text-decoration: none;
-      color: inherit;
-      position: relative;
-      overflow: hidden;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      cursor: pointer;
-      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
-    }
-    
-    .card:active {
-      transform: scale(0.97);
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-    }
-    
-    .card::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      right: 0;
-      width: 120px;
-      height: 120px;
-      border-radius: 50%;
-      transform: translate(40px, -40px);
-      transition: transform 0.4s ease;
-    }
-    
-    .card:hover::before {
-      transform: translate(30px, -30px);
-    }
-    
-    .card-campus::before {
-      background: radial-gradient(circle, rgba(185,255,102,0.2), transparent 70%);
-    }
-    
-    .card-city::before {
-      background: radial-gradient(circle, rgba(212,165,116,0.2), transparent 70%);
-    }
+<html lang="zh-CN"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#F6F1E7">
+<title>江城 · 新生手册</title>
+<link rel="stylesheet" href="css/baibaoxiang.css">
+</head><body><div class="app">
 
-    .card-play::before {
-      background: radial-gradient(circle, rgba(139,92,246,0.2), transparent 70%);
-    }
-    
-    .card-header {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 16px;
-      position: relative;
-      z-index: 1;
-    }
-    
-    .card-icon {
-      width: 52px;
-      height: 52px;
-      border-radius: 16px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 24px;
-      flex-shrink: 0;
-    }
-    
-    .card-campus .card-icon {
-      background: linear-gradient(135deg, var(--lime), var(--lime-dark));
-    }
-    
-    .card-city .card-icon {
-      background: linear-gradient(135deg, var(--amber), var(--coral));
-      color: white;
-    }
-
-    .card-play .card-icon {
-      background: linear-gradient(135deg, #8B5CF6, #6366F1);
-      color: white;
-    }
-    
-    .card-title-group {
-      flex: 1;
-    }
-    
-    .card-title {
-      font-size: 18px;
-      font-weight: 700;
-      margin-bottom: 2px;
-    }
-    
-    .card-subtitle {
-      font-size: 12px;
-      color: var(--text-tertiary);
-    }
-    
-    .card-stats {
-      display: flex;
-      gap: 12px;
-      margin-bottom: 16px;
-      position: relative;
-      z-index: 1;
-    }
-    
-    .card-stat {
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      font-size: 12px;
-      color: var(--text-secondary);
-    }
-    
-    .card-stat strong {
-      font-size: 16px;
-      font-weight: 700;
-      color: var(--text-primary);
-    }
-    
-    .card-tag-row {
-      display: flex;
-      gap: 6px;
-      flex-wrap: wrap;
-      position: relative;
-      z-index: 1;
-    }
-    
-    .card-tag {
-      padding: 3px 8px;
-      border-radius: 6px;
-      font-size: 11px;
-      font-weight: 500;
-    }
-    
-    .card-campus .card-tag {
-      background: rgba(185, 255, 102, 0.15);
-      color: var(--lime-dark);
-    }
-    
-    .card-city .card-tag {
-      background: rgba(212, 165, 116, 0.15);
-      color: #B8860B;
-    }
-
-    .card-play .card-tag {
-      background: rgba(139, 92, 246, 0.15);
-      color: #7C3AED;
-    }
-    
-    .card-arrow {
-      position: absolute;
-      right: 24px;
-      top: 50%;
-      transform: translateY(-50%);
-      opacity: 0;
-      transition: all 0.3s ease;
-      z-index: 1;
-    }
-    
-    .card:hover .card-arrow {
-      right: 20px;
-      opacity: 1;
-    }
-    
-    /* 底部信息 */
-    .footer {
-      text-align: center;
-      margin-top: 32px;
-      font-size: 12px;
-      color: var(--text-tertiary);
-      line-height: 1.8;
-      animation: fadeUp 0.8s ease 0.3s forwards;
-      opacity: 0;
-    }
-    
-    .footer a {
-      color: var(--amber);
-      text-decoration: none;
-    }
-    
-    /* 动画 */
-    .card:nth-child(2) {
-      animation: fadeUp 0.6s ease 0.15s forwards;
-      opacity: 0;
-    }
-    .card:nth-child(3) {
-      animation: fadeUp 0.6s ease 0.3s forwards;
-      opacity: 0;
-    }
-    .card:nth-child(4) {
-      animation: fadeUp 0.6s ease 0.45s forwards;
-      opacity: 0;
-    }
-    
-    @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    
-    /* 群聊入口 */
-    .group-entry {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      background: linear-gradient(135deg, #FF5A5F 0%, #E85D3C 100%);
-      border-radius: 20px;
-      padding: 18px 24px;
-      margin-bottom: 16px;
-      cursor: pointer;
-      position: relative;
-      overflow: hidden;
-      box-shadow: 0 4px 14px rgba(255, 90, 95, 0.25);
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      animation: fadeUp 0.6s ease 0.6s forwards;
-      opacity: 0;
-    }
-    .group-entry:active {
-      transform: scale(0.97);
-      box-shadow: 0 4px 20px rgba(255, 90, 95, 0.35);
-    }
-    .group-entry::before {
-      content: '';
-      position: absolute;
-      top: -30px;
-      right: -30px;
-      width: 100px;
-      height: 100px;
-      border-radius: 50%;
-      background: radial-gradient(circle, rgba(255,255,255,0.15), transparent 70%);
-    }
-    .group-entry-icon {
-      width: 48px;
-      height: 48px;
-      border-radius: 14px;
-      background: rgba(255,255,255,0.2);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-      z-index: 1;
-    }
-    .group-entry-text {
-      flex: 1;
-      z-index: 1;
-    }
-    .group-entry-title {
-      font-size: 16px;
-      font-weight: 700;
-      color: white;
-      margin-bottom: 2px;
-    }
-    .group-entry-desc {
-      font-size: 12px;
-      color: rgba(255,255,255,0.85);
-    }
-    .group-entry-arrow {
-      z-index: 1;
-      opacity: 0.8;
-    }
-
-    @media (prefers-color-scheme: dark) {
-      /* 保持暖色调，不跟随系统暗色 */
-    }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <!-- 品牌 -->
-    <div class="brand-section">
-      <div class="brand-logo">味</div>
-      <div class="brand-title">鲜城 · 味觉地图</div>
-      <div class="brand-subtitle">带你发现武汉好味道与好去处</div>
-    </div>
-    
-    <!-- 财大周边版 -->
-    <a href="campus.html" class="card card-campus">
-      <div class="card-header">
-        <div class="card-icon">🏫</div>
-        <div class="card-title-group">
-          <div class="card-title">财大周边版</div>
-          <div class="card-subtitle">师兄师姐带你吃遍财大周边</div>
-        </div>
-      </div>
-      <div class="card-stats">
-        <div class="card-stat"><strong>50</strong> 家精选</div>
-        <div class="card-stat"><strong>2</strong> 校区</div>
-        <div class="card-stat"><strong>1km</strong> 范围</div>
-      </div>
-      <div class="card-tag-row">
-        <span class="card-tag">南湖推荐</span>
-        <span class="card-tag">烧烤</span>
-        <span class="card-tag">五谷杂粮</span>
-        <span class="card-tag">早餐</span>
-      </div>
-      <div class="card-arrow">
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M7 5L13 10L7 15" stroke="#65A30D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      </div>
-    </a>
-    
-    <!-- 武汉全城版 -->
-    <a href="wuhan.html" class="card card-city">
-      <div class="card-header">
-        <div class="card-icon">🏙️</div>
-        <div class="card-title-group">
-          <div class="card-title">武汉全城版</div>
-          <div class="card-subtitle">带你吃遍武汉三镇</div>
-        </div>
-      </div>
-      <div class="card-stats">
-        <div class="card-stat"><strong>540+</strong> 家精选</div>
-        <div class="card-stat"><strong>17</strong> 分类</div>
-        <div class="card-stat"><strong>9</strong> 区域</div>
-      </div>
-      <div class="card-tag-row">
-        <span class="card-tag">五谷杂粮</span>
-        <span class="card-tag">火锅</span>
-        <span class="card-tag">湖北菜</span>
-        <span class="card-tag">面包甜点</span>
-        <span class="card-tag">+13</span>
-      </div>
-      <div class="card-arrow">
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M7 5L13 10L7 15" stroke="#D4A574" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      </div>
-    </a>
-    
-    <!-- 周边游玩版 -->
-    <a href="play.html" class="card card-play">
-      <div class="card-header">
-        <div class="card-icon">🧭</div>
-        <div class="card-title-group">
-          <div class="card-title">周边游玩</div>
-          <div class="card-subtitle">ZUEL周边吃喝玩乐指南</div>
-        </div>
-      </div>
-      <div class="card-stats">
-        <div class="card-stat"><strong>32</strong> 处地点</div>
-        <div class="card-stat"><strong>8</strong> 分类</div>
-        <div class="card-stat"><strong>2</strong> 校区</div>
-      </div>
-      <div class="card-tag-row">
-        <span class="card-tag">景点名胜</span>
-        <span class="card-tag">街道区巷</span>
-        <span class="card-tag">书店打卡</span>
-        <span class="card-tag">寺庙道观</span>
-        <span class="card-tag">纪念馆</span>
-      </div>
-      <div class="card-arrow">
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M7 5L13 10L7 15" stroke="#8B5CF6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      </div>
-    </a>
-
-    <!-- 群聊入口 -->
-    <div class="group-entry" id="groupEntry">
-      <div class="group-entry-icon">
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
-          <path d="M3 5C3 4 4 3 5 3H15C16 3 17 4 17 5V12C17 13 16 14 15 14H8L4 17V5Z" stroke="white" stroke-width="2" stroke-linejoin="round"/>
-          <circle cx="8.5" cy="8.5" r="1" fill="white"/>
-          <circle cx="12.5" cy="8.5" r="1" fill="white"/>
-        </svg>
-      </div>
-      <div class="group-entry-text">
-        <div class="group-entry-title">加入吃喝玩乐群</div>
-        <div class="group-entry-desc">扫码进群，和师兄师姐一起探索</div>
-      </div>
-      <div class="group-entry-arrow">
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M7 5L13 10L7 15" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      </div>
-    </div>
-
-    <!-- 底部 -->
-    <div class="footer">
-      数据来源 · 实地探访 + 社群推荐 + ZUEL周边指南<br>
-      坐标系 · GCJ-02（高德坐标系）<br>
-      <br>
-      鲜城 · 味觉地图 v1.2.0
-    </div>
+<!-- 封面 -->
+<div class="cover">
+  <span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>
+  <div class="vol">中南财经政法大学 · 民间非官方</div>
+  <div class="brand">
+    <div class="seal">江城<small>出品</small></div>
+    <h1>新生<em>手册</em></h1>
   </div>
-  <script src="js/config.js"></script>
-  <script src="js/common.js"></script>
-  <script>
-    document.getElementById('groupEntry').addEventListener('click', function() {
-      if (window.__SOCIAL_CONFIG__ && window.__SOCIAL_CONFIG__.campus) {
-        showSocialModal(window.__SOCIAL_CONFIG__.campus);
-      }
-    });
-  </script>
-</body>
-</html>
+  <div class="tag">师兄师姐替你踩过的坑，都写在这了</div>
+  <div class="meta"><span>2026 级</span><span>总第叁期</span><span>07-24 更新</span></div>
+</div>
+
+<!-- 时间线 · 分章导航 -->
+<div class="sec">
+  <div class="sec-h"><span class="zh">你的入学时间线</span><span class="en">Timeline</span><span class="dash"></span></div>
+  <div class="timeline">
+    <a href="#stage1" class="tl-row"><div class="tl-node">壹</div>
+      <div class="tl-card"><div class="hd"><span class="stage">STAGE 01</span><span class="count">2 章</span></div>
+        <h4>报到前</h4><p>行李清单 · 到校路线 · 交通快递</p></div></a>
+    <a href="#stage2" class="tl-row"><div class="tl-node">贰</div>
+      <div class="tl-card"><div class="hd"><span class="stage">STAGE 02</span><span class="count">2 章</span></div>
+        <h4>报到日</h4><p>报到流程 · 宿舍安顿 · 军训准备 · 校园服务</p></div></a>
+    <a href="#stage3" class="tl-row"><div class="tl-node">叁</div>
+      <div class="tl-card"><div class="hd"><span class="stage">STAGE 03</span><span class="count">3 章</span></div>
+        <h4>第一周</h4><p>入学测试 · 英语分级 · 生活问答</p></div></a>
+    <a href="#stage4" class="tl-row"><div class="tl-node">肆</div>
+      <div class="tl-card"><div class="hd"><span class="stage">STAGE 04</span><span class="count">7 章</span></div>
+        <h4>第一学期</h4><p>选课 · 社团 · 竞赛 · 培养方案 · 转专业</p></div></a>
+  </div>
+  <div class="note red">
+    <span class="who">✎ 师姐提醒</span>
+    报到那天人巨多，早上八点前到最省事，晚了排队能排到中午。行李先寄到菜鸟驿站更省力。
+  </div>
+</div>
+
+<!-- 吃喝玩乐地图 · 票根 -->
+<div class="sec">
+  <div class="sec-h"><span class="zh">吃喝玩乐地图</span><span class="en">Map</span><span class="dash"></span></div>
+  <a href="campus.html" class="ticket">
+    <div class="m"><div class="lbl">ADMIT ONE · 财大周边</div><h4>吃遍<em>财大周边</em></h4><div class="sub">南湖 + 首义 · 1km 范围精选</div></div>
+    <div class="s"><b>50</b><span>家精选</span><span class="go">进入 →</span></div>
+  </a>
+  <a href="wuhan.html" class="ticket">
+    <div class="m"><div class="lbl">ADMIT ONE · 武汉全城</div><h4>吃遍<em>武汉三镇</em></h4><div class="sub">17 分类 · 9 区域全覆盖</div></div>
+    <div class="s"><b>540+</b><span>家精选</span><span class="go">进入 →</span></div>
+  </a>
+  <a href="play.html" class="ticket">
+    <div class="m"><div class="lbl">ADMIT ONE · 周边游玩</div><h4>玩转<em>周边景点</em></h4><div class="sub">景点 · 街巷 · 书店 · 寺庙</div></div>
+    <div class="s"><b>32</b><span>处地点</span><span class="go">进入 →</span></div>
+  </a>
+</div>
+
+<!-- STAGE 01 报到前 -->
+<div class="sec" id="stage1">
+  <div class="sec-h"><span class="zh">Stage 01 · 报到前</span><span class="en">Before</span><span class="dash"></span></div>
+  <a href="xinsheng.html" class="mrow hot"><span class="no">壹</span><div class="bd"><h4>新生必看</h4><p>报到 · 常见问题 · 自习地图 · 必备清单</p></div><span class="cat">必读</span><span class="ar">›</span></a>
+  <a href="jiaotong.html" class="mrow"><span class="no">贰</span><div class="bd"><h4>交通快递</h4><p>校内外交通 · 到校路线 · 快递收件</p></div><span class="cat">出行</span><span class="ar">›</span></a>
+</div>
+
+<!-- STAGE 02 报到日 -->
+<div class="sec" id="stage2">
+  <div class="sec-h"><span class="zh">Stage 02 · 报到日</span><span class="en">Day One</span><span class="dash"></span></div>
+  <a href="sushe.html" class="mrow hot"><span class="no">叁</span><div class="bd"><h4>宿舍军训</h4><p>首义 / 南湖宿舍 · 军训清单</p></div><span class="cat">生活</span><span class="ar">›</span></a>
+  <a href="xiaoqu.html" class="mrow"><span class="no">肆</span><div class="bd"><h4>校园服务</h4><p>企业微信 · 校园地图 · 校历 · 医保</p></div><span class="cat">服务</span><span class="ar">›</span></a>
+</div>
+
+<!-- STAGE 03 第一周 -->
+<div class="sec" id="stage3">
+  <div class="sec-h"><span class="zh">Stage 03 · 第一周</span><span class="en">Week One</span><span class="dash"></span></div>
+  <a href="rushi.html" class="mrow"><span class="no">伍</span><div class="bd"><h4>入学测试</h4><p>校规答案 · 数学测试</p></div><span class="cat">测试</span><span class="ar">›</span></a>
+  <a href="xueye.html" class="mrow hot"><span class="no">陆</span><div class="bd"><h4>学业指南</h4><p>英语分级 · 转专业 · 题库</p></div><span class="cat">学业</span><span class="ar">›</span></a>
+  <a href="shenghuo.html" class="mrow"><span class="no">柒</span><div class="bd"><h4>生活问答</h4><p>高频 FAQ · 校内食堂</p></div><span class="cat">问答</span><span class="ar">›</span></a>
+</div>
+
+<!-- STAGE 04 第一学期 -->
+<div class="sec" id="stage4">
+  <div class="sec-h"><span class="zh">Stage 04 · 第一学期</span><span class="en">Semester</span><span class="dash"></span></div>
+  <a href="xuanke.html" class="mrow hot"><span class="no">捌</span><div class="bd"><h4>选课宝典</h4><p>师兄师姐推荐选修课</p></div><span class="cat">学业</span><span class="ar">›</span></a>
+  <a href="tice.html" class="mrow"><span class="no">玖</span><div class="bd"><h4>体育体测</h4><p>体测标准 · 阳光体育</p></div><span class="cat">体育</span><span class="ar">›</span></a>
+  <a href="shetuan.html" class="mrow"><span class="no">拾</span><div class="bd"><h4>社团一览</h4><p>百团大战图鉴</p></div><span class="cat">课余</span><span class="ar">›</span></a>
+  <a href="peiyang.html" class="mrow"><span class="no">十一</span><div class="bd"><h4>培养方案</h4><p>上下册查询</p></div><span class="cat">学业</span><span class="ar">›</span></a>
+  <a href="jiangzhu.html" class="mrow"><span class="no">十二</span><div class="bd"><h4>奖助学金</h4><p>奖学金 · 贷款 · 勤工助学</p></div><span class="cat">资助</span><span class="ar">›</span></a>
+  <a href="zuzhi.html" class="mrow"><span class="no">十三</span><div class="bd"><h4>学生组织</h4><p>校级组织一览</p></div><span class="cat">课余</span><span class="ar">›</span></a>
+  <a href="jingsai.html" class="mrow"><span class="no">十四</span><div class="bd"><h4>竞赛活动</h4><p>大创 · 挑战杯 · 希贤杯</p></div><span class="cat">进阶</span><span class="ar">›</span></a>
+</div>
+
+<!-- 群入口 -->
+<div class="group-entry" id="groupEntry">
+  <div class="group-entry-icon">💬</div>
+  <div class="group-entry-text"><div class="group-entry-title">加入 2026 新生群</div><div class="group-entry-desc">扫码进群，师兄师姐在线答疑</div></div>
+  <div class="group-entry-arrow">›</div>
+</div>
+
+<div class="colophon">实地探访 × 社群推荐 × 新生资料包<br>江城编辑部 · 与师兄师姐一同修订 · 2026</div>
+
+</div>
+<script src="js/config.js"></script><script src="js/common.js"></script><script src="js/baibaoxiang.js"></script>
+</body></html>

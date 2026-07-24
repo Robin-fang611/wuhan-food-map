@@ -401,7 +401,7 @@
     var overlay = el('div', { className: 'modal-overlay' });
     var content = el('div', { className: 'modal-content', style: { textAlign: 'center' } });
     content.appendChild(el('div', { className: 'modal-handle' }));
-    content.appendChild(el('div', { style: { fontSize: '20px', fontWeight: '700', marginBottom: '8px' } }, '鲜城 · 周边游玩'));
+    content.appendChild(el('div', { style: { fontSize: '20px', fontWeight: '700', marginBottom: '8px' } }, '江城 · 周边游玩'));
     content.appendChild(el('div', { style: { fontSize: '13px', color: '#999', marginBottom: '20px' } }, 'Version 1.0.0'));
     content.appendChild(el('div', {
       style: { fontSize: '14px', color: '#666', lineHeight: '1.8', textAlign: 'left', marginBottom: '16px' },

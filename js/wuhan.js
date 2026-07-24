@@ -94,7 +94,7 @@
   function createSplash() {
     const splash = el('div', { className: 'splash-screen', id: 'splash' }, [
       el('div', { className: 'splash-logo' }, '味'),
-      el('div', { className: 'splash-title' }, '鲜城 · 全城美食地图'),
+      el('div', { className: 'splash-title' }, '江城 · 全城美食地图'),
       el('div', { className: 'splash-subtitle' }, `带你吃遍武汉三镇 · ${state.allShops.length}家精选`),
       el('div', { className: 'loading-dots', style: { marginTop: '8px' } }, [
         el('span'), el('span'), el('span'),
@@ -572,12 +572,12 @@
     const overlay = el('div', { className: 'modal-overlay' });
     const content = el('div', { className: 'modal-content', style: { textAlign: 'center' } });
     content.appendChild(el('div', { className: 'modal-handle' }));
-    content.appendChild(el('div', { style: { fontSize: '20px', fontWeight: '700', marginBottom: '8px' } }, '鲜城 · 全城版'));
+    content.appendChild(el('div', { style: { fontSize: '20px', fontWeight: '700', marginBottom: '8px' } }, '江城 · 全城版'));
     content.appendChild(el('div', { style: { fontSize: '13px', color: '#999', marginBottom: '20px' } }, 'Version 1.0.0'));
     content.appendChild(el('div', {
       style: { fontSize: '14px', color: '#666', lineHeight: '1.8', textAlign: 'left', marginBottom: '16px' },
     }, [
-      '鲜城·全城版带你探索武汉三镇美食，覆盖 540+ 家精选店铺。\n\n',
+      '江城·全城版带你探索武汉三镇美食，覆盖 540+ 家精选店铺。\n\n',
       '数据来源：实地探访 + 社群推荐\n',
       '覆盖区域：武昌、洪山、江汉、江岸、汉阳、江夏等\n',
       '分类：17 个美食分类，从早餐到夜宵全覆盖',

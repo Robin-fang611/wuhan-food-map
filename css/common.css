@@ -1,66 +1,112 @@
 /* ========================================
    武汉美食地图 - 共享设计系统
-   鲜城 · 味觉地图
+   江城 · 味觉地图
    ======================================== */
 
-/* --- Design Tokens --- */
+/* --- Design Tokens ---
+   统一设计系统：以 --color-* / --space-* / --radius-* / --shadow-* / --font-* 为规范命名，
+   同时保留旧别名（--cream-bg / --lime / --coral ...），确保既有组件无需改动即可运行。 */
 :root {
-  /* 背景色 */
-  --cream-bg: #F9F4DF;
-  --cream-bg-2: #FFF7ED;
-  --card-bg: #FFFFFF;
-  --light-bg: #F5F5F0;
-  
-  /* 主题色 */
-  --lime: #B9FF66;
-  --lime-dark: #65A30D;
-  --coral: #FF5A5F;
-  --coral-dark: #E54B4F;
-  --amber: #D4A574;
-  --amber-dark: #B8860B;
-  --honey: #F5C842;
-  --star: #FFB400;
-  
-  /* 文字色 */
-  --text-primary: #1A1A23;
-  --text-secondary: #555555;
-  --text-tertiary: #999999;
-  --text-on-primary: #FFFFFF;
-  --text-on-lime: #1A1A23;
-  
+  /* ===== 品牌色（当代校园编辑部 · 与新生手册统一） ===== */
+  --color-cream: #F6F1E7;        /* 编辑部底色 */
+  --color-lime: #63715C;         /* 辅助绿（原亮青柠 → 编辑部绿） */
+  --color-lime-dark: #63715C;    /* 绿色强调 */
+  --color-coral: #C54E36;        /* 江城红 · 唯一强调色 */
+  --color-coral-dark: #A93E28;
+  --color-amber: #63715C;        /* 琥珀 → 编辑部绿，统一强调体系 */
+  --color-amber-dark: #4E5A48;
+  --color-purple: #63715C;
+  --color-purple-dark: #4E5A48;
+  --color-honey: #C54E36;
+  --color-star: #C54E36;
+
+  /* 文字 */
+  --color-text-1: #25231F;
+  --color-text-2: #5F5B52;
+  --color-text-3: #948F82;
+  --color-on-primary: #FFFFFF;
+  --color-on-lime: #FFFFFF;
+
+  /* 表面 */
+  --color-card: #FFFCF6;
+  --color-bg-soft: #F3EEE1;
+  --color-bg-2: #EFE9DC;
+  --color-border-light: #E3DCCE;
+  --color-border-default: #D8D1C3;
+  --color-border-dark: #BDB6A6;
+
   /* 功能色 */
   --success: #22C55E;
   --warning: #F59E0B;
   --danger: #EF4444;
-  
-  /* 边框 */
-  --border-light: #E8E5DE;
-  --border-default: #D9D5CC;
-  --border-dark: #B8B4AC;
-  
-  /* 圆角 */
+
+  /* ===== 旧别名（保持既有 CSS 兼容） ===== */
+  --cream-bg: var(--color-cream);
+  --cream-bg-2: var(--color-bg-soft);
+  --lime: var(--color-lime);
+  --lime-dark: var(--color-lime-dark);
+  --coral: var(--color-coral);
+  --coral-dark: var(--color-coral-dark);
+  --amber: var(--color-amber);
+  --amber-dark: var(--color-amber-dark);
+  --purple: var(--color-purple);
+  --honey: var(--color-honey);
+  --star: var(--color-star);
+  --text-primary: var(--color-text-1);
+  --text-secondary: var(--color-text-2);
+  --text-tertiary: var(--color-text-3);
+  --text-on-primary: var(--color-on-primary);
+  --text-on-lime: var(--color-on-lime);
+  --card-bg: var(--color-card);
+  --light-bg: var(--color-bg-2);
+  --border-light: var(--color-border-light);
+  --border-default: var(--color-border-default);
+  --border-dark: var(--color-border-dark);
+
+  /* ===== 间距尺度 ===== */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+
+  /* ===== 圆角尺度（卡片16 / 按钮8-22 / 手机框36） ===== */
   --radius-sm: 8px;
   --radius-md: 12px;
   --radius-lg: 16px;
   --radius-xl: 22px;
+  --radius-2xl: 26px;
+  --radius-frame: 36px;
   --radius-full: 9999px;
-  
-  /* 阴影 */
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
+
+  /* ===== 阴影 ===== */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
   --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.06);
   --shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.08);
   --shadow-xl: 0 8px 32px rgba(0, 0, 0, 0.12);
-  --shadow-coral: 0 4px 14px rgba(255, 90, 95, 0.25);
-  --shadow-lime: 0 4px 14px rgba(185, 255, 102, 0.3);
-  --shadow-amber: 0 4px 14px rgba(212, 165, 116, 0.25);
-  
-  /* 过渡 */
-  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-normal: 250ms cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-slow: 400ms cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-bounce: 400ms cubic-bezier(0.34, 1.56, 0.64, 1);
-  
-  /* 间距 */
+  --shadow-coral: 0 4px 14px rgba(255, 90, 95, 0.28);
+  --shadow-lime: 0 4px 14px rgba(185, 255, 102, 0.34);
+  --shadow-amber: 0 4px 14px rgba(212, 165, 116, 0.28);
+  --shadow-purple: 0 4px 14px rgba(139, 92, 246, 0.30);
+
+  /* ===== 动效 ===== */
+  --motion-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --motion-normal: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+  --motion-slow: 400ms cubic-bezier(0.4, 0, 0.2, 1);
+  --motion-bounce: 420ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  --transition-fast: var(--motion-fast);
+  --transition-normal: var(--motion-normal);
+  --transition-slow: var(--motion-slow);
+  --transition-bounce: var(--motion-bounce);
+
+  /* ===== 字体 ===== */
+  --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+
+  /* ===== 布局 ===== */
+  --content-max: 480px;
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
 }
@@ -82,12 +128,13 @@ html {
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+  font-family: var(--font-sans);
   background: var(--cream-bg);
   color: var(--text-primary);
   line-height: 1.5;
   overflow-x: hidden;
   min-height: 100vh;
+  -webkit-tap-highlight-color: transparent;
 }
 
 a { color: inherit; text-decoration: none; }
@@ -813,4 +860,115 @@ ul, ol { list-style: none; }
   background: var(--light-bg);
   color: var(--text-primary);
   font-weight: 600;
+}
+
+/* ============================================================
+   交互增强 & 动效细化（不改动既有类名）
+   ============================================================ */
+
+/* 列表渲染淡入：筛选切换 / 分页时平滑过渡 */
+#shop-list,
+#place-list,
+.favorite-list,
+.category-grid {
+  transition: opacity var(--motion-normal);
+}
+
+/* 店铺卡片：桌面 hover 抬升 + 键盘焦点环 */
+.shop-card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+.shop-card:focus-visible {
+  outline: 2px solid var(--color-lime);
+  outline-offset: 2px;
+  box-shadow: var(--shadow-md);
+}
+.place-card:hover {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
+}
+.place-card:focus-visible {
+  outline: 2px solid var(--color-purple);
+  outline-offset: 2px;
+}
+
+/* 可点击元素的通用焦点态（键盘可达性） */
+.button,
+.icon-btn:focus-visible,
+.tab-item:focus-visible,
+.toggle-tab:focus-visible,
+.chip:focus-visible,
+.category-cell:focus-visible,
+.floating-cta-btn:focus-visible,
+.modal-close:focus-visible {
+  outline: 2px solid var(--color-lime);
+  outline-offset: 2px;
+}
+
+/* 骨架屏 / Shimmer（列表加载占位） */
+.skeleton-card {
+  display: flex;
+  gap: 12px;
+  padding: 12px;
+  background: var(--color-card);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 10px;
+}
+.skeleton-card .sk-img {
+  width: 80px;
+  height: 96px;
+  border-radius: var(--radius-md);
+  flex-shrink: 0;
+}
+.skeleton-card .sk-lines {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px 0;
+  justify-content: center;
+}
+.skeleton-line {
+  height: 12px;
+  border-radius: 6px;
+}
+.sk-1 { width: 55%; }
+.sk-2 { width: 90%; }
+.sk-3 { width: 70%; }
+.sk-4 { width: 40%; }
+
+/* 地图标记淡入淡出（筛选变化 / 初次渲染） */
+@keyframes markerFade {
+  from { opacity: 0; transform: scale(0.5); }
+  to   { opacity: 1; transform: scale(1); }
+}
+.amap-marker-fade {
+  animation: markerFade 320ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  transform-origin: center bottom;
+}
+
+/* 详情弹窗：焦点进入、关闭按钮更清晰 */
+.modal-close {
+  background: var(--color-bg-2);
+  color: var(--color-text-2);
+}
+.modal-close:hover { background: var(--color-border-light); }
+
+/* Toast 轻提示细化 */
+.toast-msg {
+  font-family: var(--font-sans);
+  box-shadow: var(--shadow-lg);
+  border-radius: var(--radius-full);
+}
+
+/* 全局：尊重「减少动态效果」偏好 */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
 }

@@ -175,7 +175,12 @@ function createShopCard(shop, onClick) {
   const ratingText = formatRating(shop.rating);
   const ratingColor = getRatingColor(shop.rating);
 
-  const card = el('div', { className: 'shop-card entering' });
+  const card = el('div', {
+    className: 'shop-card entering',
+    tabindex: '0',
+    role: 'button',
+    'aria-label': `查看店铺 ${shop.name} 详情`,
+  });
 
   // 图片占位
   const imgWrap = el('div', {
@@ -239,6 +244,12 @@ function createShopCard(shop, onClick) {
 
   if (onClick) {
     card.addEventListener('click', () => onClick(shop));
+    card.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar') {
+        e.preventDefault();
+        onClick(shop);
+      }
+    });
   }
 
   // 移除 entering 动画类
@@ -377,6 +388,14 @@ function createDetailModal(shop, onClose, onNavigate) {
     }
   });
 
+  // 弹窗展开后将焦点移入关闭按钮，提升键盘可达性
+  overlay.addEventListener('transitionend', (ev) => {
+    if (ev.propertyName === 'opacity' && overlay.classList.contains('show')) {
+      const cb = overlay.querySelector('.modal-close');
+      if (cb && document.activeElement !== cb) cb.focus();
+    }
+  });
+
   return overlay;
 }
 
@@ -437,6 +456,34 @@ function showEmpty(container, text = '暂无数据') {
   ]);
   container.innerHTML = '';
   container.appendChild(empty);
+}
+
+/** 骨架屏占位（列表加载 / 筛选切换时的 shimmer） */
+function showSkeleton(container, count = 4) {
+  container.innerHTML = '';
+  for (let i = 0; i < count; i++) {
+    const card = el('div', { className: 'skeleton-card' }, [
+      el('div', { className: 'sk-img skeleton' }),
+      el('div', { className: 'sk-lines' }, [
+        el('div', { className: 'skeleton-line sk-1 skeleton' }),
+        el('div', { className: 'skeleton-line sk-2 skeleton' }),
+        el('div', { className: 'skeleton-line sk-3 skeleton' }),
+        el('div', { className: 'skeleton-line sk-4 skeleton' }),
+      ]),
+    ]);
+    container.appendChild(card);
+  }
+}
+
+/** 列表重渲染的平滑淡入淡出辅助 */
+function fadeListOut(node) {
+  if (node) node.style.opacity = '0';
+}
+function fadeListIn(node) {
+  if (!node) return;
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    node.style.opacity = '1';
+  }));
 }
 
 /** 创建底部 Tab Bar */
@@ -523,7 +570,11 @@ function showSocialModal(config) {
   });
 
   document.body.appendChild(overlay);
-  requestAnimationFrame(() => overlay.classList.add('show'));
+  requestAnimationFrame(() => {
+    overlay.classList.add('show');
+    const cb = overlay.querySelector('.modal-close');
+    if (cb) cb.focus();
+  });
 }
 
 /** Toast 提示 */
@@ -546,6 +597,17 @@ function showToast(text) {
     setTimeout(function () { t.remove(); }, 300);
   }, 2000);
 }
+
+/** 全局：Esc 关闭当前打开的弹窗（详情 / 社群 / 关于） */
+document.addEventListener('keydown', function (e) {
+  if (e.key === 'Escape' || e.key === 'Esc') {
+    const open = document.querySelector('.modal-overlay.show');
+    if (open) {
+      const cb = open.querySelector('.modal-close');
+      if (cb) cb.click();
+    }
+  }
+});
 
 /** 分享功能 */
 function handleShare() {

@@ -84,7 +84,7 @@
   function createSplash() {
     const splash = el('div', { className: 'splash-screen', id: 'splash' }, [
       el('div', { className: 'splash-logo' }, '味'),
-      el('div', { className: 'splash-title' }, '鲜城 · 财大美食地图'),
+      el('div', { className: 'splash-title' }, '江城 · 财大美食地图'),
       el('div', { className: 'splash-subtitle' }, '师兄师姐带你吃遍财大周边'),
       el('div', { className: 'loading-dots', style: { marginTop: '8px' } }, [
         el('span'), el('span'), el('span'),
@@ -199,6 +199,7 @@
   // === 渲染列表 ===
   function filterAndRender() {
     const shops = filterShops();
+    fadeListOut(dom.shopList);
     dom.resultTitle.textContent = `附近美食 · ${shops.length}家`;
 
     const sortLabels = {
@@ -211,6 +212,7 @@
 
     if (shops.length === 0) {
       showEmpty(dom.shopList, '没有找到符合条件的美食\n试试换个筛选条件？');
+      fadeListIn(dom.shopList);
       return;
     }
 
@@ -220,6 +222,7 @@
       card.style.animationDelay = `${Math.min(i * 30, 300)}ms`;
       dom.shopList.appendChild(card);
     });
+    fadeListIn(dom.shopList);
   }
 
   // === 详情弹窗 ===
@@ -423,14 +426,14 @@
     content.appendChild(el('div', { className: 'modal-handle' }));
     content.appendChild(el('div', {
       style: { fontSize: '20px', fontWeight: '700', marginBottom: '8px' },
-    }, '鲜城 · 味觉地图'));
+    }, '江城 · 味觉地图'));
     content.appendChild(el('div', {
       style: { fontSize: '13px', color: '#999', marginBottom: '20px' },
     }, 'Version 1.0.0'));
     content.appendChild(el('div', {
       style: { fontSize: '14px', color: '#666', lineHeight: '1.8', textAlign: 'left', marginBottom: '16px' },
     }, [
-      '鲜城·味觉地图是一个武汉美食发现应用，帮助你探索财大周边和武汉全城的好味道。\n\n',
+      '江城·味觉地图是一个武汉美食发现应用，帮助你探索财大周边和武汉全城的好味道。\n\n',
       '数据来源：实地探访 + 社群推荐\n',
       '覆盖范围：财大两校区 1km + 武汉全城 540+ 家店\n',
       '坐标系：GCJ-02（高德坐标系）',
