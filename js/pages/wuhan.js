@@ -44,7 +44,7 @@ import { renderProfileView, renderFavoriteView } from '../components/ProfileView
     '韩国菜', '泰国菜', '其他国家菜',
   ];
 
-  const AREAS = ['全部', '武昌', '洪山', '江汉', '江岸', '汉阳', '江夏', '硚口', '青山'];
+  const AREAS = ['全部', '武昌', '洪山/江夏', '汉口', '江汉', '江岸', '汉阳', '江夏', '硚口', '青山', '光谷', '沌口', '蔡甸', '青山区'];
 
   const CATEGORY_GRID = [
     { name: '全部', color: '#1A1A23' },
