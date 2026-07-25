@@ -369,7 +369,7 @@
     var menuItems = [
       { icon: '🔄', label: '切换到财大美食', action: function () { window.location.href = 'campus.html'; } },
       { icon: '🔄', label: '切换到全城美食', action: function () { window.location.href = 'wuhan.html'; } },
-      { icon: '💬', label: '加入游玩群', action: function () { showSocialModal(window.__SOCIAL_CONFIG__.campus); } },
+      { icon: '💬', label: '加入游玩群', action: function () { showSocialModal(); } },
       { icon: 'ℹ️', label: '关于', action: function () { showAbout(); } },
     ];
 
@@ -601,7 +601,7 @@
 
     dom.shareBtn.addEventListener('click', handleShare);
     dom.socialBtn.addEventListener('click', function () {
-      showSocialModal(window.__SOCIAL_CONFIG__.campus);
+      showSocialModal();
     });
 
     dom.content.addEventListener('scroll', function () {

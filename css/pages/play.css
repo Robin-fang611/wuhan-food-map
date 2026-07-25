@@ -1,0 +1,14 @@
+/* 周边游玩页面 - 特有样式（紫色主题覆盖） */
+
+.brand-dot.violet { background: #8B5CF6; }
+
+/* 紫色主题覆盖（覆盖全局变量） */
+.toggle-tab.active { background: #8B5CF6 !important; color: #fff !important; }
+.tab-item.active { color: #8B5CF6 !important; }
+.chip.active { background: #8B5CF6 !important; color: #fff !important; border-color: #8B5CF6 !important; }
+.chip.active .chip-dot { background: #fff !important; }
+
+.floating-cta-btn { background: linear-gradient(135deg, #8B5CF6, #6366F1) !important; }
+
+/* 游玩渐入动画 */
+@keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }

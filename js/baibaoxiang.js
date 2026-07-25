@@ -18,11 +18,4 @@ if (backBtn) {
   });
 }
 
-// 群入口（复用 common.js 的 showSocialModal）
-document.querySelectorAll('.group-entry').forEach(function (el) {
-  el.addEventListener('click', function () {
-    if (window.__SOCIAL_CONFIG__ && window.__SOCIAL_CONFIG__.campus) {
-      showSocialModal(window.__SOCIAL_CONFIG__.campus);
-    }
-  });
-});
+// 群入口 — 已迁移至 js/pages/index.js 的 showAdPopup，此处不再重复绑定

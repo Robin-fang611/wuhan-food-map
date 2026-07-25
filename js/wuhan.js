@@ -534,7 +534,7 @@
 
     const menuItems = [
       { icon: '🎯', label: '我的收藏', action: () => switchTab('favorite') },
-      { icon: '💬', label: '加入武汉吃货群', action: () => showSocialModal(window.__SOCIAL_CONFIG__.city) },
+      { icon: '💬', label: '加入武汉吃货群', action: () => showSocialModal() },
       { icon: '🏫', label: '切换到财大周边版', action: () => window.location.href = 'campus.html' },
       { icon: 'ℹ️', label: '关于', action: () => showAbout() },
     ];
@@ -841,7 +841,7 @@
 
     dom.socialBtn.addEventListener('click', () => {
       if (window.__analytics) window.__analytics.trackSocial();
-      showSocialModal(window.__SOCIAL_CONFIG__.city);
+      showSocialModal();
     });
 
     // 滚动

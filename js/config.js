@@ -15,18 +15,18 @@ window.__AMAP_CONFIG__ = {
   securityJsCode: '',  // 如启用了安全密钥，填入此处
 };
 
-/** 社群配置 */
+/** 社群配置（多个群，弹窗内并列展示） */
 window.__SOCIAL_CONFIG__ = {
-  campus: {
-    title: '加入财大吃喝玩乐群',
-    subtitle: '师兄师姐带你吃遍财大周边',
-    qrCode: 'images/qrcode.png',
-    link: '',
-  },
-  city: {
-    title: '加入武汉新生吃喝玩乐群',
-    subtitle: '带你吃遍武汉三镇',
-    qrCode: 'images/qrcode.png',
-    link: '',
-  },
+  groups: [
+    {
+      title: '新生交流群',
+      subtitle: '师兄师姐在线答疑，选课/宿舍/社团全搞定',
+      qrCode: 'images/qrcode.png',
+    },
+    {
+      title: '财大 LinkYou',
+      subtitle: '添加领取：入学测试答案/选课宝典/培养方案',
+      qrCode: 'images/qrcode.jpg',
+    },
+  ],
 };

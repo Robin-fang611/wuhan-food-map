@@ -387,7 +387,7 @@
     const menuItems = [
       { icon: '🎯', label: '我的收藏', action: () => switchTab('favorite') },
       { icon: '📍', label: '定位到当前位置', action: () => locateToCurrent() },
-      { icon: '💬', label: '加入吃货群', action: () => showSocialModal(window.__SOCIAL_CONFIG__.campus) },
+      { icon: '💬', label: '加入吃货群', action: () => showSocialModal() },
       { icon: '🔄', label: '切换到全城版', action: () => window.location.href = 'wuhan.html' },
       { icon: 'ℹ️', label: '关于', action: () => showAbout() },
     ];
@@ -798,7 +798,7 @@
     // 社群按钮
     dom.socialBtn.addEventListener('click', () => {
       if (window.__analytics) window.__analytics.trackSocial();
-      showSocialModal(window.__SOCIAL_CONFIG__.campus);
+      showSocialModal();
     });
 
     // 滚动监听

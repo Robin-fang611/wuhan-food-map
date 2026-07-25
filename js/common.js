@@ -511,70 +511,79 @@ function createTabBar(activeTab, theme = 'lime') {
   return bar;
 }
 
-/** 社群弹窗 */
-function showSocialModal(config) {
-  const overlay = el('div', { className: 'modal-overlay' });
-  const content = el('div', { className: 'modal-content', style: { textAlign: 'center' } });
+/** 社群弹窗（全屏覆盖，展示所有群二维码） */
+function showSocialModal() {
+  const cfg = window.__SOCIAL_CONFIG__;
+  const groups = (cfg && cfg.groups) ? cfg.groups : [];
+  const overlay = el('div', { className: 'social-overlay' });
 
-  content.appendChild(el('div', { className: 'modal-handle' }));
-  content.appendChild(el('div', {
-    style: { fontSize: '20px', fontWeight: '700', marginBottom: '8px' },
-  }, config.title));
-  content.appendChild(el('div', {
-    style: { fontSize: '14px', color: '#999', marginBottom: '20px' },
-  }, config.subtitle));
-
-  if (config.qrCode) {
-    content.appendChild(el('img', {
-      src: config.qrCode,
-      style: { width: '200px', height: '200px', borderRadius: '12px', margin: '0 auto 16px', display: 'block' },
-    }));
-    content.appendChild(el('div', {
-      style: { fontSize: '13px', color: '#666', marginBottom: '16px' },
-    }, '扫码加入群聊'));
-  } else {
-    content.appendChild(el('div', {
-      style: {
-        width: '160px', height: '160px', margin: '0 auto 16px',
-        background: 'linear-gradient(135deg, #F9F4DF, #FFF7ED)',
-        borderRadius: '12px', display: 'flex',
-        alignItems: 'center', justifyContent: 'center',
-        fontSize: '48px',
-      },
-    }, '💬'));
-    content.appendChild(el('div', {
-      style: { fontSize: '13px', color: '#999', marginBottom: '16px' },
-    }, '二维码待上传，请联系管理员获取群链接'));
-  }
-
-  if (config.link) {
-    const linkBtn = el('div', {
-      className: 'detail-nav-btn',
-      style: { background: '#FF5A5F' },
-    }, '点击加入群聊');
-    linkBtn.addEventListener('click', () => window.open(config.link, '_blank'));
-    content.appendChild(linkBtn);
-  }
-
-  const closeBtn = el('div', { className: 'modal-close' });
+  // 顶部栏（标题 + 关闭）
+  const topbar = el('div', { className: 'social-topbar' });
+  topbar.appendChild(el('div', { className: 'social-title' }, '加入社群'));
+  const closeBtn = el('div', { className: 'social-close' });
   closeBtn.innerHTML = Icons.close;
   closeBtn.addEventListener('click', () => {
-    overlay.classList.remove('show');
-    setTimeout(() => overlay.remove(), 250);
+    overlay.style.opacity = '0';
+    setTimeout(() => overlay.remove(), 200);
   });
-  content.appendChild(closeBtn);
+  topbar.appendChild(closeBtn);
+  overlay.appendChild(topbar);
 
-  overlay.appendChild(content);
+  // 内容页
+  const page = el('div', { className: 'social-page' });
+  const head = el('div', { className: 'page-head' });
+  head.appendChild(el('h2', {}, '扫码加入我们'));
+  head.appendChild(el('p', {}, '挑一个你最感兴趣的群，长按或扫一扫'));
+  page.appendChild(head);
+
+  groups.forEach((g) => {
+    const card = el('div', { className: 'qr-card' });
+    card.appendChild(el('div', { className: 'qr-name' }, g.title));
+    card.appendChild(el('div', { className: 'qr-desc' }, g.subtitle || ''));
+    if (g.qrCode) {
+      card.appendChild(el('img', { src: g.qrCode, alt: g.title, loading: 'eager' }));
+      card.appendChild(el('div', { className: 'qr-tip' }, '微信扫码加入'));
+    } else {
+      card.appendChild(el('div', {
+        style: {
+          width: '200px', height: '200px', margin: '0 auto',
+          background: 'linear-gradient(135deg, #F9F4DF, #FFF7ED)',
+          borderRadius: '12px', display: 'flex',
+          alignItems: 'center', justifyContent: 'center', fontSize: '40px',
+        },
+      }, '💬'));
+      card.appendChild(el('div', { className: 'qr-tip', style: { color: '#aaa' } }, '二维码待上传'));
+    }
+    page.appendChild(card);
+  });
+
+  overlay.appendChild(page);
   overlay.addEventListener('click', (e) => {
     if (e.target === overlay) closeBtn.click();
   });
 
   document.body.appendChild(overlay);
   requestAnimationFrame(() => {
-    overlay.classList.add('show');
-    const cb = overlay.querySelector('.modal-close');
-    if (cb) cb.focus();
+    requestAnimationFrame(() => overlay.classList.add('show'));
   });
+}
+
+/** 预加载二维码图片 */
+function preloadQRCode() {
+  var cfg = window.__SOCIAL_CONFIG__;
+  if (!cfg || !cfg.groups) return;
+  cfg.groups.forEach(function(g) {
+    if (g.qrCode) {
+      var i = new Image(); i.src = g.qrCode;
+    }
+  });
+}
+
+/* 页面加载后预加载二维码 */
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', preloadQRCode);
+} else {
+  preloadQRCode();
 }
 
 /** Toast 提示 */
@@ -601,9 +610,9 @@ function showToast(text) {
 /** 全局：Esc 关闭当前打开的弹窗（详情 / 社群 / 关于） */
 document.addEventListener('keydown', function (e) {
   if (e.key === 'Escape' || e.key === 'Esc') {
-    const open = document.querySelector('.modal-overlay.show');
+    const open = document.querySelector('.modal-overlay.show') || document.querySelector('.social-overlay.show');
     if (open) {
-      const cb = open.querySelector('.modal-close');
+      const cb = open.querySelector('.modal-close') || open.querySelector('.social-close');
       if (cb) cb.click();
     }
   }
