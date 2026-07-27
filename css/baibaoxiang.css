@@ -185,11 +185,71 @@ body {
 .mrow .ar { font-size: 15px; color: var(--ink-3); flex-shrink: 0; }
 .mrow.hot h4::after { content: '荐'; font-size: 9px; color: #fff; background: var(--red); border-radius: 3px; padding: 1px 4px; margin-left: 6px; vertical-align: 2px; font-weight: 700; }
 
-/* 置灰（内容筹备中 · 不可点击） */
-.mrow.locked { opacity: .5; filter: grayscale(1); pointer-events: none; }
+/* 锁定（点击解锁 · 视觉置灰但可点击） */
+.mrow.locked { opacity: .55; filter: grayscale(.9); cursor: pointer; }
+.mrow.locked:active { transform: scale(.99); }
 .mrow.locked .cat { color: var(--ink-3); border-color: var(--line); background: transparent; }
-.tl-row.locked { opacity: .45; filter: grayscale(1); pointer-events: none; }
+.tl-row.locked { opacity: .5; filter: grayscale(.9); cursor: pointer; }
+.tl-row.locked:active .tl-card { transform: scale(.99); border-color: var(--red); }
 .soon-pill { font-size: 10px; letter-spacing: .08em; color: var(--ink-3); border: 1px solid var(--line); border-radius: var(--r-pill); padding: 1px 8px; flex-shrink: 0; }
+
+/* 顶部测试横幅 */
+.beta-banner {
+  position: relative; display: flex; align-items: center;
+  margin: 0 0 16px; padding: 11px 38px 11px 14px;
+  background: var(--red-soft); border: 1px solid var(--red); border-radius: var(--r-mod);
+  font-size: 12.5px; line-height: 1.5; color: var(--ink);
+}
+.beta-banner b { color: var(--red); font-weight: 700; }
+.beta-banner-close {
+  position: absolute; top: 50%; right: 8px; transform: translateY(-50%);
+  width: 24px; height: 24px; border: none; background: transparent;
+  color: var(--ink-3); font-size: 18px; line-height: 1; cursor: pointer;
+  border-radius: 12px; display: flex; align-items: center; justify-content: center;
+}
+.beta-banner-close:active { background: rgba(197,78,54,.12); }
+
+/* 解锁弹窗 */
+.unlock-overlay {
+  position: fixed; inset: 0; z-index: 99998;
+  background: rgba(37,35,31,.62);
+  -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+  opacity: 0; pointer-events: none; transition: opacity .3s ease;
+  display: flex; align-items: center; justify-content: center; padding: 24px 16px;
+}
+.unlock-overlay.show { opacity: 1; pointer-events: auto; }
+.unlock-sheet {
+  position: relative; width: 100%; max-width: 340px;
+  background: var(--paper); border: 1.5px solid var(--line-ink);
+  border-radius: 14px; overflow: hidden; padding: 30px 22px 22px; text-align: center;
+  box-shadow: 0 24px 60px rgba(37,35,31,.28);
+  transform: translateY(20px) scale(.97); transition: transform .35s cubic-bezier(.34,1.56,.64,1);
+}
+.unlock-overlay.show .unlock-sheet { transform: translateY(0) scale(1); }
+.unlock-sheet-bar { position: absolute; top: 0; left: 0; right: 0; height: 5px; background: var(--red); }
+.unlock-close {
+  position: absolute; top: 12px; right: 12px; width: 28px; height: 28px;
+  border: none; background: transparent; color: var(--ink-3); font-size: 20px; line-height: 1; cursor: pointer; border-radius: 14px;
+}
+.unlock-close:active { background: rgba(37,35,31,.08); }
+.unlock-title { font-family: var(--serif); font-size: 20px; font-weight: 900; letter-spacing: .03em; color: var(--ink); }
+.unlock-desc { font-size: 12.5px; color: var(--ink-2); line-height: 1.6; margin: 10px 0 18px; }
+.unlock-desc b { color: var(--red); }
+.unlock-input {
+  width: 100%; box-sizing: border-box; font-size: 15px; text-align: center; letter-spacing: .12em;
+  padding: 12px 14px; border: 1.5px solid var(--line); border-radius: var(--r-btn);
+  background: var(--bg); color: var(--ink); outline: none; transition: border-color .2s ease; font-family: var(--sans);
+}
+.unlock-input:focus { border-color: var(--red); }
+.unlock-err { font-size: 12px; color: var(--red); margin-top: 8px; min-height: 16px; }
+.unlock-btn {
+  margin-top: 14px; width: 100%; box-sizing: border-box; font-size: 15px; font-weight: 700;
+  color: #fff; background: var(--red); border: none; border-radius: var(--r-btn); padding: 13px; cursor: pointer; transition: transform .15s ease;
+}
+.unlock-btn:active { transform: scale(.98); }
+
+/* 整页门禁（内容页）：锁定态隐藏全部内容，避免加载即闪现 */
+.gate-locked .app { display: none !important; }
 
 /* ============================================================
    群入口（借 B 的通知感，收敛为纯色红）
