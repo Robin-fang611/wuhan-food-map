@@ -1,37 +1,38 @@
 [build]
-  publish = "."
+publish = "."
 
 [[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
+from = "/*"
+to = "/index.html"
+status = 200
 
-# 第一学期 7 页：服务端真锁（未带 fh_gate cookie 返回密钥页，内容不下发）
+# 第一学期 7 页：服务端真锁（未带 fh_gate cookie 返回密钥页，内容不下发）。
+# 路径用通配 * 匹配「无扩展名」「.html」「带斜杠」「带 query」等所有变体，
+# 避免用户访问 /zuzhi（无 .html）时被 Netlify 直接绕过边缘函数返回静态文件。
 [[edge_functions]]
-  path = "/xuanke.html"
-  function = "gate"
-
-[[edge_functions]]
-  path = "/tice.html"
-  function = "gate"
+path = "/xuanke*"
+function = "gate"
 
 [[edge_functions]]
-  path = "/shetuan.html"
-  function = "gate"
+path = "/tice*"
+function = "gate"
 
 [[edge_functions]]
-  path = "/peiyang.html"
-  function = "gate"
+path = "/shetuan*"
+function = "gate"
 
 [[edge_functions]]
-  path = "/jiangzhu.html"
-  function = "gate"
+path = "/peiyang*"
+function = "gate"
 
 [[edge_functions]]
-  path = "/zuzhi.html"
-  function = "gate"
+path = "/jiangzhu*"
+function = "gate"
 
 [[edge_functions]]
-  path = "/jingsai.html"
-  function = "gate"
+path = "/zuzhi*"
+function = "gate"
 
+[[edge_functions]]
+path = "/jingsai*"
+function = "gate"
