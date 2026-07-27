@@ -185,6 +185,12 @@ body {
 .mrow .ar { font-size: 15px; color: var(--ink-3); flex-shrink: 0; }
 .mrow.hot h4::after { content: '荐'; font-size: 9px; color: #fff; background: var(--red); border-radius: 3px; padding: 1px 4px; margin-left: 6px; vertical-align: 2px; font-weight: 700; }
 
+/* 置灰（内容筹备中 · 不可点击） */
+.mrow.locked { opacity: .5; filter: grayscale(1); pointer-events: none; }
+.mrow.locked .cat { color: var(--ink-3); border-color: var(--line); background: transparent; }
+.tl-row.locked { opacity: .45; filter: grayscale(1); pointer-events: none; }
+.soon-pill { font-size: 10px; letter-spacing: .08em; color: var(--ink-3); border: 1px solid var(--line); border-radius: var(--r-pill); padding: 1px 8px; flex-shrink: 0; }
+
 /* ============================================================
    群入口（借 B 的通知感，收敛为纯色红）
    ============================================================ */
