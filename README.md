@@ -11,6 +11,7 @@
 | 新生必看 | `xinsheng.html` |
 | 交通快递 | `jiaotong.html` |
 | 宿舍军训 | `sushe.html` |
+| 军训岗位攻略 | `junxun.html` |
 | 校园服务 | `xiaoqu.html` |
 | 入学测试 | `rushi.html` |
 | 学业指南 | `xueye.html` |
