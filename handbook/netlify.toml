@@ -2,7 +2,15 @@
 publish = "."
 
 # 薄页合并后的旧链接兜底（已分享出去的书签 / 群消息不失效）
-# 目前 15 页全部保留独立入口，暂无 301 需求；如后续合并页面，在此追加。
+[[redirects]]
+from = "/peiyang*"
+to = "/growth.html"
+status = 301
+
+[[redirects]]
+from = "/xuanke*"
+to = "/growth.html"
+status = 301
 
 [[redirects]]
 from = "/*"
