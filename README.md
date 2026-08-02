@@ -1,37 +1,14 @@
-# 江城 · 新生手册
+# 江城 · 财大项目工作区
 
-中南财经政法大学新生入学指南 · 民间非官方
+本工作区包含两个并列项目，便于对照演进：
 
-师兄师姐替你踩过的坑，都写在这了。
+| 目录 | 项目 | 状态 | 技术栈 |
+|------|------|------|--------|
+| `handbook/` | 江城 · 新生手册（V1 静态版） | 已冻结保留 | 纯静态 HTML + CSS + JS（Netlify） |
+| `platform/` | 江城 · 全校日常平台（V2 升级） | 开发中 | Next.js + TypeScript + Tailwind + Supabase |
 
-## 内容
+## 说明
 
-| 章节 | 页面 |
-|------|------|
-| 新生必看 | `xinsheng.html` |
-| 交通快递 | `jiaotong.html` |
-| 宿舍军训 | `sushe.html` |
-| 军训岗位攻略 | `junxun.html` |
-| 校园服务 | `xiaoqu.html` |
-| 入学测试 | `rushi.html` |
-| 学业指南 | `xueye.html` |
-| 生活问答 | `shenghuo.html` |
-| 选课宝典 | `xuanke.html` |
-| 体育体测 | `tice.html` |
-| 社团一览 | `shetuan.html` |
-| 培养方案 | `peiyang.html` |
-| 奖助学金 | `jiangzhu.html` |
-| 学生组织 | `zuzhi.html` |
-| 竞赛活动 | `jingsai.html` |
-
-## 技术栈
-
-纯静态 HTML + CSS + JavaScript
-
-## 部署
-
-Netlify 自动部署（GitHub → Netlify）
-
----
-
-🍜 想找好吃的？前往 [江城 · 味觉地图](https://jiangcheng-eats.netlify.app/)
+- 旧静态手册已整体迁入 `handbook/`，git 历史通过 `git mv` 保留；备份标签：`backup/static-v1-2026-08-02`，另存 zip 副本于上级目录。
+- 新平台从零搭建，目标是从「新生手册」升级为「全校日常平台」（学业 + 生活 + 社交 + 交易）。
+- 详见 `platform/README.md`。
