@@ -1,38 +1,10 @@
 [build]
 publish = "."
 
+# 薄页合并后的旧链接兜底（已分享出去的书签 / 群消息不失效）
+# 目前 15 页全部保留独立入口，暂无 301 需求；如后续合并页面，在此追加。
+
 [[redirects]]
 from = "/*"
 to = "/index.html"
 status = 200
-
-# 第一学期 7 页：服务端真锁（未带 fh_gate cookie 返回密钥页，内容不下发）。
-# 路径用通配 * 匹配「无扩展名」「.html」「带斜杠」「带 query」等所有变体，
-# 避免用户访问 /zuzhi（无 .html）时被 Netlify 直接绕过边缘函数返回静态文件。
-[[edge_functions]]
-path = "/xuanke*"
-function = "gate"
-
-[[edge_functions]]
-path = "/tice*"
-function = "gate"
-
-[[edge_functions]]
-path = "/shetuan*"
-function = "gate"
-
-[[edge_functions]]
-path = "/peiyang*"
-function = "gate"
-
-[[edge_functions]]
-path = "/jiangzhu*"
-function = "gate"
-
-[[edge_functions]]
-path = "/zuzhi*"
-function = "gate"
-
-[[edge_functions]]
-path = "/jingsai*"
-function = "gate"

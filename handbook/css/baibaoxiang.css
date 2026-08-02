@@ -185,71 +185,33 @@ body {
 .mrow .ar { font-size: 15px; color: var(--ink-3); flex-shrink: 0; }
 .mrow.hot h4::after { content: '荐'; font-size: 9px; color: #fff; background: var(--red); border-radius: 3px; padding: 1px 4px; margin-left: 6px; vertical-align: 2px; font-weight: 700; }
 
-/* 锁定（点击解锁 · 视觉置灰但可点击） */
-.mrow.locked { opacity: .55; filter: grayscale(.9); cursor: pointer; }
-.mrow.locked:active { transform: scale(.99); }
-.mrow.locked .cat { color: var(--ink-3); border-color: var(--line); background: transparent; }
-.tl-row.locked { opacity: .5; filter: grayscale(.9); cursor: pointer; }
-.tl-row.locked:active .tl-card { transform: scale(.99); border-color: var(--red); }
+/* 建设中标记（不锁内容，只提示尚在补充） */
 .soon-pill { font-size: 10px; letter-spacing: .08em; color: var(--ink-3); border: 1px solid var(--line); border-radius: var(--r-pill); padding: 1px 8px; flex-shrink: 0; }
 
-/* 顶部测试横幅 */
-.beta-banner {
-  position: relative; display: flex; align-items: center;
-  margin: 0 0 16px; padding: 11px 38px 11px 14px;
-  background: var(--red-soft); border: 1px solid var(--red); border-radius: var(--r-mod);
-  font-size: 12.5px; line-height: 1.5; color: var(--ink);
+/* 页内「建设中」轻提示条 */
+.wip-tip {
+  display: flex; align-items: flex-start; gap: 8px;
+  margin: 0 0 14px; padding: 10px 13px;
+  background: var(--green-soft); border: 1px dashed var(--green);
+  border-radius: var(--r-mod); font-size: 12.5px; line-height: 1.7; color: var(--ink-2);
 }
-.beta-banner b { color: var(--red); font-weight: 700; }
-.beta-banner-close {
-  position: absolute; top: 50%; right: 8px; transform: translateY(-50%);
-  width: 24px; height: 24px; border: none; background: transparent;
-  color: var(--ink-3); font-size: 18px; line-height: 1; cursor: pointer;
-  border-radius: 12px; display: flex; align-items: center; justify-content: center;
-}
-.beta-banner-close:active { background: rgba(197,78,54,.12); }
+.wip-tip b { color: var(--green); font-weight: 700; }
 
-/* 解锁弹窗 */
-.unlock-overlay {
-  position: fixed; inset: 0; z-index: 99998;
-  background: rgba(37,35,31,.62);
-  -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
-  opacity: 0; pointer-events: none; transition: opacity .3s ease;
-  display: flex; align-items: center; justify-content: center; padding: 24px 16px;
+/* 全站更新提示条（config.js __UPDATE_CONFIG__ 驱动） */
+.update-bar {
+  display: flex; align-items: center; gap: 8px;
+  margin: 0 0 14px; padding: 9px 12px;
+  background: var(--red-soft); border: 1px solid rgba(197,78,54,.28);
+  border-radius: var(--r-mod); font-size: 12px; line-height: 1.5; color: var(--ink-2);
 }
-.unlock-overlay.show { opacity: 1; pointer-events: auto; }
-.unlock-sheet {
-  position: relative; width: 100%; max-width: 340px;
-  background: var(--paper); border: 1.5px solid var(--line-ink);
-  border-radius: 14px; overflow: hidden; padding: 30px 22px 22px; text-align: center;
-  box-shadow: 0 24px 60px rgba(37,35,31,.28);
-  transform: translateY(20px) scale(.97); transition: transform .35s cubic-bezier(.34,1.56,.64,1);
+.update-bar .ub-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--red); flex-shrink: 0; }
+.update-bar .ub-text { flex: 1; min-width: 0; }
+.update-bar .ub-close {
+  border: none; background: transparent; color: var(--ink-3);
+  font-size: 14px; line-height: 1; cursor: pointer; flex-shrink: 0;
+  padding: 8px; margin: -8px -6px -8px 0; border-radius: 12px;
 }
-.unlock-overlay.show .unlock-sheet { transform: translateY(0) scale(1); }
-.unlock-sheet-bar { position: absolute; top: 0; left: 0; right: 0; height: 5px; background: var(--red); }
-.unlock-close {
-  position: absolute; top: 12px; right: 12px; width: 28px; height: 28px;
-  border: none; background: transparent; color: var(--ink-3); font-size: 20px; line-height: 1; cursor: pointer; border-radius: 14px;
-}
-.unlock-close:active { background: rgba(37,35,31,.08); }
-.unlock-title { font-family: var(--serif); font-size: 20px; font-weight: 900; letter-spacing: .03em; color: var(--ink); }
-.unlock-desc { font-size: 12.5px; color: var(--ink-2); line-height: 1.6; margin: 10px 0 18px; }
-.unlock-desc b { color: var(--red); }
-.unlock-input {
-  width: 100%; box-sizing: border-box; font-size: 15px; text-align: center; letter-spacing: .12em;
-  padding: 12px 14px; border: 1.5px solid var(--line); border-radius: var(--r-btn);
-  background: var(--bg); color: var(--ink); outline: none; transition: border-color .2s ease; font-family: var(--sans);
-}
-.unlock-input:focus { border-color: var(--red); }
-.unlock-err { font-size: 12px; color: var(--red); margin-top: 8px; min-height: 16px; }
-.unlock-btn {
-  margin-top: 14px; width: 100%; box-sizing: border-box; font-size: 15px; font-weight: 700;
-  color: #fff; background: var(--red); border: none; border-radius: var(--r-btn); padding: 13px; cursor: pointer; transition: transform .15s ease;
-}
-.unlock-btn:active { transform: scale(.98); }
-
-/* 整页门禁（内容页）：锁定态隐藏全部内容，避免加载即闪现 */
-.gate-locked .app { display: none !important; }
+.update-bar .ub-close:active { background: rgba(197,78,54,.12); }
 
 /* ============================================================
    群入口（借 B 的通知感，收敛为纯色红）
@@ -349,8 +311,21 @@ body {
 .section-title .line { flex: 1; height: 1px; background: var(--line); align-self: center; }
 
 /* ============================================================
-   开屏广告弹窗（社群二维码 · 强制 3 秒倒计时才能关闭）
-   —— 与 components.css 的 .ad-* 同结构，套用「编辑部」品牌
+   Toast 轻提示
+   ============================================================ */
+.toast-msg {
+  position: fixed; bottom: calc(86px + var(--safe-bottom)); left: 50%;
+  transform: translateX(-50%) translateY(8px);
+  background: rgba(37,35,31,.92); color: #FFFCF6;
+  padding: 11px 20px; border-radius: var(--r-pill);
+  font-size: 13px; line-height: 1.4; max-width: 84vw; text-align: center;
+  z-index: 100000; opacity: 0; pointer-events: none;
+  transition: opacity .28s ease, transform .28s ease;
+}
+.toast-msg.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ============================================================
+   社群弹窗（全站唯一实现 · 无强制倒计时）
    ============================================================ */
 .ad-overlay {
   position: fixed; inset: 0;
@@ -384,27 +359,17 @@ body {
   background: var(--red);
 }
 
-/* 关闭 / 倒计时按钮 */
-.ad-close-area { position: absolute; top: 14px; right: 14px; z-index: 2; }
+/* 关闭按钮（始终可点，命中区 44px） */
+.ad-close-area { position: absolute; top: 6px; right: 6px; z-index: 2; }
 .ad-close-btn {
-  min-width: 28px; height: 28px; border-radius: 14px;
+  width: 44px; height: 44px; border: none; background: transparent;
   display: flex; align-items: center; justify-content: center;
-  font-size: 12px; font-weight: 700; padding: 0 10px;
-  transition: all 0.2s ease; user-select: none;
+  font-size: 15px; color: var(--ink-3); cursor: pointer;
+  border-radius: 22px; transition: background .2s ease, opacity .2s ease;
 }
-.ad-close-btn.countdown {
-  background: var(--red-soft); color: var(--red);
-  cursor: default; animation: adPulse 1s ease-in-out infinite;
-}
-.ad-close-btn.skip {
-  background: rgba(37, 35, 31, 0.06); color: var(--ink-2); cursor: pointer;
-}
-.ad-close-btn.skip:active { background: rgba(37, 35, 31, 0.12); }
-
-@keyframes adPulse {
-  0%, 100% { transform: scale(1); opacity: 1; }
-  50% { transform: scale(1.08); opacity: 0.75; }
-}
+.ad-close-btn:active { background: rgba(37, 35, 31, 0.1); }
+/* 自动弹窗刚出现的 0.8s：视觉略淡，但仍可点击（不做强制拦截） */
+.ad-close-btn.warming { opacity: .5; }
 
 /* 内容区 */
 .ad-body { padding: 30px 20px 24px; text-align: center; }
@@ -420,6 +385,7 @@ body {
 /* 二维码双栏 */
 .ad-qr-row { display: flex; gap: 12px; justify-content: center; }
 .ad-qr-item { flex: 1; max-width: 142px; text-align: center; }
+.ad-qr-frame { border: 1px solid var(--line); border-radius: 12px; padding: 6px; background: #fff; }
 .ad-qr-img { width: 100%; display: block; border-radius: 8px; }
 .ad-qr-name {
   font-size: 13px; font-weight: 700; color: var(--ink);
@@ -429,4 +395,30 @@ body {
 .ad-hint {
   margin-top: 18px; font-size: 12.5px; color: var(--ink-3);
   font-family: var(--kai); font-weight: 700;
+}
+
+/* ============================================================
+   分享按钮（模块页 hero 右上角 / 首页封面下方）
+   ============================================================ */
+.share-btn {
+  display: inline-flex; align-items: center; gap: 5px;
+  border: 1px solid var(--line); background: var(--paper); color: var(--ink-2);
+  border-radius: var(--r-pill); padding: 7px 13px; cursor: pointer;
+  font-size: 12px; font-family: var(--sans); line-height: 1;
+  transition: border-color var(--tr), color var(--tr), transform .12s ease;
+}
+.share-btn:active { transform: scale(.96); border-color: var(--red); color: var(--red); }
+.share-btn .sb-ic { font-size: 13px; }
+
+/* hero 内绝对定位版本 */
+.module-hero .share-btn { position: absolute; top: 14px; right: 14px; z-index: 2; }
+
+/* ============================================================
+   滚动揭示微动效（克制版）
+   ============================================================ */
+.reveal { opacity: 0; transform: translateY(12px); transition: opacity .5s ease, transform .5s cubic-bezier(.22,.61,.36,1); }
+.reveal.revealed { opacity: 1; transform: none; }
+@media (prefers-reduced-motion: reduce) {
+  .reveal, .reveal.revealed { opacity: 1 !important; transform: none !important; transition: none !important; }
+  html { scroll-behavior: auto; }
 }
