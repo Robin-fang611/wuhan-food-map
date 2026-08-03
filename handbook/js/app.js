@@ -11,6 +11,34 @@
 (function () {
   'use strict';
 
+  /* ==========================================================
+     -1. 老内核垫片
+     微信安卓 X5 / 老版本 WebView 缺以下方法时，全站交互会直接抛错，
+     这里用最小成本补齐，避免"整页点不动"这种致命故障。
+     ========================================================== */
+  if (window.NodeList && !NodeList.prototype.forEach) {
+    NodeList.prototype.forEach = Array.prototype.forEach;
+  }
+  if (window.HTMLCollection && !HTMLCollection.prototype.forEach) {
+    HTMLCollection.prototype.forEach = Array.prototype.forEach;
+  }
+  if (window.Element && !Element.prototype.remove) {
+    Element.prototype.remove = function () {
+      if (this.parentNode) this.parentNode.removeChild(this);
+    };
+  }
+  if (!Element.prototype.closest) {
+    Element.prototype.closest = function (sel) {
+      var el = this;
+      var matches = el.matches || el.msMatchesSelector || el.webkitMatchesSelector;
+      while (el && el.nodeType === 1) {
+        if (matches.call(el, sel)) return el;
+        el = el.parentElement || el.parentNode;
+      }
+      return null;
+    };
+  }
+
   var CFG = window.__SOCIAL_CONFIG__ || { groups: [] };
   var SITE = window.__SITE_CONFIG__ || {};
   var SHARE_TEXT = SITE.shareText || '财大 2026 新生手册，报到/军训/选课攻略都在这，快看👉';
@@ -461,10 +489,34 @@
     if (SEARCH_DATA) { cb(SEARCH_DATA); return; }
     if (SEARCH_LOADING) return;
     SEARCH_LOADING = true;
-    fetch('search.json')
-      .then(function (r) { return r.json(); })
-      .then(function (d) { SEARCH_DATA = d; SEARCH_LOADING = false; cb(d); })
-      .catch(function () { SEARCH_LOADING = false; cb(null); });
+
+    function ok(d) { SEARCH_DATA = d; SEARCH_LOADING = false; cb(d); }
+    function fail() { SEARCH_LOADING = false; cb(null); }
+
+    /* 老 WebView 无 fetch，退回 XHR，保证搜索在任何内核都能用 */
+    function viaXHR() {
+      try {
+        var x = new XMLHttpRequest();
+        x.open('GET', 'search.json', true);
+        x.onreadystatechange = function () {
+          if (x.readyState !== 4) return;
+          if (x.status >= 200 && x.status < 300) {
+            try { ok(JSON.parse(x.responseText)); } catch (e) { fail(); }
+          } else { fail(); }
+        };
+        x.onerror = fail;
+        x.send();
+      } catch (e) { fail(); }
+    }
+
+    if (typeof fetch === 'function') {
+      fetch('search.json')
+        .then(function (r) { return r.json(); })
+        .then(ok)
+        .catch(viaXHR);
+    } else {
+      viaXHR();
+    }
   }
 
   function scoreItem(item, q) {
