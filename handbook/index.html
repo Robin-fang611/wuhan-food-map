@@ -2,19 +2,13 @@
 <html lang="zh-CN"><head><meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#F6F1E7">
-<title>江城 · 新生手册</title>
-<meta property="og:title" content="江城 · 新生手册">
-<meta property="og:description" content="中南财经政法大学 · 民间非官方 · 带你吃遍财大与武汉">
+<title>江城 · 财大 2026 新生手册</title>
+<meta property="og:title" content="财大 2026 新生手册 · 师兄师姐替你踩过的坑">
+<meta property="og:description" content="报到流程、宿舍实况、军训清单、入学测试、奖助学金、社团竞赛 —— 14 个专题，全部来自在校生实地整理，进群还能直接问人">
 <meta property="og:image" content="https://zuel-freshman.netlify.app/images/og-image.png">
 <meta property="og:url" content="https://zuel-freshman.netlify.app/">
 <link rel="stylesheet" href="css/baibaoxiang.css">
-</head><body><div class="app">
-
-<!-- 顶部测试横幅 -->
-<div class="beta-banner" id="betaBanner">
-  <span>部分功能测试中，添加 <b>财大Linkyou</b>，获取内测密钥</span>
-  <button class="beta-banner-close" id="betaBannerClose" aria-label="关闭">×</button>
-</div>
+</head><body data-page="index"><div class="app">
 
 <!-- 封面 -->
 <div class="cover">
@@ -25,7 +19,55 @@
     <h1>新生<em>手册</em></h1>
   </div>
   <div class="tag">师兄师姐替你踩过的坑，都写在这了</div>
-  <div class="meta"><span>2026 级</span><span>总第叁期</span><span>07-24 更新</span></div>
+  <div class="meta"><span>2026 级</span><span id="metaEdition">总第叁期</span><span id="metaUpdated">08-03 更新</span></div>
+</div>
+
+<!-- 首屏行动区 -->
+<div class="hero-cta">
+  <button class="cta cta-main js-group-entry" type="button">
+    <span class="cta-ic">💬</span>
+    <span class="cta-txt"><b>加 2026 新生群</b><i>手册答不了的，群里直接问人</i></span>
+  </button>
+  <div class="cta-row">
+    <button class="cta cta-sub" type="button" id="searchTrigger">
+      <span class="cta-ic">🔍</span><span class="cta-txt"><b>搜一下</b><i>全站找答案</i></span>
+    </button>
+    <button class="cta cta-sub js-share" type="button">
+      <span class="cta-ic">↗</span><span class="cta-txt"><b>转给同学</b><i>一起少踩坑</i></span>
+    </button>
+  </div>
+</div>
+
+<!-- 高频任务 -->
+<div class="sec">
+  <div class="sec-h"><span class="zh">现在最想知道的</span><span class="en">Quick</span><span class="dash"></span></div>
+  <div class="taskbar">
+    <a class="chip" href="xinsheng.html"><span class="chip-ic">🧳</span>行李带什么</a>
+    <a class="chip" href="jiaotong.html"><span class="chip-ic">🚄</span>怎么到校</a>
+    <a class="chip" href="sushe.html"><span class="chip-ic">🛏</span>宿舍啥样</a>
+    <a class="chip" href="xiaoqu.html"><span class="chip-ic">💳</span>校园卡企微</a>
+    <a class="chip" href="junxun.html"><span class="chip-ic">🎖</span>军训岗位</a>
+    <a class="chip" href="rushi.html"><span class="chip-ic">📝</span>入学要考啥</a>
+    <a class="chip" href="jiangzhu.html"><span class="chip-ic">💰</span>奖助学金</a>
+    <a class="chip" href="shenghuo.html"><span class="chip-ic">🍜</span>食堂吃什么</a>
+  </div>
+</div>
+
+<!-- 开学必读清单 -->
+<div class="sec">
+  <div class="sec-h"><span class="zh">开学前必做八件事</span><span class="en">Checklist</span><span class="dash"></span></div>
+  <div class="mustlist" id="mustList">
+    <label class="mitem" data-mid="m1"><span class="mbox"></span><span class="mtxt">在<b>迎新系统</b>完成网上报到，信息填完整</span><a class="mgo" href="xinsheng.html">去看 ›</a></label>
+    <label class="mitem" data-mid="m2"><span class="mbox"></span><span class="mtxt">缴学费，或在<b>老家办好生源地助学贷款</b>受理证明</span><a class="mgo" href="jiangzhu.html">去看 ›</a></label>
+    <label class="mitem" data-mid="m3"><span class="mbox"></span><span class="mtxt">备齐<b>录取通知书 / 身份证 / 档案 / 团组织关系</b></span><a class="mgo" href="xinsheng.html">去看 ›</a></label>
+    <label class="mitem" data-mid="m4"><span class="mbox"></span><span class="mtxt">确认<b>到校路线</b>，行李提前寄到菜鸟驿站</span><a class="mgo" href="jiaotong.html">去看 ›</a></label>
+    <label class="mitem" data-mid="m5"><span class="mbox"></span><span class="mtxt">按<b>床尺寸</b>买床品，别买错（两校区不一样）</span><a class="mgo" href="sushe.html">去看 ›</a></label>
+    <label class="mitem" data-mid="m6"><span class="mbox"></span><span class="mtxt">备好<b>军训防暑防晒</b>那几样，到校再买涨价</span><a class="mgo" href="junxun.html">去看 ›</a></label>
+    <label class="mitem" data-mid="m7"><span class="mbox"></span><span class="mtxt">搞清楚<b>入学要考哪两场</b>，数学测试提前翻书</span><a class="mgo" href="rushi.html">去看 ›</a></label>
+    <label class="mitem" data-mid="m8"><span class="mbox"></span><span class="mtxt">加<b>新生群</b>，学院的具体通知第一时间知道</span><a class="mgo js-group-entry" href="javascript:void(0)">进群 ›</a></label>
+  </div>
+  <div class="mustbar"><span class="mustbar-fill" id="mustFill"></span></div>
+  <div class="mustnote" id="mustNote">已完成 0 / 8 · 勾选会记在这台设备上</div>
 </div>
 
 <!-- 时间线 · 分章导航 -->
@@ -34,16 +76,16 @@
   <div class="timeline">
     <a href="#stage1" class="tl-row"><div class="tl-node">壹</div>
       <div class="tl-card"><div class="hd"><span class="stage">STAGE 01</span><span class="count">2 章</span></div>
-        <h4>报到前</h4><p>行李清单 · 到校路线 · 交通快递</p></div></a>
+        <h4>报到前</h4><p>行李清单 · 到校路线 · 快递寄送</p></div></a>
     <a href="#stage2" class="tl-row"><div class="tl-node">贰</div>
       <div class="tl-card"><div class="hd"><span class="stage">STAGE 02</span><span class="count">3 章</span></div>
-        <h4>报到日</h4><p>报到流程 · 宿舍安顿 · 军训岗位 · 校园服务</p></div></a>
+        <h4>报到日</h4><p>宿舍安顿 · 军训岗位 · 校园服务</p></div></a>
     <a href="#stage3" class="tl-row"><div class="tl-node">叁</div>
       <div class="tl-card"><div class="hd"><span class="stage">STAGE 03</span><span class="count">3 章</span></div>
-        <h4>第一周</h4><p>入学测试 · 英语分级 · 生活问答</p></div></a>
+        <h4>第一周</h4><p>入学测试 · 英语分级 · 吃住问答</p></div></a>
     <a href="#stage4" class="tl-row"><div class="tl-node">肆</div>
-      <div class="tl-card"><div class="hd"><span class="stage">STAGE 04</span><span class="count">7 章</span></div>
-        <h4>第一学期</h4><p>选课 · 社团 · 竞赛 · 培养方案 · 转专业</p></div></a>
+      <div class="tl-card"><div class="hd"><span class="stage">STAGE 04</span><span class="count">6 章</span></div>
+        <h4>第一学期</h4><p>成长规划 · 社团竞赛 · 奖助 · 体测</p></div></a>
   </div>
   <div class="note red">
     <span class="who">✎ 师姐提醒</span>
@@ -51,49 +93,48 @@
   </div>
 </div>
 
-<!-- 吃喝玩乐地图 · 票根 -->
-<div class="sec">
-  <div class="sec-h"><span class="zh">吃喝玩乐地图</span><span class="en">Map</span><span class="dash"></span></div>
-  <div class="note" style="text-align:center;padding:20px;background:var(--red-soft);border-color:var(--red);border-radius:var(--r-mod);">
-    <strong>江城 · 味觉地图</strong> 已独立上线 →
-    <a href="https://zuelmap.netlify.app/" target="_blank" style="color:var(--red);font-weight:700;">点击前往</a>
-    <br><span style="font-size:12px;color:var(--ink-2);">财大周边 · 武汉全城 · 540+ 家精选</span>
-  </div>
-</div>
-
 <!-- STAGE 01 报到前 -->
 <div class="sec" id="stage1">
   <div class="sec-h"><span class="zh">Stage 01 · 报到前</span><span class="en">Before</span><span class="dash"></span></div>
-  <a href="xinsheng.html" class="mrow hot"><span class="no">壹</span><div class="bd"><h4>新生必看</h4><p>报到 · 常见问题 · 自习地图 · 必备清单</p></div><span class="cat">必读</span><span class="ar">›</span></a>
-  <a href="jiaotong.html" class="mrow"><span class="no">贰</span><div class="bd"><h4>交通快递</h4><p>校内外交通 · 到校路线 · 快递收件</p></div><span class="cat">出行</span><span class="ar">›</span></a>
+  <a href="xinsheng.html" class="mrow hot"><span class="no">壹</span><div class="bd"><h4>新生必看</h4><p>网上报到 8 步 · 报到当天 5 步 · 行李清单 · 高频问答</p></div><span class="cat">必读</span><span class="ar">›</span></a>
+  <a href="jiaotong.html" class="mrow"><span class="no">贰</span><div class="bd"><h4>交通快递</h4><p>火车站机场到校 4 条线 · 两校区往返 6 种走法 · 取件点</p></div><span class="cat">出行</span><span class="ar">›</span></a>
 </div>
 
 <!-- STAGE 02 报到日 -->
 <div class="sec" id="stage2">
   <div class="sec-h"><span class="zh">Stage 02 · 报到日</span><span class="en">Day One</span><span class="dash"></span></div>
-  <a href="sushe.html" class="mrow hot"><span class="no">叁</span><div class="bd"><h4>宿舍军训</h4><p>首义 / 南湖宿舍 · 军训清单</p></div><span class="cat">生活</span><span class="ar">›</span></a>
-  <a href="junxun.html" class="mrow hot"><span class="no">肆</span><div class="bd"><h4>军训岗位攻略</h4><p>军训联络员 · 战地记者 · 报名面试全流程</p></div><span class="cat">干货</span><span class="ar">›</span></a>
-  <a href="xiaoqu.html" class="mrow"><span class="no">伍</span><div class="bd"><h4>校园服务</h4><p>企业微信 · 校园地图 · 校历 · 医保</p></div><span class="cat">服务</span><span class="ar">›</span></a>
+  <a href="sushe.html" class="mrow hot"><span class="no">叁</span><div class="bd"><h4>宿舍指南</h4><p>首义 6 栋 + 南湖 4 片区逐栋实况 · 床尺寸 · 买什么</p></div><span class="cat">生活</span><span class="ar">›</span></a>
+  <a href="junxun.html" class="mrow hot"><span class="no">肆</span><div class="bd"><h4>军训攻略</h4><p>防暑防晒清单 · 联络员 / 战地记者报名面试全流程</p></div><span class="cat">干货</span><span class="ar">›</span></a>
+  <a href="xiaoqu.html" class="mrow"><span class="no">伍</span><div class="bd"><h4>校园服务</h4><p>企业微信开通 5 步 · 校园地图 · 校历 · 医保报销</p></div><span class="cat">服务</span><span class="ar">›</span></a>
 </div>
 
 <!-- STAGE 03 第一周 -->
 <div class="sec" id="stage3">
   <div class="sec-h"><span class="zh">Stage 03 · 第一周</span><span class="en">Week One</span><span class="dash"></span></div>
-  <a href="rushi.html" class="mrow"><span class="no">陆</span><div class="bd"><h4>入学测试</h4><p>校规答案 · 数学测试</p></div><span class="cat">测试</span><span class="ar">›</span></a>
-  <a href="xueye.html" class="mrow hot"><span class="no">柒</span><div class="bd"><h4>学业指南</h4><p>英语分级 · 转专业 · 题库</p></div><span class="cat">学业</span><span class="ar">›</span></a>
-  <a href="shenghuo.html" class="mrow"><span class="no">捌</span><div class="bd"><h4>生活问答</h4><p>高频 FAQ · 校内食堂</p></div><span class="cat">问答</span><span class="ar">›</span></a>
+  <a href="rushi.html" class="mrow"><span class="no">陆</span><div class="bd"><h4>入学测试</h4><p>校规测试 8 题 · 数学测试 3 步准备</p></div><span class="cat">测试</span><span class="ar">›</span></a>
+  <a href="xueye.html" class="mrow hot"><span class="no">柒</span><div class="bd"><h4>学业指南</h4><p>英语 A/B 分级 · 转专业 · 双学位 vs 辅修 · 保研 · 征兵</p></div><span class="cat">学业</span><span class="ar">›</span></a>
+  <a href="shenghuo.html" class="mrow"><span class="no">捌</span><div class="bd"><h4>吃住问答</h4><p>南湖六食堂 + 首义两食堂实况 · 高频生活 FAQ</p></div><span class="cat">问答</span><span class="ar">›</span></a>
 </div>
 
-<!-- STAGE 04 第一学期（内测 · 输入密钥解锁） -->
+<!-- STAGE 04 第一学期 -->
 <div class="sec" id="stage4">
-  <div class="sec-h"><span class="zh">Stage 04 · 第一学期</span><span class="soon-pill">内测</span><span class="en">Semester</span><span class="dash"></span></div>
-  <a href="xuanke.html" class="mrow"><span class="no">玖</span><div class="bd"><h4>选课宝典</h4><p>师兄师姐推荐选修课</p></div><span class="cat">内测</span><span class="ar">›</span></a>
-  <a href="tice.html" class="mrow"><span class="no">拾</span><div class="bd"><h4>体育体测</h4><p>体测标准 · 阳光体育</p></div><span class="cat">内测</span><span class="ar">›</span></a>
-  <a href="shetuan.html" class="mrow"><span class="no">十一</span><div class="bd"><h4>社团一览</h4><p>百团大战图鉴</p></div><span class="cat">内测</span><span class="ar">›</span></a>
-  <a href="peiyang.html" class="mrow"><span class="no">十二</span><div class="bd"><h4>培养方案</h4><p>上下册查询</p></div><span class="cat">内测</span><span class="ar">›</span></a>
-  <a href="jiangzhu.html" class="mrow"><span class="no">十三</span><div class="bd"><h4>奖助学金</h4><p>奖学金 · 贷款 · 勤工助学</p></div><span class="cat">内测</span><span class="ar">›</span></a>
-  <a href="zuzhi.html" class="mrow"><span class="no">十四</span><div class="bd"><h4>学生组织</h4><p>校级组织一览</p></div><span class="cat">内测</span><span class="ar">›</span></a>
-  <a href="jingsai.html" class="mrow"><span class="no">十五</span><div class="bd"><h4>竞赛活动</h4><p>大创 · 挑战杯 · 希贤杯</p></div><span class="cat">内测</span><span class="ar">›</span></a>
+  <div class="sec-h"><span class="zh">Stage 04 · 第一学期</span><span class="soon-pill">持续更新</span><span class="en">Semester</span><span class="dash"></span></div>
+  <a href="growth.html" class="mrow"><span class="no">玖</span><div class="bd"><h4>成长规划</h4><p>培养方案怎么读 · 选课三阶段 · 学分怎么排</p></div><span class="cat">规划</span><span class="ar">›</span></a>
+  <a href="jiangzhu.html" class="mrow hot"><span class="no">拾</span><div class="bd"><h4>奖助学金</h4><p>国奖 8000 / 文澜 10000 · 助学贷款 · 勤工助学 · 路费补助</p></div><span class="cat">钱</span><span class="ar">›</span></a>
+  <a href="shetuan.html" class="mrow"><span class="no">十一</span><div class="bd"><h4>社团一览</h4><p>六大类社团真实名单 · 百团大战怎么挑</p></div><span class="cat">社团</span><span class="ar">›</span></a>
+  <a href="zuzhi.html" class="mrow"><span class="no">十二</span><div class="bd"><h4>学生组织</h4><p>18 个校级组织按 4 类拆解 · 各部门具体干什么</p></div><span class="cat">组织</span><span class="ar">›</span></a>
+  <a href="jingsai.html" class="mrow"><span class="no">十三</span><div class="bd"><h4>竞赛活动</h4><p>大创 · 博文杯 · 挑战杯 · 希贤杯 · 大一参赛路径</p></div><span class="cat">竞赛</span><span class="ar">›</span></a>
+  <a href="tice.html" class="mrow"><span class="no">十四</span><div class="bd"><h4>体育体测</h4><p>七项权重 · 等级线 · 毕业 50 分算法 · 免测流程</p></div><span class="cat">体育</span><span class="ar">›</span></a>
+</div>
+
+<!-- 味觉地图 -->
+<div class="sec">
+  <div class="sec-h"><span class="zh">吃喝玩乐地图</span><span class="en">Map</span><span class="dash"></span></div>
+  <a class="ticket" href="https://zuelmap.netlify.app/" target="_blank" rel="noopener">
+    <div class="m"><div class="lbl">J I A N G C H E N G · M A P</div><h4>江城 · <em>味觉地图</em></h4><div class="sub">财大周边 · 武汉全城 · <b>540+ 家</b>实地整理，带人均和招牌菜</div></div>
+    <div class="s"><span class="go">前往 ›</span></div>
+  </a>
+  <div class="note"><span class="who">怎么用</span>刚到武汉别乱找饭吃 —— 先按<b>离宿舍距离</b>筛一遍，周末再按<b>人均</b>挑一家出去逛。地图是独立站，收藏一下更方便。</div>
 </div>
 
 <!-- 群入口 -->
@@ -106,7 +147,5 @@
 <div class="colophon">实地探访 × 社群推荐 × 新生资料包<br>江城编辑部 · 与师兄师姐一同修订 · 2026</div>
 
 </div>
-
-<script src="js/config.js"></script><script src="js/common.js"></script><script src="js/baibaoxiang.js"></script>
-<script type="module" src="js/pages/index.js"></script>
+<script src="js/config.js"></script><script src="js/app.js"></script>
 </body></html>

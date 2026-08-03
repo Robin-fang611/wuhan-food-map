@@ -104,6 +104,70 @@ body {
 .cover .meta span + span::before { content: '·'; position: absolute; left: -12px; }
 
 /* ============================================================
+   首屏行动区（首页专属 · 进群 / 搜索 / 分享）
+   ============================================================ */
+.hero-cta { margin: 18px 0 0; }
+.cta {
+  width: 100%; display: flex; align-items: center; gap: 11px; text-align: left;
+  background: var(--paper); border: 1.5px solid var(--line-ink); border-radius: var(--r-mod);
+  padding: 12px 14px; min-height: 44px; color: inherit; font-family: inherit; cursor: pointer;
+  transition: transform .12s ease, border-color var(--tr);
+}
+.cta:active { transform: scale(.99); }
+.cta-ic { font-size: 19px; line-height: 1; flex-shrink: 0; }
+.cta-txt { min-width: 0; display: block; }
+.cta-txt b { display: block; font-size: 14px; font-weight: 800; letter-spacing: .02em; }
+.cta-txt i { display: block; font-style: normal; font-size: 11px; color: var(--ink-2); margin-top: 2px; }
+.cta-main { background: var(--red); border-color: var(--red); color: #FFF9F2; }
+.cta-main .cta-txt i { color: rgba(255,249,242,.82); }
+.cta-row { display: flex; gap: 10px; margin-top: 10px; }
+.cta-sub { flex: 1; padding: 10px 12px; }
+.cta-sub .cta-txt b { font-size: 13px; }
+.cta-sub .cta-txt i { font-size: 10.5px; }
+
+/* ============================================================
+   高频任务横滑条（首页专属）
+   ============================================================ */
+.taskbar {
+  display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px;
+  -webkit-overflow-scrolling: touch; scrollbar-width: none;
+}
+.taskbar::-webkit-scrollbar { display: none; }
+.chip {
+  flex-shrink: 0; display: inline-flex; align-items: center; gap: 5px;
+  background: var(--paper); border: 1px solid var(--line); border-radius: var(--r-pill);
+  padding: 9px 14px; min-height: 38px; font-size: 12.5px; color: var(--ink);
+  text-decoration: none; white-space: nowrap; transition: transform .12s ease, border-color var(--tr);
+}
+.chip:active { transform: scale(.97); border-color: var(--red); }
+.chip-ic { font-size: 14px; }
+
+/* ============================================================
+   开学必读清单（首页专属 · 勾选状态存本机）
+   ============================================================ */
+.mustlist { border: 1px solid var(--line); border-radius: var(--r-mod); background: var(--paper); overflow: hidden; }
+.mitem {
+  display: flex; align-items: flex-start; gap: 10px; padding: 12px 13px;
+  border-bottom: 1px solid var(--line); font-size: 12.5px; line-height: 1.7; cursor: pointer;
+}
+.mitem:last-child { border-bottom: none; }
+.mbox {
+  width: 17px; height: 17px; flex-shrink: 0; margin-top: 2px;
+  border: 1.5px solid var(--line-ink); border-radius: 3px; position: relative; transition: background var(--tr);
+}
+.mitem.done .mbox { background: var(--red); border-color: var(--red); }
+.mitem.done .mbox::after {
+  content: ''; position: absolute; left: 5px; top: 1px; width: 4px; height: 9px;
+  border: solid #FFF9F2; border-width: 0 2px 2px 0; transform: rotate(42deg);
+}
+.mtxt { flex: 1; min-width: 0; }
+.mitem.done .mtxt { color: var(--ink-3); text-decoration: line-through; }
+.mgo { flex-shrink: 0; font-size: 11px; color: var(--red); text-decoration: none; padding: 2px 0 2px 6px; }
+.mustbar { height: 3px; background: var(--line); border-radius: var(--r-pill); margin-top: 10px; overflow: hidden; }
+.mustbar-fill { display: block; height: 100%; width: 0; background: var(--red); border-radius: var(--r-pill); transition: width .3s ease; }
+.mustnote { font-size: 11px; color: var(--ink-3); margin-top: 6px; letter-spacing: .02em; }
+
+/* ============================================================
    区块标题（编辑部）
    ============================================================ */
 .sec { margin: 26px 0 0; }

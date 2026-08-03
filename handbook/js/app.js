@@ -235,6 +235,67 @@
   }
 
   /* ==========================================================
+     6.5 开学必读清单（首页 · 勾选状态存 localStorage）
+     ========================================================== */
+  var MUST_KEY = 'jc_must_done';
+
+  function readMustDone() {
+    try { return JSON.parse(localStorage.getItem(MUST_KEY) || '[]'); }
+    catch (e) { return []; }
+  }
+
+  function bindMustList() {
+    var list = document.getElementById('mustList');
+    if (!list) return;
+    var items = list.querySelectorAll('.mitem');
+    var fill = document.getElementById('mustFill');
+    var note = document.getElementById('mustNote');
+    var done = readMustDone();
+
+    function paint() {
+      var n = 0;
+      items.forEach(function (it) { if (it.classList.contains('done')) n++; });
+      var total = items.length;
+      if (fill) fill.style.width = (total ? Math.round(n / total * 100) : 0) + '%';
+      if (note) {
+        note.textContent = n >= total && total
+          ? '八件事全做完了，安心来报到 · 勾选记在这台设备上'
+          : '已完成 ' + n + ' / ' + total + ' · 勾选会记在这台设备上';
+      }
+    }
+
+    items.forEach(function (it) {
+      var id = it.dataset.mid;
+      if (done.indexOf(id) > -1) it.classList.add('done');
+      it.addEventListener('click', function (e) {
+        // 点右侧「去看」跳转，不切换勾选状态
+        if (e.target.closest('.mgo')) return;
+        e.preventDefault();
+        var on = it.classList.toggle('done');
+        var cur = readMustDone();
+        var i = cur.indexOf(id);
+        if (on && i < 0) cur.push(id);
+        if (!on && i > -1) cur.splice(i, 1);
+        try { localStorage.setItem(MUST_KEY, JSON.stringify(cur)); } catch (err) { /* 忽略 */ }
+        analytics.track('must_check', id + ':' + (on ? 1 : 0));
+        paint();
+      });
+    });
+
+    paint();
+  }
+
+  /* ==========================================================
+     6.6 封面版次 / 更新日期（由 config.js 驱动，改一处全站生效）
+     ========================================================== */
+  function renderCoverMeta() {
+    var ed = document.getElementById('metaEdition');
+    var up = document.getElementById('metaUpdated');
+    if (ed && SITE.edition) ed.textContent = SITE.edition;
+    if (up && SITE.updatedAt) up.textContent = SITE.updatedAt + ' 更新';
+  }
+
+  /* ==========================================================
      7. 更新提示条（config.js 的 __UPDATE_CONFIG__ 驱动，改一处全站生效）
      ========================================================== */
   function renderUpdateBar() {
@@ -262,7 +323,9 @@
      ========================================================== */
   function init() {
     renderUpdateBar();
+    renderCoverMeta();
     bindBasics();
+    bindMustList();
     bindReveal();
     analytics.track('pv');
 
