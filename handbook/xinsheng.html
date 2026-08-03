@@ -1,32 +1,157 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#F6F1E7">
-<title>江城 · 新生必看</title><link rel="stylesheet" href="css/baibaoxiang.css">
-<style>body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Hiragino Sans GB','Microsoft YaHei',sans-serif;}</style>
-</head><body><div class="app">
-<header class="appbar"><button class="back" id="backBtn">‹</button><div class="brand-mini">江<span>城</span></div></header>
-<section class="module-hero m-accent">
-  <div class="mh-icon">📋</div><h1>新生必看</h1><p>报到 · 常见问题 · 自习 · 清单，一篇搞定</p><span class="mh-badge">新生综合指南</span>
+<title>江城 · 新生必看</title>
+<meta property="og:title" content="财大 2026 新生 · 新生必看">
+<meta property="og:description" content="报到流程 · 入学必备清单 · 新生高频问答，一篇讲清">
+<meta property="og:image" content="https://zuel-freshman.netlify.app/images/og-image.png">
+<meta property="og:url" content="https://zuel-freshman.netlify.app/xinsheng.html">
+<link rel="stylesheet" href="css/baibaoxiang.css">
+</head><body data-page="xinsheng"><div class="app">
+<header class="appbar"><button class="back" id="backBtn">‹</button><div class="brand-mini">江<span>城</span></div><button class="share-btn" id="shareBtn" aria-label="分享">↗</button></header>
+
+<section class="module-hero m-accent m-xinsheng">
+  <div class="mh-icon">📋</div><h1>新生必看</h1><p>报到流程 · 必备清单 · 高频问答，一篇搞定</p><span class="mh-badge">新生综合指南</span>
 </section>
 
-<div class="block"><h3><span class="dot"></span>自习地图</h3><div class="spot"><div class="spot-main"><div class="spot-name">文泰楼</div><div class="spot-desc">规模大、教室多、氛围浓；低层常满，高层更宽松，走廊可背书。</div></div><div class="spot-hours">7:00–21:30</div></div><div class="spot"><div class="spot-main"><div class="spot-name">文澴楼</div><div class="spot-desc">临南湖、环境清幽，有公共讨论区；环湖近，常供不应求，尽早去。</div></div><div class="spot-hours">7:00–21:30</div></div><div class="spot"><div class="spot-main"><div class="spot-name">图书馆</div><div class="spot-desc">周日17:00闭馆；需公众号选座系统预约+签到，六楼设朗读区。</div></div><div class="spot-hours">周一–六 7:30–22:00</div></div><div class="spot"><div class="spot-main"><div class="spot-name">倍阅书店</div><div class="spot-desc">环湖十七栋，有咖啡吧台，学习休憩两宜。</div></div><div class="spot-hours">9:00–21:00</div></div><div class="spot"><div class="spot-main"><div class="spot-name">望湖驿站</div><div class="spot-desc">望湖园二楼，沙发区舒适，一楼小片讨论区。</div></div><div class="spot-hours">7:00–21:30</div></div><div class="spot"><div class="spot-main"><div class="spot-name">五食堂</div><div class="spot-desc">中心位置「网红餐厅」，美食多且设自习座位，期末备考首选。</div></div><div class="spot-hours">7:00–21:30</div></div><div class="note">查空闲教室：企业微信 → 工作台 → 综合教务 → 空闲教室，可搜各时段各楼空教室。</div></div>
-<div class="block"><h3><span class="dot"></span>热门问答（FAQ）</h3><div class="acc-item"><button class="acc-q">1.录取通知书什么时候到？<span class="chev">›</span></button><div class="acc-a"><div class="acc-a-inner">不能一概而论，不同地区录取通知书发出的时间不同， 邮寄的快慢也不同。所以大家还是稍安勿躁，录取通知书迟早会到的。</div></div></div><div class="acc-item"><button class="acc-q">2.录取通知书内都有什么东西？【重要】<span class="chev">›</span></button><div class="acc-a"><div class="acc-a-inner">包括录取通知书、新生入学须知、银行借记卡（去年为工商银行，今年不出意外仍会沿用）、学生资助指南、家庭情况调查表。收到录取通知书之后，一定要仔细看新生入学须知手册，按照手册操作！！！家庭情况调查表属于选填，没有意愿申请助学金的新生可以不填。部分录取通知书内没有银行卡，是因为银行因各种原因无法为新生预开卡，这部分同学需要开学去学校后根据通知前往银行、办理银行卡及激活开户。对于银行激活开户，没有硬性规定要求必须要在武汉本地开户，换言之可以在自己家乡开户。</div></div></div><div class="acc-item"><button class="acc-q">3.新生须知中的“迎新系统”是什么？【重要】<span class="chev">›</span></button><div class="acc-a"><div class="acc-a-inner">正式开学报到前需通过网上迎新系统进行报到前准备工作，包括个人信息登记、缴纳学费等。新生可以在迎新系统上查询班级分配、宿舍分配、迎新志愿者，缴纳学费，购买军训用品也是在迎新系统上进行。迎新系统目前尚未开放，开放时间以新生须知手册上为准，大家稍安勿躁。后续系统开放，我们会专门通知。“易班”系统类似迎新系统，开放时间同样另行通知。</div></div></div><div class="acc-item"><button class="acc-q">4.新生须知中的“高数先修课”是什么？法学专业需要参加吗？<span class="chev">›</span></button><div class="acc-a"><div class="acc-a-inner">【重要】高数先修课是针对【经管类】等有高等数学课程修读要求的专业新生开设的网上课堂，内容及难度大致与高考数学要求相当。法学院、刑事司法学院、新闻与文化传播学院、中韩新媒体学院、外国语学院大部分专业无需修读高数（具体可向直系师兄师姐询问），因此也无需参加该先修课！！</div></div></div><div class="acc-item"><button class="acc-q">5.什么是“安全微课”？<span class="chev">›</span></button><div class="acc-a"><div class="acc-a-inner">所谓“安全微课”是指新生入学安全教育网上微课，新生须知内有详细介绍，请仔细阅读。安全微课的开放时间请以新生须知/具体通知载明的时间为准。</div></div></div><div class="acc-item"><button class="acc-q">6.需要关注哪些公众号？<span class="chev">›</span></button><div class="acc-a"><div class="acc-a-inner">常用的公众号有：“中南财经政法大学”、“中南财经政法大学团委”、“中南财经政法大学本科招生”、“中南财经政法大学财务部”、“中南财经政法大学体育部”、“中南财经政法大学图书馆”、“中南财经政法大学学工在线”、“中南财经政法大学学生会”、“中南大教务部”、“中南大科研”、“中南大志愿者”等各个学院以及团委的公众号请各位新生同学自行关注，如：“中南财经政法大学工商管理学院”、“中南大青春工商”</div></div></div><div class="acc-item"><button class="acc-q">1.今年新生什么时候开学？<span class="chev">›</span></button><div class="acc-a"><div class="acc-a-inner">根据录取通知书和校历，9 月 1 日为 2024 级新生报到注册日。请严格按照时间到校报到， 因早到或迟到造成的不利后果自负。</div></div></div><div class="acc-item"><button class="acc-q">2.新生在哪里报到？<span class="chev">›</span></button><div class="acc-a"><div class="acc-a-inner">请以录取通知书和学院官方群通知为准，今年可能存在变动情况。（请看好地图，我校有两个主校区，其中首义校区在武昌城中心，离黄鹤楼、武昌火车站不远；南湖校区在武昌城南的南湖东南侧、南湖大道和民族大道路口附件。）大家可以提前一两天到，南湖校区和首义校区附近都有酒店，开学当天早上过去就好。附首义校区邮寄地址：湖北省武汉市武昌区武珞路114号中南财经政法大学首义校区图书馆菜鸟驿站/电教楼一楼妈妈驿站南湖校区邮寄地址：湖北省武汉市洪山区中南财经政法大学南湖校区 (环湖/临湖/滨湖/中区)。邮编 430073。两个校区的同学一定看清楚自己学院在哪个校区，千万不要寄错了！【注意】由于新生大量会采取邮寄方式寄送物品，故菜鸟驿站会在开学前堆积大量物品， 请一定不要过早邮寄，否则菜鸟驿站不予留置，且一定在到校后尽早取出！（菜鸟驿站会提供少量的平板车以供学生搬快递， 但依旧杯水车薪。）【提示】可把自己的邮寄地址直接写为某某菜鸟驿站， 也可以写为你的宿舍，最后都没有影响。</div></div></div><div class="acc-item"><button class="acc-q">3.什么是迎新志愿者？什么是导助？<span class="chev">›</span></button><div class="acc-a"><div class="acc-a-inner">每一位新生在报到时都会有专门对接的迎新志愿者，帮助你们做好新生报到工作。迎新志愿者会将你们的学生证、校园卡以及宿舍钥匙当面交给你们。导助即辅导员助理，每班一位，履职期为一学期，由师兄/师姐 担任。主要在开学报到前后帮助辅导员老师处理新生事务，负责新生分班后的班级组织、发布通知、入学教育等事宜。在班级事务逐渐进入正轨后，导助的使命也就基本上结束了，不过各位新生同学日常依然可以向导助师兄师姐提问，他们都是很关心你们的。</div></div></div></div>
-<div class="block"><h3><span class="dot"></span>必备清单</h3>
-  <p style="font-size:12px;color:#999;margin-bottom:6px;">红色为强烈建议必带，黑色为推荐准备</p>
-  <div class="check must"><span class="box"></span><span>录取通知书</span></div><div class="check must"><span class="box"></span><span>户口本复印件</span></div><div class="check must"><span class="box"></span><span>身份证及正反两面复印件</span></div><div class="check must"><span class="box"></span><span>一寸 / 二寸登记照各一版</span></div><div class="check must"><span class="box"></span><span>党、团组织关系证明</span></div><div class="check must"><span class="box"></span><span>贫困证明（家庭困难学生）</span></div><div class="check"><span class="box"></span><span>洗护用品（牙刷/牙膏/毛巾/洗面奶/护肤品/洗发水/沐浴露）</span></div><div class="check"><span class="box"></span><span>剃须刀、盆子、桶、抹布</span></div><div class="check"><span class="box"></span><span>床上用品（开学可到校购置）</span></div><div class="check"><span class="box"></span><span>常用药 + 创可贴</span></div><div class="check"><span class="box"></span><span>晴雨伞、衣架、拖鞋</span></div><div class="check"><span class="box"></span><span>充电宝、插线板</span></div>
-  <div class="note">申请助学金另需：个人申请书（手写）、贫困证明（村委/街道盖章）、《高校家庭情况调查表》×2（原件盖章）、《国家助学金申请表》×2（贴照片）、《困难学生认定申请表》×2。</div>
+<div class="block reveal">
+  <h3><span class="dot"></span>到校 &amp; 校区</h3>
+  <p>中南大有两个主校区。买票、寄快递、订酒店之前，先确认自己的学院在哪个校区——每年都有同学跑错、寄错。</p>
+  <div class="spot"><div class="spot-main"><div class="spot-name">首义校区</div><div class="spot-desc">武昌区武珞路 114 号，位于武昌城中心，离黄鹤楼、武昌火车站都很近，出门就是地铁与商圈。</div></div><div class="spot-hours">城中心</div></div>
+  <div class="spot"><div class="spot-main"><div class="spot-name">南湖校区</div><div class="spot-desc">洪山区南湖东南侧，南湖大道与民族大道路口附近。校园大、环湖景好，本科大多数院系在这里。</div></div><div class="spot-hours">主校区</div></div>
+  <p><b>报到时间</b>：以录取通知书与校历为准，2026 级预计 9 月初报到。请严格按通知的时间到校，因早到或迟到造成的不便需要自己承担。两个校区周边都有酒店，可以提前一两天到，开学当天早上再进校也来得及。</p>
+  <div class="note">
+    <span class="who">邮寄地址（行李 / 床品先寄）</span>
+    <p><b>首义校区</b>：湖北省武汉市武昌区武珞路 114 号 中南财经政法大学首义校区（图书馆菜鸟驿站 / 电教楼一楼妈妈驿站）</p>
+    <p><b>南湖校区</b>：湖北省武汉市洪山区 中南财经政法大学南湖校区（环湖 / 临湖 / 滨湖 / 中区 / 望湖 + 具体楼栋），邮编 430073</p>
+  </div>
+  <div class="note red">
+    <span class="who">别踩这个坑</span>
+    <p>开学前驿站会堆成山，寄太早驿站不予留置；快递一般只存三天（节假日可能延长），到校后请尽早取。驿站备有平板车但数量有限，重物尽量分箱。收件地址写「××菜鸟驿站」或直接写自己宿舍都可以，不影响送达。</p>
+  </div>
 </div>
-<div class="block"><h3><span class="dot"></span>到校 & 校区</h3>
-  <p>中南大有两个主校区：<b>首义校区</b>在武昌城中心，近黄鹤楼、武昌站；<b>南湖校区</b>在武昌城南、南湖东南侧（南湖大道与民族大道路口）。</p>
-  <p>报到以录取通知书和学院官方群通知为准；可提前一两天到校，附近有酒店，开学当天早上过去即可。</p>
+
+<div class="block reveal">
+  <h3><span class="dot"></span>入学前 · 网上报到要办的八件事</h3>
+  <p>正式报到前，学校会开放<b>自助迎新平台</b>：电脑端输入网址登录，或直接扫录取通知书上的二维码。各项开放与截止时间以录取通知书和学校通知为准，通常在报到前两周左右陆续开放，别拖到最后一天挤系统。</p>
+  <ol class="list-num">
+    <li><b>个人信息填写</b>——姓名、身份证、家庭信息如实填写，这套数据后面直接进学籍，填错要跑好几趟。</li>
+    <li><b>绿色通道申请</b>——家庭经济暂时困难的同学在这里填报，可以先办入学手续、后缴费，不用担心一次带不齐钱。</li>
+    <li><b>大学生医保、商业保险购买</b>——医保强烈建议买，一年几百块，在武汉看病报销比例高；商业保险自愿。</li>
+    <li><b>宿舍信息查看</b>——能看到自己分在哪个校区、哪栋楼。寄快递、买床上用品之前一定先看这一条。</li>
+    <li><b>转户口意向调查</b>——愿意迁户口的同学在此填报并上传户口迁移材料照片；学校只能迁为集体户口，自愿选择。</li>
+    <li><b>在线教育微课</b>——即入学安全教育等网上微课，<b>计入学分</b>，开放期较长但别拖。</li>
+    <li><b>网缴学杂费</b>——线上缴清最省事，截止时间通常早于报到日；错过了到校后得自己跑财务部补交。</li>
+    <li><b>报到信息登记</b>——上面几项完成后做最终登记，相当于线上报到成功，当天到校核验会快很多。</li>
+  </ol>
+  <div class="note"><p>系统未开放时不用着急，也不要相信非官方渠道的「代填」。「易班」的开放时间同样另行通知，关注学院官方群消息即可。</p></div>
 </div>
+
+<div class="block reveal">
+  <h3><span class="dot"></span>报到当天 · 五步走</h3>
+  <ol class="list-num">
+    <li><b>进校</b>——携带录取通知书和个人行李进校门，通知书随身放，别塞进托运的箱子里。</li>
+    <li><b>直奔宿舍</b>——入校后不用先满校园找报到点，直接前往自己的宿舍楼，与本院系的迎新志愿者取得联系。</li>
+    <li><b>现场审核</b>——把身份证和录取通知书交给志愿者核验，几分钟就能办完。</li>
+    <li><b>领一卡通和钥匙</b>——审核通过后领校园一卡通、学生证和宿舍钥匙，进宿舍找到贴着你姓名、学号标签的床位放行李。</li>
+    <li><b>办户口迁移</b>——需要迁户口的同学放好行李后，带录取通知书和迁移材料到迎新总站办理。</li>
+  </ol>
+  <div class="note">
+    <span class="who">师兄师姐说</span>
+    <p>每位新生都有专门对接的迎新志愿者，学生证、校园卡、宿舍钥匙都由他们当面交给你。此外每个班还配一位「导助」（辅导员助理，由师兄师姐担任，履职一学期），负责分班后的班级组建、通知发布和入学教育。有问题直接找他们，别自己在群里干着急。</p>
+  </div>
+</div>
+
+<div class="block reveal">
+  <h3><span class="dot"></span>报到材料 · 一样都不能少</h3>
+  <div class="note"><p>红色方块＝必带，绿色方块＝建议提前备好。出发前对着清单点一遍，比到武汉再补方便太多。</p></div>
+  <div class="check must"><span class="box"></span><span>录取通知书（全程随身携带，报到、办户口、领物资都要用）</span></div>
+  <div class="check must"><span class="box"></span><span>身份证原件 + 正反面复印件若干张</span></div>
+  <div class="check must"><span class="box"></span><span>高考准考证</span></div>
+  <div class="check must"><span class="box"></span><span>团员证 / 团组织关系材料（党员另带党组织关系介绍信）</span></div>
+  <div class="check must"><span class="box"></span><span>个人学籍档案：密封自带或由中学 EMS 邮寄，<b>千万不能拆封</b></span></div>
+  <div class="check must"><span class="box"></span><span>户口本及复印件、户口迁移资料（自愿迁移，只能迁为集体户口）</span></div>
+  <div class="check must"><span class="box"></span><span>医保卡</span></div>
+  <div class="check must"><span class="box"></span><span>随通知书寄来的银行借记卡（近年为工商银行）</span></div>
+  <div class="check must"><span class="box"></span><span>一寸 / 二寸红蓝底免冠证件照各一版，另存电子版</span></div>
+  <div class="note">
+    <span class="who">两个细节</span>
+    <p>① 通知书里没有银行卡的同学不必慌，是银行未能预开卡，到校后按通知去网点办理激活即可；开户没有硬性要求必须在武汉本地，在家乡开也行。② 证件照建议提前裁剪好并保留电子版，入学后填表、办证、社团报名、评奖评优都要反复用。</p>
+  </div>
+  <div class="note"><p>打算申请助学金的同学另需准备：个人申请书（手写）、贫困证明（村委/街道盖章）、《高校家庭情况调查表》×2（原件盖章）、《国家助学金申请表》×2（贴照片）、《困难学生认定申请表》×2。家庭情况调查表本身属于选填，不申请可以不填。</p></div>
+</div>
+
+<div class="block reveal">
+  <h3><span class="dot"></span>生活用品 · 带当季的就够</h3>
+  <div class="check"><span class="box"></span><span>个人衣物：只带应季的，武汉九月还很热，换季衣服让家里再寄</span></div>
+  <div class="check"><span class="box"></span><span>床上用品：<b>首义校区床位 0.9×1.9 米，南湖校区 0.8×1.9 米</b>，按尺寸买不会翻车</span></div>
+  <div class="check"><span class="box"></span><span>洗漱用品：牙刷牙膏、毛巾、洗发水、沐浴露、洗脸盆、水桶</span></div>
+  <div class="check"><span class="box"></span><span>日常用品：衣架、夹子、挂钩、雨伞、遮阳伞、台灯</span></div>
+  <div class="check"><span class="box"></span><span>电子产品：手机 / 平板 / 电脑自备，充电器、充电宝、耳机、U 盘；插线板带 1–2 个，宿舍插座偏少</span></div>
+  <div class="check"><span class="box"></span><span>小药箱：创可贴（必备）、防中暑药、感冒药、止泻药、退烧药、碘伏棉签纱布、体温计</span></div>
+  <div class="check"><span class="box"></span><span>洗手液、消毒液、口罩等防疫用品</span></div>
+  <div class="check"><span class="box"></span><span>少量现金，以备不时之需</span></div>
+  <div class="note">
+    <span class="who">过来人提醒</span>
+    <p>洗漱和日用品在校内超市、校门口商圈都能买到，也能用外卖直接送到宿舍楼下，别把行李箱塞爆再扛几千公里。床上用品可以网购寄到驿站，但记得算好到货日期，别卡在驿站存放期外。</p>
+  </div>
+</div>
+
+<div class="block reveal">
+  <h3><span class="dot"></span>学习用品</h3>
+  <div class="check"><span class="box"></span><span>文具：签字笔、涂卡笔、纸张、记事本、便利贴</span></div>
+  <div class="check"><span class="box"></span><span>文件用品：订书机、双面胶、文件夹、透明材料袋（各类表格用得上）</span></div>
+  <div class="check"><span class="box"></span><span>包：书包、斜挎包、电脑包各一个足够</span></div>
+  <div class="note"><p>英语听力耳机由学校统一组织购买，不用自己提前买。</p></div>
+</div>
+
+<div class="block reveal">
+  <h3><span class="dot"></span>热门问答 · 录取与入学准备</h3>
+  <div class="acc-item"><button class="acc-q">1. 录取通知书什么时候到？<span class="chev">›</span></button><div class="acc-a"><div class="acc-a-inner">不能一概而论。各省录取批次不同，通知书发出的时间和邮寄快慢都不一样，早的一周内到、晚的要等半个月。查到录取结果就说明稳了，稍安勿躁，通知书迟早会到。</div></div></div>
+  <div class="acc-item"><button class="acc-q">2. 录取通知书里都有什么？【重要】<span class="chev">›</span></button><div class="acc-a"><div class="acc-a-inner">通常包括：录取通知书、新生入学须知、银行借记卡（近年为工商银行）、学生资助指南、家庭情况调查表。<b>拿到手第一件事是把《新生入学须知》从头看一遍</b>，所有官方时间节点都在里面。家庭情况调查表属于选填，不打算申请助学金可以不填。</div></div></div>
+  <div class="acc-item"><button class="acc-q">3. 新生须知里的「迎新系统」是什么？【重要】<span class="chev">›</span></button><div class="acc-a"><div class="acc-a-inner">就是自助迎新平台，正式报到前的准备工作都在上面完成：个人信息登记、缴纳学费、查询班级与宿舍分配、查看对接的迎新志愿者，购买军训用品也走这里。具体开放时间以新生须知和学校通知为准，未开放时不必反复刷。要办的八件事详见上方「入学前 · 网上报到」。</div></div></div>
+  <div class="acc-item"><button class="acc-q">4. 「高数先修课」是什么？法学专业要参加吗？<span class="chev">›</span></button><div class="acc-a"><div class="acc-a-inner">高数先修课是针对<b>经管类</b>等有高等数学修读要求的专业开设的网上课堂，内容和难度大致与高考数学相当。法学院、刑事司法学院、新闻与文化传播学院、中韩新媒体学院、外国语学院的大部分专业不修高数，因此<b>无需参加</b>。拿不准的向直系师兄师姐确认自己的专业培养方案。</div></div></div>
+  <div class="acc-item"><button class="acc-q">5. 「安全微课」是什么？<span class="chev">›</span></button><div class="acc-a"><div class="acc-a-inner">新生入学安全教育网上微课，在自助迎新平台上完成，<b>计入学分</b>，新生须知里有详细说明。开放时间以须知或具体通知为准，开放后尽早刷完，别拖到截止日。</div></div></div>
+  <div class="acc-item"><button class="acc-q">6. 今年新生什么时候开学？<span class="chev">›</span></button><div class="acc-a"><div class="acc-a-inner">以录取通知书与校历为准，2026 级预计 9 月初报到。学校未正式发文前，网上流传的任何具体日期都别当真；请严格按通知书上的时间到校，因早到或迟到造成的不利后果需自行承担。</div></div></div>
+</div>
+
+<div class="block reveal">
+  <h3><span class="dot"></span>热门问答 · 到校与报到</h3>
+  <div class="acc-item"><button class="acc-q">1. 新生在哪里报到？<span class="chev">›</span></button><div class="acc-a"><div class="acc-a-inner">以录取通知书和学院官方群通知为准，每年可能有变动。两个校区的位置、报到时间口径、到校后的五步流程，都整理在本页上方的「到校 &amp; 校区」和「报到当天 · 五步走」，出发前照着看一遍即可。</div></div></div>
+  <div class="acc-item"><button class="acc-q">2. 行李和快递寄到哪里？什么时候寄？<span class="chev">›</span></button><div class="acc-a"><div class="acc-a-inner">两个校区的完整收件地址详见上方「到校 &amp; 校区」。切记先在迎新平台确认自己分在哪个校区再下单。快递不要寄太早，开学前驿站爆仓、超期不予留置；到校后也要尽快取，驿站一般只存三天。</div></div></div>
+  <div class="acc-item"><button class="acc-q">3. 什么是迎新志愿者？什么是导助？<span class="chev">›</span></button><div class="acc-a"><div class="acc-a-inner">迎新志愿者负责在报到当天对接你，现场核验材料，并把学生证、校园卡、宿舍钥匙当面交给你。导助即辅导员助理，每班一位，由师兄师姐担任、履职一学期，负责分班后的班级组织、通知发布和入学教育。导助「卸任」后照样欢迎你提问，他们是最靠谱的第一手信息源。</div></div></div>
+  <div class="acc-item"><button class="acc-q">4. 需要关注哪些公众号？<span class="chev">›</span></button><div class="acc-a"><div class="acc-a-inner">开学前先关注「中南财经政法大学」和自己学院的官方公众号就够用了，报到、军训、选课通知都会从这两处发出。完整公众号清单详见「校园服务」页（下方有入口）。</div></div></div>
+</div>
+
+<div class="block reveal">
+  <h3><span class="dot"></span>师兄师姐留言板</h3>
+  <div class="acc-item"><button class="acc-q">学生证丢了怎么补办？<span class="chev">›</span></button><div class="acc-a"><div class="acc-a-inner">先在网上事务大厅提交补办申请并缴费，再到南湖校区文潭楼 210 办理。补办期间需要证明学生身份的场合，可先用企业微信里的电子学生证。</div></div></div>
+  <div class="acc-item"><button class="acc-q">校园卡丢了怎么补办？<span class="chev">›</span></button><div class="acc-a"><div class="acc-a-inner">首义校区到电教楼三楼，南湖校区到梅教 201 办理。丢卡后先在校园卡系统或企业微信里挂失，避免余额被刷。</div></div></div>
+  <div class="acc-item"><button class="acc-q">学校心理咨询室电话是多少？<span class="chev">›</span></button><div class="acc-a"><div class="acc-a-inner">首义校区 88382103，南湖校区 88386046。咨询免费且严格保密，情绪不好、适应困难、失眠焦虑都可以预约，这不是什么难为情的事。</div></div></div>
+  <div class="acc-item"><button class="acc-q">菜鸟驿站快递能存放多久？<span class="chev">›</span></button><div class="acc-a"><div class="acc-a-inner">一般为三天，节假日可能适当延长。开学季件量极大，超期件驿站可能不再留置，收到取件码就尽快去取。</div></div></div>
+  <div class="acc-item"><button class="acc-q">怎么申请家庭经济困难学生补助？<span class="chev">›</span></button><div class="acc-a"><div class="acc-a-inner">关注公众号「中南财经政法大学学生资助管理中心」或「中南大勤助杂货铺」，申请通道一般在开学后（约 9–10 月）开放，可先参考往年推文准备材料，最终以当年通知为准。经济暂时困难的同学也可以在迎新平台先走绿色通道。</div></div></div>
+</div>
+
+<div class="block reveal">
+  <h3><span class="dot"></span>自习地图</h3>
+  <div class="spot"><div class="spot-main"><div class="spot-name">文泰楼</div><div class="spot-desc">规模大、教室多、氛围浓；低层常满，高层更宽松，走廊可背书。</div></div><div class="spot-hours">7:00–21:30</div></div>
+  <div class="spot"><div class="spot-main"><div class="spot-name">文澴楼</div><div class="spot-desc">临南湖、环境清幽，有公共讨论区；环湖近，常供不应求，尽早去。</div></div><div class="spot-hours">7:00–21:30</div></div>
+  <div class="spot"><div class="spot-main"><div class="spot-name">图书馆</div><div class="spot-desc">周日 17:00 闭馆；需公众号选座系统预约 + 签到，六楼设朗读区。</div></div><div class="spot-hours">周一–六 7:30–22:00</div></div>
+  <div class="spot"><div class="spot-main"><div class="spot-name">倍阅书店</div><div class="spot-desc">环湖十七栋，有咖啡吧台，学习休憩两宜。</div></div><div class="spot-hours">9:00–21:00</div></div>
+  <div class="spot"><div class="spot-main"><div class="spot-name">望湖驿站</div><div class="spot-desc">望湖园二楼，沙发区舒适，一楼有小片讨论区。</div></div><div class="spot-hours">7:00–21:30</div></div>
+  <div class="spot"><div class="spot-main"><div class="spot-name">五食堂</div><div class="spot-desc">中心位置的「网红餐厅」，美食多且设自习座位，期末备考首选。</div></div><div class="spot-hours">7:00–21:30</div></div>
+  <div class="note"><p>查空闲教室：企业微信 → 工作台 → 综合教务 → 空闲教室，可按时段搜各教学楼的空教室。</p></div>
+</div>
+
+<a class="linkrow reveal" href="xiaoqu.html"><span class="lk-ic">📮</span><span class="lk-txt">完整公众号清单<span class="lk-sub"> 详见「校园服务」，含官微、学院号、教务与图书馆</span></span><span class="lk-arrow">›</span></a>
+
 <div class="group-entry" id="groupEntry">
   <div class="group-entry-icon">💬</div>
-  <div class="group-entry-text"><div class="group-entry-title">加入吃喝玩乐群</div><div class="group-entry-desc">扫码进群，和师兄师姐一起探索</div></div>
+  <div class="group-entry-text"><div class="group-entry-title">加入 2026 新生群</div><div class="group-entry-desc">师兄师姐在线答疑，选课/宿舍/社团全搞定</div></div>
   <div class="group-entry-arrow">›</div>
 </div>
 <div class="footer">江城编辑部 · 与师兄师姐一同修订 · 2026</div>
 </div>
-<script src="js/config.js"></script><script src="js/common.js"></script><script src="js/baibaoxiang.js"></script>
+<script src="js/config.js"></script><script src="js/app.js"></script>
 </body></html>
