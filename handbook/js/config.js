@@ -50,3 +50,24 @@ window.__UPDATE_CONFIG__ = {
   id: '2026-08-03',
   text: '本期已按 2026 级信息全面校订，报到日期以录取通知书为准'
 };
+
+/**
+ * 章节目录 —— 全站唯一事实来源
+ * 首页目录顺序、章末「上一章 / 下一章」导航，都读这一份。
+ * 调整章节顺序或增删章节：只改这里，首页目录仍需同步 HTML（序号 no 字段对齐）。
+ */
+window.__CHAPTERS__ = [
+  { no: '壹', page: 'xinsheng.html', title: '新生必看' },
+  { no: '贰', page: 'jiaotong.html', title: '交通快递' },
+  { no: '叁', page: 'sushe.html', title: '宿舍指南' },
+  { no: '肆', page: 'junxun.html', title: '军训攻略' },
+  { no: '伍', page: 'xiaoqu.html', title: '校园服务' },
+  { no: '陆', page: 'rushi.html', title: '入学测试' },
+  { no: '柒', page: 'xueye.html', title: '学业指南' },
+  { no: '捌', page: 'shenghuo.html', title: '吃住问答' },
+  { no: '玖', page: 'jiangzhu.html', title: '奖助学金' },
+  { no: '拾', page: 'shetuan.html', title: '社团一览' },
+  { no: '十一', page: 'zuzhi.html', title: '学生组织' },
+  { no: '十二', page: 'jingsai.html', title: '竞赛活动' },
+  { no: '十三', page: 'tice.html', title: '体育体测' }
+];

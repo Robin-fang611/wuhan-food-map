@@ -31,7 +31,7 @@ const PAGES = [
   { file: 'rushi.html', name: '入学测试', icon: '📝' },
   { file: 'xueye.html', name: '学业指南', icon: '📚' },
   { file: 'shenghuo.html', name: '吃住问答', icon: '🍜' },
-  { file: 'growth.html', name: '成长规划', icon: '🌱' },
+  // growth.html 已并入 xueye.html#b11（第4轮），仅保留跳转页，不进索引
   { file: 'jiangzhu.html', name: '奖助学金', icon: '💰' },
   { file: 'shetuan.html', name: '社团一览', icon: '🎭' },
   { file: 'zuzhi.html', name: '学生组织', icon: '🏛' },

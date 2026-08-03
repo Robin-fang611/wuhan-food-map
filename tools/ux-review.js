@@ -15,6 +15,10 @@ function add(level, page, msg) { issues.push({ level, page, msg }); }
 
 files.forEach(f => {
   const html = fs.readFileSync(path.join(BASE, f), 'utf-8');
+
+  // 跳转页（章节合并后保留的旧链接落点）不是内容页，跳过全部内容检查
+  if (/<meta\s+http-equiv="refresh"/i.test(html)) return;
+
   const dom = new JSDOM(html, { includeNodeLocations: false });
   const doc = dom.window.document;
 

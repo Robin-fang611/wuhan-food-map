@@ -684,3 +684,104 @@ body[data-page="tice"]     { --m: #46716A; --m-soft: rgba(70,113,106,.11); }
   .reveal, .reveal.revealed { opacity: 1 !important; transform: none !important; transition: none !important; }
   html { scroll-behavior: auto; }
 }
+
+/* ============================================================
+   第4轮 · 本页速览（子页封面下 · 横滑锚点条）
+   ============================================================ */
+.page-nav {
+  position: sticky; top: 0; z-index: 500;
+  display: flex; align-items: center; gap: 8px;
+  padding: 6px 16px;
+  background: rgba(246,241,231,.94);
+  backdrop-filter: saturate(160%) blur(12px);
+  -webkit-backdrop-filter: saturate(160%) blur(12px);
+  border-bottom: 1px solid var(--line);
+}
+.page-nav .pn-label {
+  flex: none; font-size: 11px; letter-spacing: .1em;
+  color: var(--ink-3); font-family: var(--kai);
+}
+.page-nav .pn-scroll {
+  flex: 1; display: flex; gap: 6px; overflow-x: auto;
+  -webkit-overflow-scrolling: touch; scrollbar-width: none;
+  scroll-behavior: smooth;
+}
+.page-nav .pn-scroll::-webkit-scrollbar { display: none; }
+.pn-chip {
+  flex: none; min-height: 40px; padding: 0 13px;
+  border: 1px solid var(--line); border-radius: var(--r-pill);
+  background: var(--paper); color: var(--ink-2);
+  font-family: inherit; font-size: 12.5px; line-height: 38px;
+  white-space: nowrap; cursor: pointer;
+  transition: border-color var(--tr), color var(--tr), background var(--tr);
+}
+.pn-chip:active { transform: scale(.96); }
+.pn-chip.on {
+  border-color: var(--m, var(--red)); color: var(--m, var(--red));
+  background: var(--paper); font-weight: 600;
+}
+
+/* ============================================================
+   第4轮 · 章末导航（上一章 / 下一章 / 回目录）
+   ============================================================ */
+.chap-foot { margin: 26px 0 18px; }
+.chap-foot .cf-title {
+  font-family: var(--kai); font-size: 13px; color: var(--ink-3);
+  letter-spacing: .1em; margin-bottom: 10px; text-align: center;
+}
+.chap-foot .cf-title::before,
+.chap-foot .cf-title::after {
+  content: ''; display: inline-block; width: 24px; height: 1px;
+  background: var(--line); vertical-align: middle; margin: 0 8px;
+}
+.chap-foot .cf-rows { display: flex; flex-direction: column; gap: 8px; }
+.cf-row {
+  display: flex; align-items: center; gap: 10px;
+  min-height: 52px; padding: 0 14px;
+  border: 1px solid var(--line); border-radius: var(--r-mod);
+  background: var(--paper); text-decoration: none;
+  transition: border-color var(--tr), transform .12s ease;
+}
+.cf-row:active { transform: scale(.99); }
+.cf-row .cf-dir {
+  flex: none; font-size: 11px; letter-spacing: .08em;
+  color: var(--ink-3); font-family: var(--kai);
+  padding-right: 10px; border-right: 1px solid var(--line);
+}
+.cf-row .cf-name {
+  flex: 1; font-size: 14px; color: var(--ink); line-height: 1.4;
+}
+.cf-row .cf-name b {
+  font-family: var(--serif); font-weight: 700; color: var(--ink-2);
+  margin-right: 5px;
+}
+.cf-row .cf-ar { flex: none; font-size: 17px; color: var(--ink-3); }
+.cf-next {
+  border-color: var(--m, var(--red));
+  background: var(--red-soft);
+}
+.cf-next .cf-dir { color: var(--m, var(--red)); border-right-color: var(--m, var(--red)); }
+.cf-next .cf-name { font-weight: 600; }
+.cf-next .cf-ar { color: var(--m, var(--red)); }
+
+/* ============================================================
+   第4轮 · 回顶（滚过 1.5 屏浮出，避开底部常驻栏）
+   ============================================================ */
+.to-top {
+  position: fixed; right: 16px; z-index: 880;
+  bottom: calc(80px + var(--safe-bottom));
+  width: 42px; height: 42px; padding: 0;
+  border: 1px solid var(--line); border-radius: 50%;
+  background: rgba(255,252,246,.94);
+  backdrop-filter: saturate(160%) blur(10px);
+  -webkit-backdrop-filter: saturate(160%) blur(10px);
+  color: var(--ink-2); font-size: 18px; line-height: 40px;
+  box-shadow: var(--shadow-soft); cursor: pointer;
+  opacity: 0; visibility: hidden; transform: translateY(8px);
+  transition: opacity var(--tr), transform var(--tr), visibility var(--tr);
+}
+.to-top.on { opacity: 1; visibility: visible; transform: none; }
+.to-top:active { transform: scale(.92); }
+@media (min-width: 460px) {
+  .to-top { right: calc(50vw - 230px + 16px); }
+}

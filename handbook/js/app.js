@@ -739,6 +739,259 @@
   }
 
   /* ==========================================================
+     6.56 本页速览（子页封面下方 · 横滑锚点条）
+     ------------------------------------------------------------
+     子页首屏被封面占满，进来只看得到一个返回键，不知道这页有什么，
+     只能盲滑 —— 最长的两页有 7.9 屏和 6.9 屏。
+     这里自动抓本页所有 .block[id] 的标题生成锚点，新增区块自动出现，
+     不需要任何手工维护。
+     ========================================================== */
+  var HEAD_OFFSET = 12;
+
+  function scrollToBlock(el) {
+    if (!el) return;
+    var bar = document.querySelector('.page-nav');
+    var stick = bar && getComputedStyle(bar).position === 'sticky' ? bar.offsetHeight : 0;
+    var y = el.getBoundingClientRect().top + window.pageYOffset - stick - HEAD_OFFSET;
+    try {
+      window.scrollTo({ top: y, behavior: 'smooth' });
+    } catch (e) {
+      window.scrollTo(0, y);
+    }
+  }
+
+  /* chip 放得下的字数上限；超了才需要压缩 */
+  var CHIP_MAX = 12;
+  /* 这些开头只是语气，不含信息，撞上就往后取更具体的一段 */
+  var WEAK_HEAD = /^(先搞清楚|先说清楚|一句话先说清|一句话|先看这一条|为什么|顺带一提|注意|提醒|说明|总览|概览|其他)/;
+
+  /** 按语义断点把标题切成候选段 */
+  function titleParts(raw) {
+    var t = (raw || '').trim();
+    t = t.replace(/^[（(]?[一二三四五六七八九十\d]+[）)]?\s*[、.．]\s*/, ''); // 「一、」「1. 」「（一）」
+    t = t.replace(/^块[一二三四五六七八九十\d]+\s*[·・]\s*/, '');              // 「块一 · 」
+    var parts = [];
+    var raws = t.split(/[·・：:，,（(]/);
+    for (var i = 0; i < raws.length; i++) {
+      var s = raws[i].trim().replace(/[）)]$/, '');
+      if (s) parts.push(s);
+    }
+    return { full: t, parts: parts.length ? parts : [t] };
+  }
+
+  function fitOrCut(s) {
+    return s.length <= CHIP_MAX ? s : s.slice(0, CHIP_MAX - 1) + '…';
+  }
+
+  /**
+   * 把一组区块标题压成互不重复的短 chip 文案。
+   * 默认取第一段（通常是主题词），只有在第一段是语气词、或同页多个区块第一段撞车时，
+   * 才换成更具体的后半段 —— 直接硬截断会切出「报到材料 · 一样都」这种半截话。
+   */
+  function shortenTitles(raws) {
+    var metas = [];
+    var headCount = {};
+    for (var i = 0; i < raws.length; i++) {
+      var m = titleParts(raws[i]);
+      var head = m.parts[0];
+      var tail = m.parts.length > 1 ? m.parts[m.parts.length - 1] : '';
+      metas.push({ full: m.full, head: head, tail: tail });
+      headCount[head] = (headCount[head] || 0) + 1;
+    }
+
+    var out = [];
+    var used = {};
+    for (var j = 0; j < metas.length; j++) {
+      var it = metas[j];
+      var pick;
+      if (it.full.length <= CHIP_MAX) {
+        pick = it.full;                                   // 本来就短，原样用
+      } else if (WEAK_HEAD.test(it.head) && it.tail) {
+        pick = it.tail;                                   // 开头是语气词，用后半段
+      } else if (headCount[it.head] > 1 && it.tail) {
+        pick = it.tail;                                   // 同页多个块同一个头，用后半段区分
+      } else if (it.head.length >= 2 && it.head.length <= CHIP_MAX) {
+        pick = it.head;                                   // 用主题词
+      } else {
+        pick = it.tail && it.tail.length <= CHIP_MAX ? it.tail : it.full;
+      }
+      pick = fitOrCut(pick);
+      if (used[pick]) pick = fitOrCut(it.full);           // 仍撞名就退回完整标题
+      var n = 2;
+      while (used[pick]) { pick = fitOrCut(it.full) + ' ' + n; n++; }
+      used[pick] = 1;
+      out.push(pick);
+    }
+    return out;
+  }
+
+  function renderPageNav() {
+    if (document.body.dataset.page === 'index') return;
+    if (document.querySelector('.page-nav')) return;
+
+    var blocks = document.querySelectorAll('.block[id]');
+    var raws = [];
+    var ids = [];
+    for (var i = 0; i < blocks.length; i++) {
+      var h = blocks[i].querySelector('h3');
+      if (!h) continue;
+      var raw = (h.textContent || '').trim();
+      if (!raw) continue;
+      raws.push(raw);
+      ids.push(blocks[i].id);
+    }
+    var shorts = shortenTitles(raws);
+    var items = [];
+    for (var k = 0; k < ids.length; k++) {
+      items.push({ id: ids[k], text: shorts[k] });
+    }
+    if (items.length < 3) return; // 少于 3 块不值得加导航
+
+    var hero = document.querySelector('.module-hero');
+    if (!hero || !hero.parentNode) return;
+
+    var nav = document.createElement('nav');
+    nav.className = 'page-nav';
+    var html = '<span class="pn-label">本页</span><div class="pn-scroll">';
+    for (var j = 0; j < items.length; j++) {
+      html += '<button class="pn-chip" type="button" data-target="' + items[j].id + '">' + items[j].text + '</button>';
+    }
+    nav.innerHTML = html + '</div>';
+    hero.parentNode.insertBefore(nav, hero.nextSibling);
+
+    nav.addEventListener('click', function (e) {
+      var chip = e.target.closest ? e.target.closest('.pn-chip') : null;
+      if (!chip) return;
+      var el = document.getElementById(chip.dataset.target);
+      scrollToBlock(el);
+      analytics.track('pagenav', chip.dataset.target);
+    });
+
+    // 滚动时高亮当前区块，并把对应 chip 滑进视野
+    var scroller = nav.querySelector('.pn-scroll');
+    var chips = nav.querySelectorAll('.pn-chip');
+    var ticking = false;
+    function syncActive() {
+      ticking = false;
+      var top = window.pageYOffset + 120;
+      var cur = -1;
+      for (var k = 0; k < items.length; k++) {
+        var el = document.getElementById(items[k].id);
+        if (el && el.offsetTop <= top) cur = k;
+      }
+      for (var m = 0; m < chips.length; m++) {
+        var on = m === cur;
+        if (on !== chips[m].classList.contains('on')) {
+          chips[m].classList.toggle('on', on);
+          if (on && scroller.scrollWidth > scroller.clientWidth) {
+            var c = chips[m];
+            scroller.scrollLeft = c.offsetLeft - scroller.clientWidth / 2 + c.offsetWidth / 2;
+          }
+        }
+      }
+    }
+    window.addEventListener('scroll', function () {
+      if (ticking) return;
+      ticking = true;
+      window.requestAnimationFrame ? requestAnimationFrame(syncActive) : setTimeout(syncActive, 60);
+    }, { passive: true });
+    syncActive();
+  }
+
+  /* ==========================================================
+     6.57 章末导航（上一章 / 下一章 / 回目录）
+     ------------------------------------------------------------
+     六个页面读到底完全没有出口，其中两页恰恰是全站最长的。
+     顺序读 __CHAPTERS__，改目录只改 config.js 一处。
+     ========================================================== */
+  function renderChapterFoot() {
+    var page = (location.pathname.split('/').pop() || 'index.html');
+    if (page === 'index.html' || page === '') return;
+    if (document.querySelector('.chap-foot')) return;
+
+    var list = window.__CHAPTERS__ || [];
+    var idx = -1;
+    for (var i = 0; i < list.length; i++) {
+      if (list[i].page === page) { idx = i; break; }
+    }
+    if (idx < 0) return;
+
+    var prev = idx > 0 ? list[idx - 1] : null;
+    var next = idx < list.length - 1 ? list[idx + 1] : null;
+
+    var box = document.createElement('nav');
+    box.className = 'chap-foot';
+    var html = '<div class="cf-title">这一章看完了</div><div class="cf-rows">';
+    if (next) {
+      html += '<a class="cf-row cf-next" href="' + next.page + '">'
+        + '<span class="cf-dir">下一章</span>'
+        + '<span class="cf-name"><b>' + next.no + '</b> ' + next.title + '</span>'
+        + '<span class="cf-ar">›</span></a>';
+    }
+    if (prev) {
+      html += '<a class="cf-row cf-prev" href="' + prev.page + '">'
+        + '<span class="cf-dir">上一章</span>'
+        + '<span class="cf-name"><b>' + prev.no + '</b> ' + prev.title + '</span>'
+        + '<span class="cf-ar">›</span></a>';
+    }
+    html += '<a class="cf-row cf-home" href="index.html">'
+      + '<span class="cf-dir">目录</span>'
+      + '<span class="cf-name">回手册看全部 13 章</span>'
+      + '<span class="cf-ar">›</span></a>';
+    box.innerHTML = html + '</div>';
+
+    // 插在页尾进群入口之前，不抢进群位
+    var ge = document.getElementById('groupEntry');
+    var footer = document.querySelector('.footer');
+    var anchor = ge || footer;
+    if (anchor && anchor.parentNode) {
+      anchor.parentNode.insertBefore(box, anchor);
+    } else {
+      var app = document.querySelector('.app');
+      if (app) app.appendChild(box);
+    }
+
+    box.addEventListener('click', function (e) {
+      var a = e.target.closest ? e.target.closest('.cf-row') : null;
+      if (a) analytics.track('chapfoot', a.getAttribute('href'));
+    });
+  }
+
+  /* ==========================================================
+     6.58 回顶（滚过 1.5 屏浮出，避开底部常驻栏）
+     ========================================================== */
+  function renderBackTop() {
+    if (document.querySelector('.to-top')) return;
+    var btn = document.createElement('button');
+    btn.className = 'to-top';
+    btn.type = 'button';
+    btn.setAttribute('aria-label', '回到顶部');
+    btn.innerHTML = '↑';
+    document.body.appendChild(btn);
+
+    btn.addEventListener('click', function () {
+      try {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } catch (e) {
+        window.scrollTo(0, 0);
+      }
+      analytics.track('backtop');
+    });
+
+    var ticking = false;
+    function sync() {
+      ticking = false;
+      btn.classList.toggle('on', window.pageYOffset > window.innerHeight * 1.5);
+    }
+    window.addEventListener('scroll', function () {
+      if (ticking) return;
+      ticking = true;
+      window.requestAnimationFrame ? requestAnimationFrame(sync) : setTimeout(sync, 80);
+    }, { passive: true });
+    sync();
+  }
+
+  /* ==========================================================
      6.6 封面版次 / 更新日期（由 config.js 驱动，改一处全站生效）
      ========================================================== */
   function renderCoverMeta() {
@@ -778,10 +1031,19 @@
     renderUpdateBar();
     renderCoverMeta();
     renderTabBar();   // 必须在 bindBasics 之前：栏内按钮要靠它统一绑事件
+    renderPageNav();
+    renderChapterFoot();  // 必须在 bindBasics 之前：章末进群按钮要统一绑事件
+    renderBackTop();
     bindBasics();
     bindMustList();
     bindReveal();
     analytics.track('pv');
+
+    // 带 hash 进来（搜索跳转 / 外链）时，手动修正落点避开吸顶导航
+    if (location.hash && location.hash.length > 1) {
+      var target = document.getElementById(location.hash.slice(1));
+      if (target) setTimeout(function () { scrollToBlock(target); }, 80);
+    }
 
     // 首页首次进入 2s 后自动弹群（间隔 ≥24h）
     if (document.body.dataset.page === 'index') {

@@ -28,6 +28,15 @@ for (const f of htmlFiles) {
   const src = fs.readFileSync(path.join(DIR, f), 'utf8');
   const isHome = f === 'index.html';
 
+  // 跳转页（章节合并后保留的旧链接落点）不按模块页标准检查，
+  // 只要求它确实会跳走、且不进搜索引擎。
+  if (/<meta\s+http-equiv="refresh"/i.test(src)) {
+    if (!/<meta\s+name="robots"[^>]*noindex/i.test(src)) bad(f, '跳转页缺 noindex');
+    if (!/location\.replace\(/.test(src)) bad(f, '跳转页缺 JS 兜底跳转');
+    if (!/<link\s+rel="canonical"/i.test(src)) bad(f, '跳转页缺 canonical');
+    continue;
+  }
+
   // data-page
   const dp = src.match(/<body[^>]*data-page="([^"]+)"/);
   if (!dp) bad(f, '缺 data-page（模块配色与首页逻辑都依赖它）');
