@@ -1,5 +1,5 @@
 /* ============================================================
-   江城 · 新生手册 —— 全站统一交互层
+   LinkYou · 新生手册 —— 全站统一交互层
    ------------------------------------------------------------
    设计约定：
    1. 本文件是**普通 script**（非 ES module），16 个页面统一加载
@@ -278,7 +278,7 @@
 
     y += 78;
     ctx.fillStyle = INK; ctx.font = '900 74px ' + SERIF;
-    ctx.fillText('江城 · 新生手册', x, y);
+    ctx.fillText('LinkYou · 新生手册', x, y);
 
     y += 34;
     ctx.strokeStyle = RED; ctx.lineWidth = 5;
@@ -319,7 +319,7 @@
 
       ctx.fillStyle = INK3; ctx.font = '22px ' + SANS;
       ctx.textAlign = 'center';
-      ctx.fillText('江城编辑部 · 与师兄师姐一同修订 · 2026', W / 2, H - 92);
+      ctx.fillText('LinkYou · 与师兄师姐一同修订 · 2026', W / 2, H - 92);
       ctx.textAlign = 'left';
 
       cb(cv.toDataURL('image/jpeg', 0.9));
@@ -356,7 +356,7 @@
       var ov = document.createElement('div');
       ov.className = 'poster-overlay';
       ov.innerHTML = '<div class="poster-box">'
-        + '<img class="poster-img" src="' + dataUrl + '" alt="江城新生手册分享海报">'
+        + '<img class="poster-img" src="' + dataUrl + '" alt="LinkYou新生手册分享海报">'
         + '<div class="poster-tip">长按图片保存 / 转发到群里</div>'
         + '<button class="poster-close" type="button">关闭</button>'
         + '</div>';
@@ -1066,14 +1066,134 @@
   }
 
   /* ==========================================================
+     6.60 主题切换器（第 6 轮预览期 · 正式版可保留为「外观」设置）
+     ------------------------------------------------------------
+     <html data-theme="x"> 覆写见 css/baibaoxiang.css 末尾；这里只负责
+     注入浮动切换器 + localStorage 持久化，选中即落本机，刷新不忘。
+     ========================================================== */
+  var THEME_KEY = 'jc_theme';
+  var THEMES = [
+    { key: '',   label: '当前' },
+    { key: 'a',  label: '手账暖' },
+    { key: 'b',  label: '杂志风' },
+    { key: 'c',  label: '极简读' },
+    { key: 'd',  label: '夜读' }
+  ];
+  function getSavedTheme() {
+    try { return localStorage.getItem(THEME_KEY) || ''; } catch (e) { return ''; }
+  }
+  function applyTheme(key) {
+    if (key) document.documentElement.setAttribute('data-theme', key);
+    else document.documentElement.removeAttribute('data-theme');
+  }
+  function renderThemeSwitcher() {
+    if (document.querySelector('.theme-sw')) return;
+    var saved = getSavedTheme();
+    var wrap = document.createElement('div');
+    wrap.className = 'theme-sw';
+    var html = '<button class="theme-sw-btn" type="button" aria-label="切换外观主题">🎨</button>'
+      + '<div class="theme-sw-pop" hidden>'
+      + '<div class="theme-sw-t">外观预览</div>';
+    THEMES.forEach(function (t) {
+      html += '<button class="theme-sw-opt' + (t.key === saved ? ' on' : '') + '" type="button" data-k="'
+        + t.key + '">' + t.label + '</button>';
+    });
+    html += '</div>';
+    wrap.innerHTML = html;
+    document.body.appendChild(wrap);
+    var btn = wrap.querySelector('.theme-sw-btn');
+    var pop = wrap.querySelector('.theme-sw-pop');
+    btn.addEventListener('click', function () { pop.hidden = !pop.hidden; });
+    pop.addEventListener('click', function (e) {
+      var b = e.target.closest('.theme-sw-opt');
+      if (!b) return;
+      var k = b.getAttribute('data-k');
+      try { localStorage.setItem(THEME_KEY, k); } catch (e) {}
+      applyTheme(k);
+      pop.querySelectorAll('.theme-sw-opt').forEach(function (o) {
+        o.classList.toggle('on', o.getAttribute('data-k') === k);
+      });
+    });
+    document.addEventListener('click', function (e) {
+      if (!wrap.contains(e.target)) pop.hidden = true;
+    });
+  }
+
+  /* ==========================================================
+     7b. 杂志目录抽屉（第 7 轮 · 招牌交互）
+     ========================================================== */
+  function renderTocDrawer() {
+    var page = document.body.dataset.page;
+    if (!page || page === 'index' || page === 'growth') return;
+    var appbar = document.querySelector('.appbar');
+    if (!appbar) return;
+
+    if (!document.getElementById('tocBtn')) {
+      var btn = document.createElement('button');
+      btn.id = 'tocBtn';
+      btn.type = 'button';
+      btn.className = 'toc-btn';
+      btn.setAttribute('aria-label', '打开目录');
+      btn.innerHTML = '目录 <span aria-hidden="true">☰</span>';
+      var shareBtn = document.getElementById('shareBtn');
+      if (shareBtn) appbar.insertBefore(btn, shareBtn);
+      else appbar.appendChild(btn);
+      btn.addEventListener('click', openToc);
+    }
+
+    if (document.getElementById('tocDrawer')) return;
+    var CH = window.__CHAPTERS__ || [];
+    var cur = page + '.html';
+    var items = CH.map(function (c, i) {
+      var isCur = c.page === cur ? ' cur' : '';
+      return '<a class="toc-item' + isCur + '" href="' + c.page + '">' +
+        '<span class="tn">' + c.no + '</span>' +
+        '<span class="tt">' + c.title + '</span>' +
+        '<span class="td">第 ' + (i + 1) + ' 章</span></a>';
+    }).join('');
+    var drawer = document.createElement('div');
+    drawer.id = 'tocDrawer';
+    drawer.className = 'toc-drawer';
+    drawer.innerHTML =
+      '<div class="toc-panel" role="dialog" aria-label="目录">' +
+        '<div class="toc-head"><div><div class="th-t">本期目录</div><div class="th-e">Contents</div></div>' +
+        '<button class="toc-close" id="tocClose" aria-label="关闭">✕</button></div>' +
+        '<div class="toc-list">' + items + '</div>' +
+        '<div class="toc-foot">中南财经政法大学 · LinkYou · 2026<br>点击章节即可跳转阅读</div>' +
+      '</div>';
+    document.body.appendChild(drawer);
+    drawer.addEventListener('click', function (e) { if (e.target === drawer) closeToc(); });
+    var closeEl = document.getElementById('tocClose');
+    if (closeEl) closeEl.addEventListener('click', closeToc);
+    drawer.querySelectorAll('.toc-item').forEach(function (a) {
+      a.addEventListener('click', function () { closeToc(); });
+    });
+  }
+  function openToc() {
+    var d = document.getElementById('tocDrawer');
+    if (!d) return;
+    d.classList.add('show');
+    document.body.classList.add('no-scroll');
+  }
+  function closeToc() {
+    var d = document.getElementById('tocDrawer');
+    if (!d) return;
+    d.classList.remove('show');
+    document.body.classList.remove('no-scroll');
+  }
+
+  /* ==========================================================
      8. 启动
      ========================================================== */
   function init() {
+    applyTheme(getSavedTheme()); // 先应用已存主题，避免闪烁
     installA11y();
     renderUpdateBar();
     renderCoverMeta();
     renderTabBar();   // 必须在 bindBasics 之前：栏内按钮要靠它统一绑事件
+    renderThemeSwitcher();
     renderPageNav();
+    renderTocDrawer();
     renderChapterFoot();  // 必须在 bindBasics 之前：章末进群按钮要统一绑事件
     renderBackTop();
     bindBasics();
