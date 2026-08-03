@@ -210,6 +210,14 @@
         handleShare();
       });
     });
+
+    // 搜索入口（首页按钮 + 底部常驻栏共用）
+    document.querySelectorAll('.js-search, #searchTrigger').forEach(function (node) {
+      node.addEventListener('click', function (e) {
+        e.preventDefault();
+        openSearch();
+      });
+    });
   }
 
   /* ==========================================================
@@ -232,6 +240,163 @@
       });
     }, { rootMargin: '0px 0px -8% 0px', threshold: 0.04 });
     targets.forEach(function (n) { io.observe(n); });
+  }
+
+  /* ==========================================================
+     6.2 全站搜索（search.json 懒加载 + 客户端模糊匹配）
+     ------------------------------------------------------------
+     索引由 tools/build-search.js 生成，182 条，点开搜索才拉取，
+     不拖慢首屏；命中后跳转到目标页的具体锚点。
+     ========================================================== */
+  var SEARCH_DATA = null;
+  var SEARCH_LOADING = false;
+  var HOT_WORDS = ['宿舍', '军训', '食堂', '体测', '转专业', '助学金', '快递', '报到'];
+
+  function loadSearchData(cb) {
+    if (SEARCH_DATA) { cb(SEARCH_DATA); return; }
+    if (SEARCH_LOADING) return;
+    SEARCH_LOADING = true;
+    fetch('search.json')
+      .then(function (r) { return r.json(); })
+      .then(function (d) { SEARCH_DATA = d; SEARCH_LOADING = false; cb(d); })
+      .catch(function () { SEARCH_LOADING = false; cb(null); });
+  }
+
+  function scoreItem(item, q) {
+    var t = item.t || '';
+    var k = item.k || '';
+    var s = 0;
+    if (t.indexOf(q) > -1) {
+      s += 120 - Math.min(t.indexOf(q), 40);
+    } else if (k.indexOf(q) > -1) {
+      s += 60;
+    } else if (q.length > 1) {
+      // 逐字全命中才算模糊匹配，避免单字噪音
+      for (var i = 0; i < q.length; i++) {
+        if (k.indexOf(q.charAt(i)) < 0) return 0;
+      }
+      s += 24;
+    } else {
+      return 0;
+    }
+    if ((item.n || '').indexOf(q) > -1) s += 45;  // 搜「宿舍」时，宿舍指南页整体上浮
+    if (item.q) s += 10;                          // 问答条目优先，用户多半在问问题
+    return s;
+  }
+
+  function runSearch(q) {
+    if (!SEARCH_DATA || !q) return [];
+    var out = [];
+    for (var i = 0; i < SEARCH_DATA.length; i++) {
+      var sc = scoreItem(SEARCH_DATA[i], q);
+      if (sc > 0) out.push({ s: sc, it: SEARCH_DATA[i] });
+    }
+    out.sort(function (a, b) { return b.s - a.s; });
+    return out.slice(0, 24).map(function (x) { return x.it; });
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"]/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
+    });
+  }
+
+  function highlight(text, q) {
+    var safe = escapeHtml(text);
+    if (!q) return safe;
+    var idx = safe.indexOf(q);
+    if (idx < 0) return safe;
+    return safe.slice(0, idx) + '<em>' + safe.slice(idx, idx + q.length) + '</em>' + safe.slice(idx + q.length);
+  }
+
+  function openSearch() {
+    if (document.querySelector('.search-overlay')) return;
+    analytics.track('search_open');
+
+    var ov = document.createElement('div');
+    ov.className = 'search-overlay';
+    ov.innerHTML =
+      '<div class="search-head">'
+      + '<div class="search-field"><span class="sf-ic">🔍</span>'
+      + '<input class="search-input" id="searchInput" type="search" placeholder="搜宿舍、军训、体测、助学金…" autocomplete="off" enterkeyhint="search"></div>'
+      + '<button class="search-cancel" type="button">取消</button>'
+      + '</div>'
+      + '<div class="search-body" id="searchBody"></div>';
+
+    document.body.appendChild(ov);
+    document.body.classList.add('no-scroll');
+    requestAnimationFrame(function () { ov.classList.add('show'); });
+
+    var input = ov.querySelector('#searchInput');
+    var body = ov.querySelector('#searchBody');
+
+    function close() {
+      ov.classList.remove('show');
+      document.body.classList.remove('no-scroll');
+      setTimeout(function () { ov.remove(); }, 240);
+    }
+
+    function renderHot() {
+      body.innerHTML = '<div class="search-hot"><div class="sh-t">大家都在搜</div><div class="sh-row">'
+        + HOT_WORDS.map(function (w) { return '<button class="hot-word" type="button">' + w + '</button>'; }).join('')
+        + '</div></div>'
+        + '<div class="search-tip">搜不到想要的？<b class="js-group-entry">进群直接问师兄师姐</b></div>';
+      body.querySelectorAll('.hot-word').forEach(function (b) {
+        b.addEventListener('click', function () {
+          input.value = b.textContent;
+          doSearch();
+          input.focus();
+        });
+      });
+      body.querySelectorAll('.js-group-entry').forEach(function (b) {
+        b.addEventListener('click', function () { close(); showSocialModal('manual'); });
+      });
+    }
+
+    function renderResults(list, q) {
+      if (!list.length) {
+        body.innerHTML = '<div class="search-empty">没找到「' + escapeHtml(q) + '」相关内容<br><b class="js-group-entry">进群问问师兄师姐 ›</b></div>';
+        body.querySelectorAll('.js-group-entry').forEach(function (b) {
+          b.addEventListener('click', function () { close(); showSocialModal('manual'); });
+        });
+        return;
+      }
+      body.innerHTML = '<div class="search-count">找到 ' + list.length + ' 条</div>'
+        + list.map(function (it) {
+          return '<a class="sr-item" href="' + it.p + '#' + it.a + '">'
+            + '<span class="sr-ic">' + it.i + '</span>'
+            + '<span class="sr-main"><span class="sr-t">' + highlight(it.t, q) + '</span>'
+            + '<span class="sr-d">' + highlight(it.d || '', q) + '</span></span>'
+            + '<span class="sr-tag">' + it.n + '</span></a>';
+        }).join('');
+      body.querySelectorAll('.sr-item').forEach(function (a) {
+        a.addEventListener('click', function () { analytics.track('search_hit', q); });
+      });
+    }
+
+    var timer = null;
+    function doSearch() {
+      var q = input.value.trim().toLowerCase();
+      if (!q) { renderHot(); return; }
+      loadSearchData(function (d) {
+        if (!d) { body.innerHTML = '<div class="search-empty">索引加载失败，检查下网络<br>或直接从首页分章找</div>'; return; }
+        renderResults(runSearch(q), q);
+      });
+      if (SEARCH_DATA) renderResults(runSearch(q), q);
+    }
+
+    input.addEventListener('input', function () {
+      clearTimeout(timer);
+      timer = setTimeout(doSearch, 120);
+    });
+    ov.querySelector('.search-cancel').addEventListener('click', close);
+    document.addEventListener('keydown', function onEsc(e) {
+      if (e.key === 'Escape') { close(); document.removeEventListener('keydown', onEsc); }
+    });
+
+    renderHot();
+    loadSearchData(function () { /* 预热 */ });
+    setTimeout(function () { input.focus(); }, 120);
   }
 
   /* ==========================================================
