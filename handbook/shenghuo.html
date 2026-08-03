@@ -1,41 +1,90 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#F6F1E7">
-<title>江城 · 生活问答</title><link rel="stylesheet" href="css/baibaoxiang.css">
-<style>body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Hiragino Sans GB','Microsoft YaHei',sans-serif;}</style>
-</head><body><div class="app">
+<title>江城 · 生活问答</title>
+<meta property="og:title" content="财大 2026 新生 · 生活问答">
+<meta property="og:description" content="南湖六食堂 + 首义两食堂闭眼点单指南，附补办证件、快递、心理咨询等高频问题一次说清">
+<meta property="og:image" content="https://zuel-freshman.netlify.app/images/og-image.png">
+<meta property="og:url" content="https://zuel-freshman.netlify.app/shenghuo.html">
+<link rel="stylesheet" href="css/baibaoxiang.css">
+</head><body data-page="shenghuo"><div class="app">
 <header class="appbar"><button class="back" id="backBtn">‹</button><div class="brand-mini">江<span>城</span></div></header>
-<section class="module-hero m-accent">
-  <div class="mh-icon">❓</div><h1>生活问答</h1><p>高频疑问解答 · 校内食堂速览</p><span class="mh-badge">日常答疑</span>
+
+<section class="module-hero m-accent m-shenghuo">
+  <div class="mh-icon">🍜</div><h1>生活问答</h1><p>八个食堂闭眼点单 · 高频疑问一次说清</p>
+  <button class="share-btn" id="shareBtn" aria-label="分享">↗</button>
+  <span class="mh-badge">日常答疑</span>
 </section>
 
-<div class="block"><h3><span class="dot"></span>实用问答</h3>
-  <div class="acc-item"><button class="acc-q">首义、南湖床的尺寸是多大？<span class="chev">›</span></button><div class="acc-a"><div class="acc-a-inner">首义校区：0.9×1.9 米；南湖校区：0.8×1.9 米。</div></div></div>
-  <div class="acc-item"><button class="acc-q">快递要寄到哪里？<span class="chev">›</span></button><div class="acc-a"><div class="acc-a-inner">首义校区：湖北省武汉市武昌区武珞路 114 号中南财经政法大学首义校区；南湖校区：湖北省武汉市洪山区中南财经政法大学南湖校区（环湖 / 临湖 / 滨湖 / 中区 / 望湖＋具体楼栋）。</div></div></div>
-  <div class="acc-item"><button class="acc-q">菜鸟驿站存放时间？<span class="chev">›</span></button><div class="acc-a"><div class="acc-a-inner">一般为三天，节假日可能会延长。</div></div></div>
-  <div class="acc-item"><button class="acc-q">学校心理咨询室电话是多少？<span class="chev">›</span></button><div class="acc-a"><div class="acc-a-inner">首义校区：88382103；南湖校区：88386046。</div></div></div>
-  <div class="acc-item"><button class="acc-q">学生证丢失怎么补办？<span class="chev">›</span></button><div class="acc-a"><div class="acc-a-inner">在网上事务大厅申请并缴费后，到南湖校区文潭 210 进行补办。</div></div></div>
-  <div class="acc-item"><button class="acc-q">校园卡丢失怎么补办？<span class="chev">›</span></button><div class="acc-a"><div class="acc-a-inner">首义校区：电教楼三楼；南湖校区：梅教 201。</div></div></div>
-  <div class="acc-item"><button class="acc-q">如何申请家庭经济困难学生补助？<span class="chev">›</span></button><div class="acc-a"><div class="acc-a-inner">关注公众号「中南财经政法大学学生资助管理中心」或「中南大勤助杂货铺」，参考去年推文。</div></div></div>
+<div class="block reveal">
+  <h3><span class="dot"></span>先看这一条</h3>
+  <p>南湖六个食堂、首义两个食堂，<b>全部刷校园卡或企业微信付款码</b>，人均一餐 10-18 元。下面这份清单不是菜单目录，而是师兄师姐吃了三四年攒下的<b>「哪个窗口值得排队」</b>。</p>
+  <div class="note"><span class="who">学长说</span>刚开学别急着办健身卡先办嘴——把八个食堂轮一遍，你会发现自己的主场其实只有两三个窗口。非饭点的五食堂、九食堂、望湖食堂还能当自习室用，比图书馆好抢座。</div>
 </div>
 
-<div class="block"><h3><span class="dot"></span>南湖校内食堂速览</h3>
-  <div class="spot"><div class="spot-main"><div class="spot-name">四食堂 · 云湖园</div><div class="spot-desc">学校唯一清真食堂，早中餐品类齐全且价格最低；二楼有新疆烧烤、大盘鸡等民族特色。</div></div></div>
-  <div class="spot"><div class="spot-main"><div class="spot-name">五食堂 · 晓湖园</div><div class="spot-desc">「网红食堂」，近 20 种菜品：重庆小面、烧鹅饭、黄焖鸡、水煮鱼、干拌串串、掉渣饼、冒菜；非饭点兼自习。</div></div></div>
-  <div class="spot"><div class="spot-main"><div class="spot-name">八食堂 · 滨湖园</div><div class="spot-desc">一楼早餐自助（热干面加葱花酸豆角一绝），二楼焖锅、襄阳牛肉面、瓦罐汤、铁板饭。</div></div></div>
-  <div class="spot"><div class="spot-main"><div class="spot-name">九食堂 · 临湖园</div><div class="spot-desc">环境干净明亮，山西面食不可错过；也是自习好去处。</div></div></div>
-  <div class="spot"><div class="spot-main"><div class="spot-name">十食堂 · 环湖园 & 随园餐厅</div><div class="spot-desc">火锅鸡、泡泡咕嘟鸡、隆江猪脚饭、螺蛳粉；随园餐厅卤肉饭、鸡公煲、麻辣香锅、酸辣鱼粉，杨枝甘露不输奶茶店。</div></div></div>
-  <div class="spot"><div class="spot-main"><div class="spot-name">望湖食堂</div><div class="spot-desc">环境优美，吃饭间隙放《甄嬛传》是特色；也适合开音乐会、自习。</div></div></div>
-  <div class="note">更多校外美食地图详见「财大周边版」「武汉全城版」。</div>
+<div class="block reveal">
+  <h3><span class="dot"></span>南湖 · 六大食堂</h3>
+  <div class="spot"><div class="spot-main"><div class="spot-name">四食堂 · 云湖园</div><div class="spot-desc">一楼是<b>全校唯一的清真食堂</b>，早中餐基本菜品一应俱全，而且价格在所有食堂里<b>最便宜</b>。二楼是民族特色菜的主场——新疆烧烤、大盘鸡都在这儿，身处校园也能吃到各地风味。</div></div><div class="spot-hours">清真·最便宜</div></div>
+  <div class="spot"><div class="spot-main"><div class="spot-name">五食堂 · 晓湖园</div><div class="spot-desc">传说中的<b>网红食堂</b>，菜品丰富、位置优越，光是特色菜就有<b>二十多种</b>：重庆小面、烧鹅饭、黄焖鸡、水煮鱼、干拌串串、掉渣饼、冒菜……无论你从东西南北哪儿来都能吃到家乡味。非饭点还兼自习室职能。</div></div><div class="spot-hours">网红·可自习</div></div>
+  <div class="spot"><div class="spot-main"><div class="spot-name">八食堂 · 滨湖园</div><div class="spot-desc">位于<b>滨湖宿舍与文澜、文波楼交界地带</b>，是大部分人的默认选择。一楼主打早餐和自助选区，早八党聚集地——<b>热干面加上葱花、酸豆角、醋和辣椒油，简直一绝</b>。二楼是特色窗口集结地：焖锅、襄阳牛肉面、瓦罐汤、铁板饭。</div></div><div class="spot-hours">早餐·近教学楼</div></div>
+  <div class="spot"><div class="spot-main"><div class="spot-name">九食堂 · 临湖园</div><div class="spot-desc">临湖宿舍旁边，环境干净整洁、光线明亮，除了吃饭也是<b>自习的好去处</b>。来九食堂一定不能错过的是<b>山西面食</b>。</div></div><div class="spot-hours">山西面食</div></div>
+  <div class="spot"><div class="spot-main"><div class="spot-name">十食堂 · 环湖园 + 随园餐厅</div><div class="spot-desc">菜类多样：火锅鸡、泡泡咕嘟鸡、隆江猪脚饭、螺蛳粉。旁边就是<b>随园餐厅</b>——卤肉饭、鸡公煲、麻辣香锅、酸辣鱼粉可谓一绝，饮品种类也多，<b>杨枝甘露完全不输奶茶店</b>，夏天一杯快乐加倍。</div></div><div class="spot-hours">随园·饮品</div></div>
+  <div class="spot"><div class="spot-main"><div class="spot-name">望湖食堂</div><div class="spot-desc">环境优美、菜品丰富，最大特色是<b>吃饭间隙会放电视剧和电影</b>，一边干饭一边看《甄嬛传》是望湖园独有的体验。除了吃饭，这里还适合开音乐会和自习。</div></div><div class="spot-hours">环境最好</div></div>
+</div>
+
+<div class="block reveal">
+  <h3><span class="dot"></span>首义 · 两大食堂</h3>
+  <p>首义校区面积不大，但坐拥<b>黄鹤园（一食堂）</b>和<b>香涛园（二食堂）</b>两座食堂，窗口密度一点不输南湖。点开看具体推荐窗口 👇</p>
+  <div class="acc-item"><button class="acc-q">黄鹤园（一食堂）· 4 个必打卡窗口<span class="chev">›</span></button><div class="acc-a"><div class="acc-a-inner">
+    <ol class="list-num">
+      <li><b>麻辣香锅</b>——一食堂经典。自选菜品配上食堂叔叔的独家秘方，美味而不腻；这里的辣椒香而不辣，不能吃辣也能放心点，嗜辣的再加一勺辣椒油刚刚好。</li>
+      <li><b>铁板烧</b>——<b>现炒</b>，每次路过都会被饭香勾住走不动路。阿姨抓一大把肉和菜，撒上胡椒和酱料，每一口都很满足。</li>
+      <li><b>自选水饺</b>——新开窗口，芹菜猪肉、白菜猪肉、三鲜、韭菜鸡蛋随你挑，另有糯米小汤圆，好吃又不贵。</li>
+      <li><b>粥铺</b>——一食堂新开，吃饭同时能顺手买一杯饮品。</li>
+    </ol>
+  </div></div></div>
+  <div class="acc-item"><button class="acc-q">香涛园（二食堂）· 6 个必打卡窗口<span class="chev">›</span></button><div class="acc-a"><div class="acc-a-inner">
+    <ol class="list-num">
+      <li><b>瑞膳鱼粉</b>——软香多汁的豆泡配鲜嫩鱼块和爽口青菜，麻辣鱼粉是学长学姐心头好，金汤鱼粉、番茄鱼粉也都是招牌。</li>
+      <li><b>煲仔饭</b>——每一种都能吃到好多肉，汤汁配上碗底锅巴酥脆美味，吃完第一碗就想第二碗。</li>
+      <li><b>三界小食</b>——各种馄饨、小面都能在这找到，最难忘的是<b>肉酱面</b>，拌一拌每根面条都挂满肉酱。</li>
+      <li><b>卤肉饭</b>——自选菜品，三排菜每个都让人犯选择困难；不知道吃什么就来个两荤两素，营养又美味。</li>
+      <li><b>面行人</b>——来武汉不能错过热干面，这里热干面、热干粉都是一绝，<b>4 块钱一小碗</b>就够一顿早餐/晚餐；还有火鸡面等其他面食。</li>
+      <li><b>闫阿妈拌饭</b>——在<b>二楼教师食堂</b>，六种铁板烤肉任选，配三个素菜和一大盘米饭，咸淡适中超满足。</li>
+    </ol>
+  </div></div></div>
+  <div class="note"><span class="who">补充</span>不想去食堂的时候，<b>首义南苑还有一排小饭店</b>，味道绝对不输食堂，多数支持外卖配送到宿舍楼下，还能按口味给商家备注，选择更多元。</div>
+</div>
+
+<div class="block reveal">
+  <h3><span class="dot"></span>实用问答</h3>
+  <div class="acc-item"><button class="acc-q">首义、南湖床的尺寸是多大？<span class="chev">›</span></button><div class="acc-a"><div class="acc-a-inner">
+    床品尺寸（含蚊帐、床垫选购提醒）详见「宿舍军训」页，那里按校区列得更清楚。
+    <a class="linkrow" href="sushe.html"><span class="lk-ic">🛏️</span><span class="lk-txt">宿舍军训<span class="lk-sub"> 床品尺寸 · 各栋宿舍实况</span></span><span class="lk-arrow">›</span></a>
+  </div></div></div>
+  <div class="acc-item"><button class="acc-q">快递要寄到哪里？<span class="chev">›</span></button><div class="acc-a"><div class="acc-a-inner"><b>首义校区：</b>湖北省武汉市武昌区武珞路 114 号中南财经政法大学首义校区。<br><b>南湖校区：</b>湖北省武汉市洪山区中南财经政法大学南湖校区（需写清「环湖 / 临湖 / 滨湖 / 中区 / 望湖 ＋ 具体楼栋」）。</div></div></div>
+  <div class="acc-item"><button class="acc-q">菜鸟驿站存放时间？<span class="chev">›</span></button><div class="acc-a"><div class="acc-a-inner">一般为三天，节假日可能会延长。超时可能产生保管费，收到取件码尽早去拿。</div></div></div>
+  <div class="acc-item"><button class="acc-q">学校心理咨询室电话是多少？<span class="chev">›</span></button><div class="acc-a"><div class="acc-a-inner">首义校区：<b>88382103</b>；南湖校区：<b>88386046</b>。也可关注公众号「晓南心语」了解预约方式和活动安排。</div></div></div>
+  <div class="acc-item"><button class="acc-q">学生证丢失怎么补办？<span class="chev">›</span></button><div class="acc-a"><div class="acc-a-inner">在网上事务大厅申请并缴费后，到<b>南湖校区文潭 210</b> 办理补办。</div></div></div>
+  <div class="acc-item"><button class="acc-q">校园卡丢失怎么补办？<span class="chev">›</span></button><div class="acc-a"><div class="acc-a-inner">首义校区：<b>电教楼三楼</b>；南湖校区：<b>梅教 201</b>。补办前建议先在企业微信一卡通里挂失，避免余额被刷。</div></div></div>
+  <div class="acc-item"><button class="acc-q">如何申请家庭经济困难学生补助？<span class="chev">›</span></button><div class="acc-a"><div class="acc-a-inner">关注公众号「中南财经政法大学学生资助管理中心」或「中南大勤助杂货铺」，<b>参考往年推文（约 9-10 月发布）</b>了解材料与流程；每年细则可能微调，最终<b>以当年最新通知为准</b>。</div></div></div>
+</div>
+
+<div class="block reveal">
+  <h3><span class="dot"></span>还想知道更多？</h3>
+  <a class="linkrow" href="xiaoqu.html"><span class="lk-ic">🏫</span><span class="lk-txt">校园服务<span class="lk-sub"> 企业微信开通 · 校园地图 · 校历 · 医保报销</span></span><span class="lk-arrow">›</span></a>
+  <a class="linkrow" href="jiaotong.html"><span class="lk-ic">📦</span><span class="lk-txt">交通快递<span class="lk-sub"> 校内外交通与取件点分布</span></span><span class="lk-arrow">›</span></a>
+  <a class="linkrow" href="sushe.html"><span class="lk-ic">🛏️</span><span class="lk-txt">宿舍军训<span class="lk-sub"> 每栋楼实况与军训必备清单</span></span><span class="lk-arrow">›</span></a>
+  <div class="note">更多校外美食地图详见「财大周边版」「武汉全城版」，进群可领取。</div>
 </div>
 
 <div class="group-entry" id="groupEntry">
   <div class="group-entry-icon">💬</div>
-  <div class="group-entry-text"><div class="group-entry-title">加入吃喝玩乐群</div><div class="group-entry-desc">扫码进群，和师兄师姐一起探索</div></div>
+  <div class="group-entry-text"><div class="group-entry-title">加入 2026 新生群</div><div class="group-entry-desc">师兄师姐在线答疑，选课/宿舍/社团全搞定</div></div>
   <div class="group-entry-arrow">›</div>
 </div>
-<div class="footer">数据来源 · 中南财经政法大学校园生活全攻略（留言问答 / 吃在中南大）<br>江城编辑部 · 2026</div>
+<div class="footer">江城编辑部 · 与师兄师姐一同修订 · 2026</div>
 </div>
-<script src="js/config.js"></script><script src="js/common.js"></script><script src="js/baibaoxiang.js"></script>
+<script src="js/config.js"></script><script src="js/app.js"></script>
 </body></html>

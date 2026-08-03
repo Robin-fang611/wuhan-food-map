@@ -1,44 +1,135 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#F6F1E7">
-<title>江城 · 奖助学金</title><link rel="stylesheet" href="css/baibaoxiang.css">
-<style>body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Hiragino Sans GB','Microsoft YaHei',sans-serif;}</style>
-</head><body><div class="app">
+<title>江城 · 奖助学金</title>
+<meta property="og:title" content="财大 2026 新生 · 奖助学金">
+<meta property="og:description" content="国奖 8000、励志 5000、文澜 10000，各档奖学金的分数线与比例；助学金、助学贷款、勤工助学、学费减免、新生路费补助一次讲清">
+<meta property="og:image" content="https://zuel-freshman.netlify.app/images/og-image.png">
+<meta property="og:url" content="https://zuel-freshman.netlify.app/jiangzhu.html">
+<link rel="stylesheet" href="css/baibaoxiang.css">
+</head><body data-page="jiangzhu"><div class="app">
 <header class="appbar"><button class="back" id="backBtn">‹</button><div class="brand-mini">江<span>城</span></div></header>
-<section class="module-hero m-accent">
-  <div class="mh-icon">💰</div><h1>奖助学金</h1><p>奖学金 · 助学金 · 助学贷款 · 勤工 · 减免，一文读懂</p><span class="mh-badge">学业支持</span>
+
+<section class="module-hero m-accent m-jiangzhu">
+  <div class="mh-icon">💰</div><h1>奖助学金</h1><p>奖学金 · 助学金 · 助学贷款 · 勤工助学 · 学费减免</p>
+  <button class="share-btn" id="shareBtn" aria-label="分享">↗</button>
+  <span class="mh-badge">学业支持</span>
 </section>
 
-<div class="block"><h3><span class="dot"></span>政府奖学金</h3>
-  <div class="spot"><div class="spot-main"><div class="spot-name">国家奖学金</div><div class="spot-desc">奖励特别优秀学生：上学年加权平均成绩排名年级专业前 <b>10%</b>、均分 <b>88 分以上</b>。奖励 <b>8000 元/人</b>。</div></div></div>
-  <div class="spot"><div class="spot-main"><div class="spot-name">国家励志奖学金</div><div class="spot-desc">奖励品学兼优的家庭经济困难学生：已认定困难、成绩前 <b>30%</b>、均分 <b>80 分以上</b>。奖励 <b>5000 元/人</b>。</div></div></div>
+<div class="block reveal">
+  <div class="note red"><span class="who">先读这条</span>本页为<b>往年公开信息整理</b>，评定标准、评选比例与奖励金额<b>以当年学校正式通知为准</b>。奖学金一般评的是<b>上学年</b>成绩，所以大一新生第一次参评在大二上学期；助学金、助学贷款、路费补助等资助类项目<b>入学当年即可申请</b>，别错过时间。</div>
+  <div class="check must"><span class="box"></span>家庭经济困难的同学：先完成<b>家庭经济困难认定</b>，这是国家励志奖学金、国家助学金的前置条件</div>
+  <div class="check"><span class="box"></span>想拿奖学金的同学：盯住<b>加权平均成绩</b>和<b>年级专业排名</b>两个数字</div>
+  <div class="check"><span class="box"></span>学费压力大的同学：<b>助学贷款 + 学费减免 + 勤工助学</b>可以组合使用，不影响入学</div>
 </div>
 
-<div class="block"><h3><span class="dot"></span>校设奖学金</h3>
-  <div class="spot"><div class="spot-main"><div class="spot-name">优秀学生奖学金</div><div class="spot-desc">奖励德智体美劳全面发展：成绩前 <b>40%</b>、均分 <b>75 分以上</b>。一等 5%/<b>4000</b>、二等 10%/<b>2000</b>、三等 15%/<b>1000</b> 元。</div></div></div>
-  <div class="spot"><div class="spot-main"><div class="spot-name">单项奖学金</div><div class="spot-desc">科研创新 / 文体佳绩 / 社会工作 / 社会实践 4 类；均分 75 分以上且符合条件，评选比例 2%，<b>500 元/人</b>。</div></div></div>
-  <div class="spot"><div class="spot-main"><div class="spot-name">文澜奖学金（校长奖学金）</div><div class="spot-desc">学校最高层次奖学金，奖励某一方面表现特别优秀者；名额不超过 <b>8 人</b>，<b>10000 元/人</b>。</div></div></div>
+<div class="block reveal">
+  <h3><span class="dot"></span>块一 · 政府奖学金</h3>
+  <div class="ticket">
+    <div class="m"><div class="lbl">G U O J I A J I A N G X U E J I N</div><h4>国家奖学金</h4><div class="sub">奖励<b>特别优秀</b>的学生。上学年加权平均成绩排名年级专业<b>前 10%</b>，且加权平均成绩<b>88 分以上</b>。</div></div>
+    <div class="s"><b>8000</b><span>元 / 人</span></div>
+  </div>
+  <div class="ticket">
+    <div class="m"><div class="lbl">L I Z H I J I A N G X U E J I N</div><h4>国家励志奖学金</h4><div class="sub">奖励资助<b>品学兼优的家庭经济困难学生</b>。需已被认定为家庭经济困难，排名<b>前 30%</b>，且加权平均成绩<b>80 分以上</b>。</div></div>
+    <div class="s"><b>5000</b><span>元 / 人</span></div>
+  </div>
+  <div class="note"><span class="who">划重点</span>国家励志奖学金的门槛（前 30% / 80 分）明显低于国家奖学金，但<b>必须先通过家庭经济困难认定</b>。符合条件的同学入学后一定要按学院通知参加认定，否则再优秀也无法参评。</div>
 </div>
 
-<div class="block"><h3><span class="dot"></span>国家助学金 & 助学贷款</h3>
-  <div class="spot"><div class="spot-main"><div class="spot-name">国家助学金</div><div class="spot-desc">国家出资，资助家庭经济困难的全日制本科 / 预科生；应征入伍退役复学同学在校期间每学年均可获得。</div></div></div>
-  <div class="spot"><div class="spot-main"><div class="spot-name">国家助学贷款</div><div class="spot-desc">本科生最高 <b>12000 元/年</b>、研究生 <b>16000 元/年</b>，在校期间利息由国家承担（LPR 减 30 个基点）。分生源地信用助学贷款与校园地国家助学贷款，同一年度只能选一种。</div></div></div>
+<div class="block reveal">
+  <h3><span class="dot"></span>块一 · 校设奖学金</h3>
+  <p><b>优秀学生奖学金</b>：奖励德、智、体、美、劳全面发展的学生。要求上学年加权平均成绩排名年级专业<b>前 40%</b>，且加权平均成绩<b>75 分以上</b>。按参评学生总人数分三档：</p>
+  <div class="ticket">
+    <div class="m"><div class="lbl">Y I D E N G J I A N G</div><h4>一等奖</h4><div class="sub">评选比例：参评学生总人数的 <b>5%</b></div></div>
+    <div class="s"><b>4000</b><span>元 / 人</span></div>
+  </div>
+  <div class="ticket">
+    <div class="m"><div class="lbl">E R D E N G J I A N G</div><h4>二等奖</h4><div class="sub">评选比例：参评学生总人数的 <b>10%</b></div></div>
+    <div class="s"><b>2000</b><span>元 / 人</span></div>
+  </div>
+  <div class="ticket">
+    <div class="m"><div class="lbl">S A N D E N G J I A N G</div><h4>三等奖</h4><div class="sub">评选比例：参评学生总人数的 <b>15%</b></div></div>
+    <div class="s"><b>1000</b><span>元 / 人</span></div>
+  </div>
+  <div class="ticket">
+    <div class="m"><div class="lbl">D A N X I A N G J I A N G</div><h4>单项奖学金</h4><div class="sub">分<b>科研创新 / 文体佳绩 / 社会工作 / 社会实践</b> 4 种。加权平均成绩 <b>75 分以上</b>且符合其中一项条件即可申请，评选比例 <b>2%</b>。</div></div>
+    <div class="s"><b>500</b><span>元 / 人</span></div>
+  </div>
+  <div class="ticket">
+    <div class="m"><div class="lbl">W E N L A N J I A N G X U E J I N</div><h4>文澜奖学金</h4><div class="sub">即<b>校长奖学金</b>，全校<b>最高层次</b>奖学金。名额<b>不超过 8 人</b>。</div></div>
+    <div class="s"><b>10000</b><span>元 / 人</span></div>
+  </div>
+  <div class="acc-item"><button class="acc-q">文澜奖学金奖励哪些人？<span class="chev">›</span></button><div class="acc-a"><div class="acc-a-inner">奖励在<b>道德风尚、学术研究、学科竞赛、创新发明、社会实践、社会工作、体育竞赛、文艺比赛</b>等某一方面表现特别优秀、赢得较高荣誉、作出突出贡献的学生。它<b>不唯绩点</b>——单点做到极致同样有机会，全校每年不超过 8 人。</div></div></div>
+  <div class="acc-item"><button class="acc-q">单项奖学金和优秀学生奖学金能同时拿吗？<span class="chev">›</span></button><div class="acc-a"><div class="acc-a-inner">两者的评选口径不同：优秀学生奖学金看综合成绩排名，单项奖学金看某一方面的具体成果。<b>能否兼得以当年评定办法与学院实施细则为准</b>，评定季请以学院正式通知和辅导员说明为准。</div></div></div>
 </div>
 
-<div class="block"><h3><span class="dot"></span>勤工助学 · 减免 · 困难补助</h3>
-  <div class="spot"><div class="spot-main"><div class="spot-name">勤工助学</div><div class="spot-desc">在学校统一管理下利用课余劳动取得合法报酬，改善学习生活条件。</div></div></div>
-  <div class="spot"><div class="spot-main"><div class="spot-name">学费减免</div><div class="spot-desc">学校 / 国家给予符合条件的困难学生学费减免（含孤儿、烈士子女，及入伍服义务兵役退役复学学生）。</div></div></div>
-  <div class="spot"><div class="spot-main"><div class="spot-name">困难补助</div><div class="spot-desc">针对突发意外、自然灾害致困等情况，分临时 / 特殊困难补助；新生入学另有「助学添翼」路费补助。</div></div></div>
-  <a class="linkrow" href="http://xszz.zuel.edu.cn/354/list.htm" target="_blank" style="margin-top:10px;"><span class="lk-ic">🔗</span><span class="lk-txt">学生资助管理中心<span class="lk-sub"> 详细政策与申请通知</span></span><span class="lk-arrow">›</span></a>
+<div class="block reveal">
+  <h3><span class="dot"></span>块一 · 外设奖学金</h3>
+  <p>由社会捐资设立。<b>评选对象、奖励名额、奖励标准、评选条件，均由学校与社会捐资方所签订的协议内容确定</b>，因此每年的项目、金额和面向专业都可能不同。</p>
+  <div class="note"><span class="who">怎么关注</span>外设奖学金通常在评定季由学生资助管理中心和各学院单独发文，名额少、竞争相对小，<b>看到通知就认真读一遍申请条件</b>，很多项目是面向特定学院或特定方向的。</div>
+</div>
+
+<div class="block reveal">
+  <h3><span class="dot"></span>块二 · 国家助学金</h3>
+  <p>由<b>国家出资</b>设立，用于资助学校<b>家庭经济困难</b>的普通全日制在校本科学生（含第二学士学位）、预科生。</p>
+  <div class="note"><span class="who">退役复学同学注意</span><b>应征入伍退役复学（入学）的同学，在校期间每学年均可获得国家助学金</b>（不含研究生，因研究生国家助学金已全覆盖）。具体申报流程详见每年的国家助学金评定通知。</div>
+</div>
+
+<div class="block reveal">
+  <h3><span class="dot"></span>块二 · 国家助学贷款</h3>
+  <p>家庭经济困难学生可申请办理国家助学贷款，用于解决<b>学费和住宿费</b>。</p>
+  <div class="ticket">
+    <div class="m"><div class="lbl">B E N K E S H E N G</div><h4>本科生</h4><div class="sub">最高不超过 <b>12000 元 / 年</b>（研究生不超过 <b>16000 元 / 年</b>）</div></div>
+    <div class="s"><b>12000</b><span>元 / 年</span></div>
+  </div>
+  <ol class="list-num">
+    <li><b>在校期间利息由国家承担</b>，不用担心读书期间产生利息。</li>
+    <li>贷款利率按照<b>同期同档次贷款市场报价利率（LPR）减 30 个基点</b>执行。</li>
+    <li><b>生源地信用助学贷款</b>：向<b>户籍所在县（区）</b>的学生资助管理机构咨询办理。</li>
+    <li><b>校园地国家助学贷款</b>：向<b>高校学生资助部门</b>咨询办理。</li>
+    <li><b>同一学年内只能选择申请办理一种类型</b>的国家助学贷款，不可重复申请。</li>
+  </ol>
+  <div class="note red"><span class="who">新生提醒</span>绝大多数同学走的是<b>生源地信用助学贷款</b>——暑假在老家办理更方便，办完带好受理证明到校交给辅导员。办理时间以当地资助中心通知为准，别拖到临开学。</div>
+</div>
+
+<div class="block reveal">
+  <h3><span class="dot"></span>块二 · 勤工助学</h3>
+  <p>指学生在<b>学校的统一管理和组织下</b>，利用课余时间通过劳动取得<b>合法报酬</b>，用于改善学习和生活条件的实践活动。岗位一般涵盖图书馆、实验室、行政办公室、学院办公室等。</p>
+  <a class="linkrow" href="http://xszz.zuel.edu.cn/354/list.htm" target="_blank"><span class="lk-ic">🛠️</span><span class="lk-txt">勤工助学岗位通知<span class="lk-sub"> 学生资助管理中心官网发布</span></span><span class="lk-arrow">›</span></a>
+  <div class="note"><span class="who">学长说</span>校内勤工岗<b>时间灵活、离宿舍近、结算规范</b>，比校外兼职省心得多，优先考虑校内岗位。</div>
+</div>
+
+<div class="block reveal">
+  <h3><span class="dot"></span>块二 · 学费减免</h3>
+  <div class="acc-item"><button class="acc-q">学校给予的学费减免<span class="chev">›</span></button><div class="acc-a"><div class="acc-a-inner">面向按国家政策规定<b>应予减免学费</b>的学生，以及部分<b>家庭经济特别困难、无法缴纳学费</b>的学生，<b>特别是其中的孤儿学生、烈士子女</b>等。</div></div></div>
+  <div class="acc-item"><button class="acc-q">国家给予的学费减免<span class="chev">›</span></button><div class="acc-a"><div class="acc-a-inner">面向<b>在校期间应征入伍服义务兵役、退役后复学</b>的学生。</div></div></div>
+</div>
+
+<div class="block reveal">
+  <h3><span class="dot"></span>块二 · 困难补助</h3>
+  <p>主要针对<b>学生本人或家庭突发意外</b>，因自然灾害等其他因素导致家庭经济困难、影响学生在校基本生活的情况。分为<b>临时困难补助</b>和<b>特殊困难补助</b>两种。</p>
+  <div class="note red"><span class="who">新生特别关注</span>学校推出<b>「助学添翼」新生路费补助</b>工作，助力新生顺利入学。家庭经济困难、来校路费有压力的同学，收到录取通知书后请留意随附的<b>《学生资助指南》</b>与学院迎新通知，按指引申请。</div>
+</div>
+
+<div class="block reveal">
+  <h3><span class="dot"></span>官方入口</h3>
+  <a class="linkrow" href="http://xszz.zuel.edu.cn/354/list.htm" target="_blank"><span class="lk-ic">🏛️</span><span class="lk-txt">学生资助管理中心<span class="lk-sub"> 各项资助的政策原文、申请通知与表格下载</span></span><span class="lk-arrow">›</span></a>
+  <div class="note"><span class="who">别走错门</span>奖学金评定、困难认定、助学贷款回执、勤工岗位、路费补助——<b>所有资助类事项都以这个官网和辅导员通知为准</b>，不要相信任何以「代办助学金」为名收费的信息。</div>
+</div>
+
+<div class="block reveal">
+  <h3><span class="dot"></span>还想知道更多？</h3>
+  <a class="linkrow" href="xueye.html"><span class="lk-ic">📚</span><span class="lk-txt">学业指南<span class="lk-sub"> 加权成绩怎么来的、转专业与保研门槛</span></span><span class="lk-arrow">›</span></a>
+  <a class="linkrow" href="jingsai.html"><span class="lk-ic">🏆</span><span class="lk-txt">竞赛活动<span class="lk-sub"> 单项奖学金与文澜奖学金的加分来源</span></span><span class="lk-arrow">›</span></a>
 </div>
 
 <div class="group-entry" id="groupEntry">
   <div class="group-entry-icon">💬</div>
-  <div class="group-entry-text"><div class="group-entry-title">加入吃喝玩乐群</div><div class="group-entry-desc">扫码进群，和师兄师姐一起探索</div></div>
+  <div class="group-entry-text"><div class="group-entry-title">加入 2026 新生群</div><div class="group-entry-desc">师兄师姐在线答疑，选课/宿舍/社团全搞定</div></div>
   <div class="group-entry-arrow">›</div>
 </div>
-<div class="footer">数据来源 · 中南财经政法大学校园生活全攻略（学在中南大）<br>江城编辑部 · 2026</div>
+<div class="footer">江城编辑部 · 与师兄师姐一同修订 · 2026</div>
 </div>
-<script src="js/config.js"></script><script src="js/common.js"></script><script src="js/baibaoxiang.js"></script>
+<script src="js/config.js"></script><script src="js/app.js"></script>
 </body></html>
