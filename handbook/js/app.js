@@ -612,7 +612,7 @@
 
     function renderResults(list, q) {
       if (!list.length) {
-        body.innerHTML = '<div class="search-empty">没找到「' + escapeHtml(q) + '」相关内容<br><b class="js-group-entry">进群问问师兄师姐 ›</b></div>';
+        body.innerHTML = '<div class="search-empty"><div class="se-title">没找到「' + escapeHtml(q) + '」相关内容</div><div class="se-tip">试试更短的关键词，比如只搜「宿舍」「贷款」；或者直接进群问师兄师姐。</div><b class="js-group-entry">进群问问 ›</b></div>';
         body.querySelectorAll('.js-group-entry').forEach(function (b) {
           b.addEventListener('click', function () { close(); showSocialModal('manual'); });
         });
@@ -646,6 +646,14 @@
       clearTimeout(timer);
       timer = setTimeout(doSearch, 120);
     });
+    input.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        clearTimeout(timer);
+        doSearch();
+        input.blur();
+      }
+    });
     ov.querySelector('.search-cancel').addEventListener('click', close);
     document.addEventListener('keydown', function onEsc(e) {
       if (e.key === 'Escape') { close(); document.removeEventListener('keydown', onEsc); }
@@ -678,11 +686,16 @@
       var n = 0;
       items.forEach(function (it) { if (it.classList.contains('done')) n++; });
       var total = items.length;
-      if (fill) fill.style.width = (total ? Math.round(n / total * 100) : 0) + '%';
+      var complete = total && n >= total;
+      if (fill) {
+        fill.style.width = (total ? Math.round(n / total * 100) : 0) + '%';
+        fill.classList.toggle('complete', complete);
+      }
       if (note) {
-        note.textContent = n >= total && total
+        note.textContent = complete
           ? '八件事全做完了，安心来报到 · 勾选记在这台设备上'
           : '已完成 ' + n + ' / ' + total + ' · 勾选会记在这台设备上';
+        note.classList.toggle('complete', complete);
       }
     }
 

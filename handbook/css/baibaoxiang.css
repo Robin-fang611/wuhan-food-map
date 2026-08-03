@@ -187,7 +187,9 @@ body {
 }
 .mustbar { height: 3px; background: var(--line); border-radius: var(--r-pill); margin-top: 10px; overflow: hidden; }
 .mustbar-fill { display: block; height: 100%; width: 0; background: var(--red); border-radius: var(--r-pill); transition: width .3s ease; }
-.mustnote { font-size: 11px; color: var(--ink-3); margin-top: 6px; letter-spacing: .02em; }
+.mustbar-fill.complete { background: var(--green); }
+.mustnote { font-size: 11px; color: var(--ink-3); margin-top: 6px; letter-spacing: .02em; transition: color .2s ease; }
+.mustnote.complete { color: var(--green); font-weight: 700; }
 
 /* ============================================================
    全站搜索浮层
