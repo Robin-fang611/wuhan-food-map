@@ -414,11 +414,11 @@
      5. 页面基础交互：返回 / 手风琴 / 进群 / 分享按钮
      ========================================================== */
   function bindBasics() {
-    // 返回
+    // 返回 —— 不依赖 document.referrer（隐私模式/跨协议时常为空）
     var backBtn = document.getElementById('backBtn');
     if (backBtn) {
       backBtn.addEventListener('click', function () {
-        if (history.length > 1 && document.referrer) history.back();
+        if (history.length > 1) history.back();
         else location.href = 'index.html';
       });
     }

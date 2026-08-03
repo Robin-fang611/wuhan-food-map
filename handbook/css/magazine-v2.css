@@ -185,7 +185,7 @@ img{max-width:100%}
 .appbar{position:sticky;top:0;z-index:50;display:flex;align-items:center;justify-content:space-between;
   padding:10px 16px;background:rgba(251,247,238,.92);backdrop-filter:blur(10px);
   border-bottom:1px solid var(--line)}
-.appbar .back{background:none;border:0;font-size:24px;color:var(--ink);width:36px;height:36px;line-height:1}
+.appbar .back{background:none;border:0;font-size:24px;color:var(--ink);width:36px;height:36px;line-height:1;cursor:pointer}
 .appbar .brand-mini{font-family:var(--sans);font-weight:700;font-size:15px;letter-spacing:.5px}
 .appbar .brand-mini span{color:var(--blue)}
 .appbar .share-btn{background:none;border:0;font-size:20px;color:var(--ink);width:36px;height:36px}
