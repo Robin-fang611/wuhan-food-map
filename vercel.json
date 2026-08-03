@@ -1,0 +1,21 @@
+{
+  "outputDirectory": "handbook",
+  "redirects": [
+    {
+      "source": "/peiyang(.*)",
+      "destination": "/growth.html",
+      "permanent": true
+    },
+    {
+      "source": "/xuanke(.*)",
+      "destination": "/growth.html",
+      "permanent": true
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}

@@ -1,0 +1,4 @@
+# 非发布内容：本地审计脚本与原型，不部署到线上
+handbook/tools/
+handbook/prototypes/
+handbook/.audit/
