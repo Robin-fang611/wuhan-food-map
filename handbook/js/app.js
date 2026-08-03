@@ -1144,7 +1144,9 @@
       btn.setAttribute('aria-label', '打开目录');
       btn.innerHTML = '目录 <span aria-hidden="true">☰</span>';
       var shareBtn = document.getElementById('shareBtn');
-      if (shareBtn) appbar.insertBefore(btn, shareBtn);
+      // 兼容：部分章节 #shareBtn 在 hero 内而非 appbar 里，
+      // 不能对它 insertBefore，否则抛 NotFoundError 让整个 init 中断
+      if (shareBtn && shareBtn.parentNode === appbar) appbar.insertBefore(btn, shareBtn);
       else appbar.appendChild(btn);
       btn.addEventListener('click', openToc);
     }
