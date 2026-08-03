@@ -696,7 +696,7 @@ body[data-page="tice"]     { --m: #46716A; --m-soft: rgba(70,113,106,.11); }
 /* ============================================================
    滚动揭示微动效（克制版）
    ============================================================ */
-.reveal { opacity: 0; transform: translateY(12px); transition: opacity .5s ease, transform .5s cubic-bezier(.22,.61,.36,1); }
+.reveal { opacity: 1; transform: translateY(12px); transition: opacity .5s ease, transform .5s cubic-bezier(.22,.61,.36,1); }
 .reveal.revealed { opacity: 1; transform: none; }
 @media (prefers-reduced-motion: reduce) {
   .reveal, .reveal.revealed { opacity: 1 !important; transform: none !important; transition: none !important; }
