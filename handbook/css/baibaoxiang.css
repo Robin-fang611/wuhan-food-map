@@ -59,14 +59,18 @@ body {
 .serif { font-family: var(--serif); }
 .kai   { font-family: var(--kai); }
 
-.app { max-width: 460px; margin: 0 auto; padding: 14px 16px calc(40px + var(--safe-bottom)); position: relative; z-index: 1; }
+/* 顶部安全区（刘海屏）+ 底部给常驻栏让位 */
+.app {
+  max-width: 460px; margin: 0 auto; position: relative; z-index: 1;
+  padding: calc(14px + env(safe-area-inset-top, 0px)) 16px calc(86px + var(--safe-bottom));
+}
 
 /* ============================================================
    顶栏（模块页 / 详情返回）
    ============================================================ */
 .appbar { display: flex; align-items: center; gap: 12px; padding: 4px 0 14px; }
 .appbar .back {
-  width: 36px; height: 36px; border-radius: var(--r-btn); border: 1px solid var(--line);
+  width: 44px; height: 44px; margin-left: -4px; border-radius: var(--r-btn); border: 1px solid var(--line);
   background: var(--paper); font-size: 18px; color: var(--ink); cursor: pointer;
   display: flex; align-items: center; justify-content: center; transition: transform .15s ease;
 }
@@ -263,7 +267,7 @@ body.no-scroll { overflow: hidden; }
 .tl-card .stage { font-size: 10px; letter-spacing: .12em; color: var(--ink-3); }
 .tl-card .count { margin-left: auto; font-size: 10.5px; color: var(--ink-3); }
 .tl-card h4 { font-size: 15px; font-weight: 700; margin-top: 4px; }
-.tl-card p { font-size: 11.5px; color: var(--ink-2); margin-top: 4px; line-height: 1.6; }
+.tl-card p { font-size: 12px; color: var(--ink-2); margin-top: 4px; line-height: 1.6; }
 
 /* ============================================================
    师兄师姐批注（贯穿全站 · 去 AI 味核心）
@@ -313,7 +317,7 @@ body.no-scroll { overflow: hidden; }
 .mrow .no { font-family: var(--serif); font-size: 22px; font-weight: 900; color: #C9C2B0; width: 34px; flex-shrink: 0; text-align: center; }
 .mrow .bd { flex: 1; min-width: 0; }
 .mrow h4 { font-size: 15px; font-weight: 700; letter-spacing: .01em; }
-.mrow p { font-size: 11.5px; color: var(--ink-3); margin-top: 3px; line-height: 1.5; }
+.mrow p { font-size: 12px; color: var(--ink-3); margin-top: 3px; line-height: 1.5; }
 .mrow .cat { font-size: 10px; letter-spacing: .08em; color: var(--green); border: 1px solid var(--line); border-radius: var(--r-pill); padding: 2px 9px; flex-shrink: 0; }
 .mrow .ar { font-size: 15px; color: var(--ink-3); flex-shrink: 0; }
 .mrow.hot h4::after { content: '荐'; font-size: 9px; color: #fff; background: var(--red); border-radius: 3px; padding: 1px 4px; margin-left: 6px; vertical-align: 2px; font-weight: 700; }
@@ -362,23 +366,46 @@ body.no-scroll { overflow: hidden; }
 .group-entry-arrow { font-size: 18px; color: rgba(255,255,255,.7); }
 
 /* ============================================================
+   模块配色 —— 单一来源
+   ------------------------------------------------------------
+   变量只在 body[data-page] 上定义一次，组件一律消费 var(--m)。
+   HTML 里的 .m-accent / .m-{id} 保留为语义标记，不各自写死颜色，
+   改一章的色只需改这里一行。取色统一压低饱和，配合米纸底不刺眼。
+   ============================================================ */
+body { --m: var(--red); --m-soft: var(--red-soft); }
+body[data-page="xinsheng"] { --m: #C54E36; --m-soft: rgba(197,78,54,.09); }
+body[data-page="jiaotong"] { --m: #4A6274; --m-soft: rgba(74,98,116,.10); }
+body[data-page="sushe"]    { --m: #8A6A4F; --m-soft: rgba(138,106,79,.10); }
+body[data-page="junxun"]   { --m: #6B7355; --m-soft: rgba(107,115,85,.11); }
+body[data-page="xiaoqu"]   { --m: #56707A; --m-soft: rgba(86,112,122,.10); }
+body[data-page="rushi"]    { --m: #6E5F78; --m-soft: rgba(110,95,120,.10); }
+body[data-page="xueye"]    { --m: #46566E; --m-soft: rgba(70,86,110,.10); }
+body[data-page="shenghuo"] { --m: #B06A3B; --m-soft: rgba(176,106,59,.10); }
+body[data-page="growth"]   { --m: #4F6B57; --m-soft: rgba(79,107,87,.11); }
+body[data-page="jiangzhu"] { --m: #97722F; --m-soft: rgba(151,114,47,.11); }
+body[data-page="shetuan"]  { --m: #9A5560; --m-soft: rgba(154,85,96,.10); }
+body[data-page="zuzhi"]    { --m: #5A6472; --m-soft: rgba(90,100,114,.10); }
+body[data-page="jingsai"]  { --m: #A9553E; --m-soft: rgba(169,85,62,.10); }
+body[data-page="tice"]     { --m: #46716A; --m-soft: rgba(70,113,106,.11); }
+
+/* ============================================================
    模块页 Hero → 编辑部章节头（去渐变 · 深色文字）
    ============================================================ */
 .module-hero {
   border-radius: var(--r-mod); padding: 20px 20px; margin: 2px 0 20px;
   background: var(--paper) !important; color: var(--ink); position: relative; overflow: hidden;
-  border: 1px solid var(--line); border-left: 4px solid var(--red);
+  border: 1px solid var(--line); border-left: 4px solid var(--m);
 }
 .module-hero .mh-icon {
-  width: 46px; height: 46px; border-radius: var(--r-btn); background: var(--red-soft);
-  border: 1px solid rgba(197,78,54,.25); display: flex; align-items: center; justify-content: center;
+  width: 46px; height: 46px; border-radius: var(--r-btn); background: var(--m-soft);
+  border: 1px solid var(--m); display: flex; align-items: center; justify-content: center;
   font-size: 24px; margin-bottom: 12px;
 }
 .module-hero h1 { font-family: var(--serif); font-size: 24px; font-weight: 900; letter-spacing: .02em; color: var(--ink); }
 .module-hero p { font-size: 12.5px; color: var(--ink-2); margin-top: 8px; line-height: 1.7; }
 .module-hero .mh-badge {
   display: inline-block; margin-top: 12px; font-size: 10.5px; letter-spacing: .08em;
-  background: transparent; color: var(--green); border: 1px solid var(--line); padding: 3px 10px; border-radius: var(--r-pill);
+  background: var(--m-soft); color: var(--m); border: 1px solid var(--m); padding: 3px 10px; border-radius: var(--r-pill);
 }
 
 /* ============================================================
@@ -386,7 +413,7 @@ body.no-scroll { overflow: hidden; }
    ============================================================ */
 .block { background: var(--paper); border: 1px solid var(--line); border-radius: var(--r-mod); padding: 16px 18px; margin-bottom: 12px; }
 .block h3 { font-size: 15.5px; font-weight: 800; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; letter-spacing: .01em; }
-.block h3 .dot { width: 6px; height: 14px; border-radius: 2px; background: var(--red); }
+.block h3 .dot { width: 6px; height: 14px; border-radius: 2px; background: var(--m); }
 .block p { font-size: 13.5px; color: var(--ink-2); line-height: 1.85; }
 .block p + p { margin-top: 8px; }
 .block b { color: var(--ink); }
@@ -401,7 +428,7 @@ body.no-scroll { overflow: hidden; }
 
 /* 手风琴 FAQ */
 .acc-item { border-bottom: 1px solid var(--line); }
-.acc-q { width: 100%; text-align: left; background: none; border: none; padding: 14px 0; font-size: 14px; font-weight: 600; color: var(--ink); cursor: pointer; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.acc-q { width: 100%; min-height: 44px; text-align: left; background: none; border: none; padding: 13px 0; font-size: 14px; font-weight: 600; color: var(--ink); cursor: pointer; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
 .acc-q .chev { transition: transform .3s ease; color: var(--ink-3); flex-shrink: 0; }
 .acc-item.open .chev { transform: rotate(90deg); color: var(--red); }
 .acc-a { max-height: 0; overflow: hidden; transition: max-height .35s ease; }
@@ -414,8 +441,8 @@ body.no-scroll { overflow: hidden; }
 .check.must { color: var(--ink); font-weight: 600; }
 
 /* 链接行 */
-.linkrow { display: flex; align-items: center; gap: 10px; padding: 13px 14px; background: var(--paper); border: 1px solid var(--line); border-radius: var(--r-mod); margin-bottom: 10px; text-decoration: none; color: inherit; }
-.linkrow .lk-ic { width: 32px; height: 32px; border-radius: var(--r-btn); background: var(--green-soft); display: flex; align-items: center; justify-content: center; font-size: 16px; }
+.linkrow { display: flex; align-items: center; gap: 10px; min-height: 48px; padding: 13px 14px; background: var(--paper); border: 1px solid var(--line); border-radius: var(--r-mod); margin-bottom: 10px; text-decoration: none; color: inherit; }
+.linkrow .lk-ic { width: 32px; height: 32px; border-radius: var(--r-btn); background: var(--m-soft); display: flex; align-items: center; justify-content: center; font-size: 16px; }
 .linkrow .lk-txt { flex: 1; font-size: 13.5px; font-weight: 600; }
 .linkrow .lk-sub { font-size: 11px; color: var(--ink-3); font-weight: 400; }
 .linkrow .lk-arrow { color: var(--ink-3); }
@@ -545,6 +572,34 @@ body.no-scroll { overflow: hidden; }
 
 /* hero 内绝对定位版本 */
 .module-hero .share-btn { position: absolute; top: 14px; right: 14px; z-index: 2; }
+
+/* ============================================================
+   底部常驻栏（15 页统一，由 app.js 注入）
+   ------------------------------------------------------------
+   解决旧版「进到子页就没有出口」的问题：任何一页都能一键回手册、
+   搜答案、进群 —— 进群是唯一的强调按钮。
+   ============================================================ */
+.tabbar {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 900;
+  display: flex; gap: 6px; align-items: stretch;
+  max-width: 460px; margin: 0 auto;
+  padding: 8px 16px calc(8px + var(--safe-bottom));
+  background: rgba(246,241,231,.94); backdrop-filter: saturate(160%) blur(12px);
+  -webkit-backdrop-filter: saturate(160%) blur(12px);
+  border-top: 1px solid var(--line);
+}
+.tab {
+  flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+  min-height: 48px; border: 1px solid var(--line); border-radius: var(--r-mod);
+  background: var(--paper); color: var(--ink-2); font-family: inherit; font-size: 10.5px;
+  letter-spacing: .04em; text-decoration: none; cursor: pointer;
+  transition: transform .12s ease, border-color var(--tr), color var(--tr);
+}
+.tab:active { transform: scale(.97); }
+.tab .tab-ic { font-size: 16px; line-height: 1; }
+.tab.on { border-color: var(--m); color: var(--m); }
+.tab-main { flex: 1.25; background: var(--red); border-color: var(--red); color: #FFF9F2; font-weight: 700; }
+.tab-main.on { border-color: var(--red); color: #FFF9F2; }
 
 /* ============================================================
    滚动揭示微动效（克制版）

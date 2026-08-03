@@ -451,6 +451,24 @@
   }
 
   /* ==========================================================
+     6.55 底部常驻栏（15 页统一注入）
+     ------------------------------------------------------------
+     旧版子页读完就是死路 —— 没有回手册的入口，更没有进群入口。
+     这里统一补一条常驻栏：回手册 / 搜一下 / 进群。
+     ========================================================== */
+  function renderTabBar() {
+    if (document.querySelector('.tabbar')) return;
+    var isHome = document.body.dataset.page === 'index';
+    var bar = document.createElement('nav');
+    bar.className = 'tabbar';
+    bar.innerHTML =
+      '<a class="tab' + (isHome ? ' on' : '') + '" href="index.html"><span class="tab-ic">📖</span>手册</a>'
+      + '<button class="tab js-search" type="button"><span class="tab-ic">🔍</span>搜一下</button>'
+      + '<button class="tab tab-main js-group-entry" type="button"><span class="tab-ic">💬</span>进群问</button>';
+    document.body.appendChild(bar);
+  }
+
+  /* ==========================================================
      6.6 封面版次 / 更新日期（由 config.js 驱动，改一处全站生效）
      ========================================================== */
   function renderCoverMeta() {
@@ -489,6 +507,7 @@
   function init() {
     renderUpdateBar();
     renderCoverMeta();
+    renderTabBar();   // 必须在 bindBasics 之前：栏内按钮要靠它统一绑事件
     bindBasics();
     bindMustList();
     bindReveal();
