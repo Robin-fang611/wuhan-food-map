@@ -574,6 +574,55 @@ body[data-page="tice"]     { --m: #46716A; --m-soft: rgba(70,113,106,.11); }
 .module-hero .share-btn { position: absolute; top: 14px; right: 14px; z-index: 2; }
 
 /* ============================================================
+   分享面板 + 分享海报
+   ============================================================ */
+.share-sheet {
+  position: fixed; inset: 0; z-index: 99998; background: rgba(37,35,31,.45);
+  display: flex; align-items: flex-end; justify-content: center;
+  opacity: 0; transition: opacity .24s ease;
+}
+.share-sheet.show { opacity: 1; }
+.ss-box {
+  width: 100%; max-width: 460px; background: var(--bg);
+  border-radius: 16px 16px 0 0; padding: 18px 16px calc(16px + var(--safe-bottom));
+  transform: translateY(20px); transition: transform .26s cubic-bezier(.22,.61,.36,1);
+}
+.share-sheet.show .ss-box { transform: none; }
+.ss-t { font-family: var(--serif); font-size: 16px; font-weight: 900; text-align: center; margin-bottom: 14px; }
+.ss-item {
+  width: 100%; display: flex; align-items: center; gap: 12px; text-align: left;
+  background: var(--paper); border: 1px solid var(--line); border-radius: var(--r-mod);
+  padding: 13px 14px; margin-bottom: 10px; min-height: 56px; font-family: inherit; color: inherit; cursor: pointer;
+}
+.ss-item:active { transform: scale(.99); border-color: var(--red); }
+.ss-ic { font-size: 20px; flex-shrink: 0; }
+.ss-txt { min-width: 0; }
+.ss-txt b { display: block; font-size: 14px; font-weight: 700; }
+.ss-txt i { display: block; font-style: normal; font-size: 11.5px; color: var(--ink-2); margin-top: 2px; }
+.ss-cancel {
+  width: 100%; min-height: 48px; border: 1px solid var(--line); background: transparent;
+  border-radius: var(--r-mod); font-family: inherit; font-size: 13.5px; color: var(--ink-2); cursor: pointer; margin-top: 4px;
+}
+
+.poster-overlay {
+  position: fixed; inset: 0; z-index: 99998; background: rgba(37,35,31,.82);
+  display: flex; align-items: center; justify-content: center; padding: 20px;
+  opacity: 0; transition: opacity .24s ease; overflow-y: auto;
+}
+.poster-overlay.show { opacity: 1; }
+.poster-box { width: 100%; max-width: 340px; text-align: center; }
+.poster-img {
+  width: 100%; display: block; border-radius: var(--r-mod);
+  box-shadow: 0 12px 40px rgba(0,0,0,.35);
+}
+.poster-tip { margin-top: 14px; font-size: 12.5px; color: rgba(255,252,246,.9); letter-spacing: .04em; }
+.poster-close {
+  margin-top: 14px; min-height: 44px; padding: 0 28px;
+  border: 1px solid rgba(255,252,246,.4); background: transparent; border-radius: var(--r-pill);
+  color: rgba(255,252,246,.9); font-family: inherit; font-size: 13px; cursor: pointer;
+}
+
+/* ============================================================
    底部常驻栏（15 页统一，由 app.js 注入）
    ------------------------------------------------------------
    解决旧版「进到子页就没有出口」的问题：任何一页都能一键回手册、

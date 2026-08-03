@@ -158,11 +158,11 @@
     return base + path;
   }
 
-  function handleShare() {
-    analytics.trackShare('click');
+  function shareLink() {
     var url = currentShareUrl();
     var text = SHARE_TEXT + ' ' + url;
     var isWeixin = /micromessenger/i.test(navigator.userAgent);
+    analytics.trackShare('link');
 
     if (!isWeixin && navigator.share) {
       navigator.share({ title: document.title, text: SHARE_TEXT, url: url })
@@ -171,6 +171,211 @@
       copyToClipboard(text);
       showToast(isWeixin ? '已复制，粘贴到群里发给同学' : '已复制，发给同学吧');
     }
+  }
+
+  /* ==========================================================
+     4.5 分享海报（canvas 现画，长按保存）
+     ------------------------------------------------------------
+     手册的传播介质是微信群和朋友圈，图片比链接好使得多：
+     不会被折叠、带二维码能直接进群。
+     ========================================================== */
+  function currentPageTitle() {
+    var h1 = document.querySelector('.module-hero h1');
+    if (h1) return h1.textContent.trim();
+    return '2026 新生手册';
+  }
+
+  function currentPageDesc() {
+    var p = document.querySelector('.module-hero p');
+    if (p) return p.textContent.trim();
+    var og = document.querySelector('meta[property="og:description"]');
+    return og ? og.getAttribute('content') : '师兄师姐替你踩过的坑，都写在这了';
+  }
+
+  function wrapText(ctx, text, x, y, maxW, lineH, maxLines) {
+    var line = '';
+    var lines = 0;
+    for (var i = 0; i < text.length; i++) {
+      var test = line + text.charAt(i);
+      if (ctx.measureText(test).width > maxW && line) {
+        if (maxLines && lines >= maxLines - 1) {
+          ctx.fillText(line.slice(0, -1) + '…', x, y);
+          return y + lineH;
+        }
+        ctx.fillText(line, x, y);
+        y += lineH; lines++;
+        line = text.charAt(i);
+      } else {
+        line = test;
+      }
+    }
+    if (line) { ctx.fillText(line, x, y); y += lineH; }
+    return y;
+  }
+
+  function buildPoster(cb) {
+    var W = 750, H = 1180;
+    var cv = document.createElement('canvas');
+    cv.width = W; cv.height = H;
+    var ctx = cv.getContext('2d');
+    var SANS = '"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif';
+    var SERIF = '"Songti SC","Noto Serif SC",STSong,serif';
+    var INK = '#25231F', INK2 = '#5F5B52', INK3 = '#948F82', RED = '#C54E36', LINE = '#D8D1C3';
+
+    // 底 + 纸纹
+    ctx.fillStyle = '#F6F1E7'; ctx.fillRect(0, 0, W, H);
+    var g = ctx.createRadialGradient(W * 0.22, H * 0.06, 0, W * 0.22, H * 0.06, W * 0.8);
+    g.addColorStop(0, 'rgba(150,120,70,.07)'); g.addColorStop(1, 'rgba(150,120,70,0)');
+    ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+
+    // 外框 + 四角
+    var P = 46;
+    ctx.strokeStyle = INK; ctx.lineWidth = 3;
+    ctx.strokeRect(P, P, W - P * 2, H - P * 2);
+    ctx.lineWidth = 6; ctx.strokeStyle = RED;
+    var c = 44;
+    [[P, P, 1, 1], [W - P, P, -1, 1], [P, H - P, 1, -1], [W - P, H - P, -1, -1]].forEach(function (q) {
+      ctx.beginPath();
+      ctx.moveTo(q[0] + c * q[2], q[1]);
+      ctx.lineTo(q[0], q[1]);
+      ctx.lineTo(q[0], q[1] + c * q[3]);
+      ctx.stroke();
+    });
+
+    var x = 96, y = 168;
+
+    ctx.textBaseline = 'alphabetic';
+    ctx.fillStyle = INK3; ctx.font = '24px ' + SANS;
+    ctx.fillText('中南财经政法大学 · 民间非官方', x, y);
+
+    y += 78;
+    ctx.fillStyle = INK; ctx.font = '900 74px ' + SERIF;
+    ctx.fillText('江城 · 新生手册', x, y);
+
+    y += 34;
+    ctx.strokeStyle = RED; ctx.lineWidth = 5;
+    ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + 96, y); ctx.stroke();
+
+    // 本页主题
+    y += 92;
+    ctx.fillStyle = RED; ctx.font = '700 26px ' + SANS;
+    ctx.fillText('本 页 内 容', x, y);
+    y += 62;
+    ctx.fillStyle = INK; ctx.font = '900 52px ' + SERIF;
+    y = wrapText(ctx, currentPageTitle(), x, y, W - x * 2, 68, 2);
+    y += 22;
+    ctx.fillStyle = INK2; ctx.font = '28px ' + SANS;
+    y = wrapText(ctx, currentPageDesc(), x, y, W - x * 2, 46, 3);
+
+    // 分隔
+    y = Math.max(y + 50, 720);
+    ctx.strokeStyle = LINE; ctx.lineWidth = 2;
+    ctx.setLineDash([9, 9]);
+    ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(W - x, y); ctx.stroke();
+    ctx.setLineDash([]);
+
+    // 二维码区
+    var qy = y + 56;
+    var qs = 214;
+    var group = (CFG.groups && CFG.groups[0]) || {};
+
+    function finish() {
+      var tx = x + qs + 44;
+      ctx.fillStyle = INK; ctx.font = '900 40px ' + SANS;
+      ctx.fillText('扫码加 2026 新生群', tx, qy + 66);
+      ctx.fillStyle = INK2; ctx.font = '26px ' + SANS;
+      ctx.fillText('师兄师姐在线答疑', tx, qy + 114);
+      ctx.fillText('选课 / 宿舍 / 社团全搞定', tx, qy + 156);
+      ctx.fillStyle = INK3; ctx.font = '24px ' + SANS;
+      ctx.fillText((SITE.origin || '').replace(/^https?:\/\//, ''), tx, qy + 206);
+
+      ctx.fillStyle = INK3; ctx.font = '22px ' + SANS;
+      ctx.textAlign = 'center';
+      ctx.fillText('江城编辑部 · 与师兄师姐一同修订 · 2026', W / 2, H - 92);
+      ctx.textAlign = 'left';
+
+      cb(cv.toDataURL('image/jpeg', 0.9));
+    }
+
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillRect(x, qy, qs, qs);
+    ctx.strokeStyle = LINE; ctx.lineWidth = 2;
+    ctx.strokeRect(x, qy, qs, qs);
+
+    if (group.qrCode) {
+      var img = new Image();
+      img.onload = function () {
+        ctx.drawImage(img, x + 8, qy + 8, qs - 16, qs - 16);
+        finish();
+      };
+      img.onerror = function () {
+        ctx.fillStyle = INK3; ctx.font = '24px ' + SANS;
+        ctx.textAlign = 'center';
+        ctx.fillText('二维码见站内', x + qs / 2, qy + qs / 2);
+        ctx.textAlign = 'left';
+        finish();
+      };
+      img.src = group.qrCode;
+    } else {
+      finish();
+    }
+  }
+
+  function showPoster() {
+    analytics.trackShare('poster');
+    showToast('海报生成中…');
+    buildPoster(function (dataUrl) {
+      var ov = document.createElement('div');
+      ov.className = 'poster-overlay';
+      ov.innerHTML = '<div class="poster-box">'
+        + '<img class="poster-img" src="' + dataUrl + '" alt="江城新生手册分享海报">'
+        + '<div class="poster-tip">长按图片保存 / 转发到群里</div>'
+        + '<button class="poster-close" type="button">关闭</button>'
+        + '</div>';
+      document.body.appendChild(ov);
+      document.body.classList.add('no-scroll');
+      requestAnimationFrame(function () { ov.classList.add('show'); });
+      function close() {
+        ov.classList.remove('show');
+        document.body.classList.remove('no-scroll');
+        setTimeout(function () { ov.remove(); }, 240);
+      }
+      ov.querySelector('.poster-close').addEventListener('click', close);
+      ov.addEventListener('click', function (e) { if (e.target === ov) close(); });
+    });
+  }
+
+  function handleShare() {
+    analytics.trackShare('click');
+    if (document.querySelector('.share-sheet')) return;
+
+    var sheet = document.createElement('div');
+    sheet.className = 'share-sheet';
+    sheet.innerHTML = '<div class="ss-box">'
+      + '<div class="ss-t">转给同学</div>'
+      + '<button class="ss-item" type="button" data-act="poster"><span class="ss-ic">🖼</span>'
+      + '<span class="ss-txt"><b>生成分享海报</b><i>带二维码，发群里同学能直接进群</i></span></button>'
+      + '<button class="ss-item" type="button" data-act="link"><span class="ss-ic">🔗</span>'
+      + '<span class="ss-txt"><b>复制链接</b><i>粘贴到聊天窗口</i></span></button>'
+      + '<button class="ss-cancel" type="button">取消</button>'
+      + '</div>';
+
+    document.body.appendChild(sheet);
+    requestAnimationFrame(function () { sheet.classList.add('show'); });
+
+    function close() {
+      sheet.classList.remove('show');
+      setTimeout(function () { sheet.remove(); }, 240);
+    }
+    sheet.querySelectorAll('.ss-item').forEach(function (b) {
+      b.addEventListener('click', function () {
+        var act = b.dataset.act;
+        close();
+        if (act === 'poster') showPoster(); else shareLink();
+      });
+    });
+    sheet.querySelector('.ss-cancel').addEventListener('click', close);
+    sheet.addEventListener('click', function (e) { if (e.target === sheet) close(); });
   }
 
   /* ==========================================================
@@ -533,6 +738,8 @@
     copyToClipboard: copyToClipboard,
     showSocialModal: showSocialModal,
     handleShare: handleShare,
+    showPoster: showPoster,
+    openSearch: openSearch,
     shareUrl: currentShareUrl,
     analytics: analytics
   };
