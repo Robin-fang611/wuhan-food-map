@@ -10,6 +10,10 @@
    ============================================================ */
 (function () {
   'use strict';
+  /* 渐进增强标记：JS 一旦执行就给 <html> 加 .js，
+     CSS 据此才把 .reveal 内容初始隐藏并做揭示动效；
+     JS 未执行/失败则内容默认可见，绝不丢内容。 */
+  document.documentElement.classList.add('js');
 
   /* ==========================================================
      -1. 老内核垫片
@@ -473,6 +477,10 @@
       });
     }, { rootMargin: '0px 0px -8% 0px', threshold: 0.04 });
     targets.forEach(function (n) { io.observe(n); });
+    /* 安全网：无论 IO 是否触发，1.5s 后强制显示全部内容，杜绝永久隐形 */
+    setTimeout(function () {
+      targets.forEach(function (n) { n.classList.add('revealed'); });
+    }, 1500);
   }
 
   /* ==========================================================

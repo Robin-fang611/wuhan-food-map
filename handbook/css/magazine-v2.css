@@ -211,8 +211,10 @@ img{max-width:100%}
 
 /* —— 内容块 —— */
 .block{padding:22px;border-bottom:1px solid var(--line)}
-.block.reveal{opacity:0;transform:translateY(16px);transition:opacity .6s ease,transform .6s ease}
-.block.reveal.revealed{opacity:1;transform:none}
+/* 渐进增强：内容默认可见，仅 JS 成功运行时才隐藏并做揭示动效（JS 失败内容不丢） */
+.block.reveal{opacity:1;transform:none}
+html.js .block.reveal{opacity:0;transform:translateY(16px);transition:opacity .6s ease,transform .6s ease}
+html.js .block.reveal.revealed{opacity:1;transform:none}
 .block > h3{font-family:var(--serif);font-size:21px;font-weight:700;color:var(--ink);line-height:1.3;
   margin-bottom:14px;display:flex;align-items:baseline;gap:10px}
 .block > h3 .dot{flex:0 0 auto;width:9px;height:9px;border-radius:50%;background:var(--gold);transform:translateY(-2px)}
@@ -400,9 +402,10 @@ img{max-width:100%}
 .toc-foot{padding:16px 22px 28px;border-top:1px solid var(--line);font-family:var(--sans);font-size:11.5px;color:var(--ink-3);line-height:1.7}
 
 /* ===== 滚动揭示兜底 ===== */
-.reveal{opacity:0;transform:translateY(16px);transition:opacity .6s ease,transform .6s ease}
-.reveal.revealed{opacity:1;transform:none}
+.reveal{opacity:1;transform:none}
+html.js .reveal{opacity:0;transform:translateY(16px);transition:opacity .6s ease,transform .6s ease}
+html.js .reveal.revealed{opacity:1;transform:none}
 @media (prefers-reduced-motion:reduce){
-  .reveal,.block.reveal{opacity:1;transform:none;transition:none}
+  .reveal,.block.reveal,html.js .reveal,html.js .block.reveal{opacity:1;transform:none;transition:none}
   .cover,.m-act,.linkrow,.scene-card{transition:none}
 }
