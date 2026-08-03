@@ -1025,9 +1025,51 @@
   }
 
   /* ==========================================================
+     7.5 无障碍基础设施（一次性注入，避免逐页改 HTML）
+     ========================================================== */
+  function installA11y() {
+    var app = document.querySelector('.app');
+    if (!app) return;
+
+    // 跳至正文链接
+    if (!document.querySelector('.skip-link')) {
+      var skip = document.createElement('a');
+      skip.className = 'skip-link';
+      skip.href = '#jc-main';
+      skip.textContent = '跳至正文';
+      document.body.insertBefore(skip, document.body.firstChild);
+    }
+
+    // main 地标
+    if (!app.hasAttribute('role')) {
+      app.id = 'jc-main';
+      app.setAttribute('role', 'main');
+    }
+
+    // 修复标题层级：子页 h1 后是 h3，插入隐藏的 h2 作为语义桥
+    if (document.body.dataset.page !== 'index') {
+      var firstBlock = document.querySelector('.block');
+      var prevHasHeading = firstBlock && firstBlock.previousElementSibling &&
+        (' ' + (firstBlock.previousElementSibling.className || '') + ' ').indexOf(' sr-only ') !== -1;
+      if (firstBlock && !prevHasHeading) {
+        var h2 = document.createElement('h2');
+        h2.className = 'sr-only';
+        h2.textContent = '本章内容';
+        firstBlock.parentNode.insertBefore(h2, firstBlock);
+      }
+    }
+
+    // html lang 兜底
+    if (!document.documentElement.getAttribute('lang')) {
+      document.documentElement.setAttribute('lang', 'zh-CN');
+    }
+  }
+
+  /* ==========================================================
      8. 启动
      ========================================================== */
   function init() {
+    installA11y();
     renderUpdateBar();
     renderCoverMeta();
     renderTabBar();   // 必须在 bindBasics 之前：栏内按钮要靠它统一绑事件

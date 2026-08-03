@@ -92,11 +92,13 @@ async function main() {
             out.over.push({ t: el.tagName.toLowerCase() + '.' + (el.className || '').toString().split(' ')[0], right: Math.round(r.right) });
           }
 
-          // 触控目标
-          const tappable = el.tagName === 'BUTTON' || el.tagName === 'A' ||
-            (el.getAttribute && el.getAttribute('role') === 'button');
+          // 触控目标（跳至正文链接只在键盘聚焦时可见，排除）
+          const cls = (el.className || '').toString();
+          const tappable = (el.tagName === 'BUTTON' || el.tagName === 'A' ||
+            (el.getAttribute && el.getAttribute('role') === 'button')) &&
+            cls.indexOf('skip-link') === -1 && cls.indexOf('sr-only') === -1;
           if (tappable && r.height > 0 && r.height < 40 && r.width > 0) {
-            out.tinyTap.push({ t: (el.className || '').toString().split(' ')[0] || el.tagName, h: Math.round(r.height) });
+            out.tinyTap.push({ t: cls.split(' ')[0] || el.tagName, h: Math.round(r.height) });
           }
 
           // 字号

@@ -27,8 +27,8 @@ button, a, .acc-q, .chip, .mitem, .tab { touch-action: manipulation; }
   --paper:     #FFFCF6;
   --ink:       #25231F;
   --ink-2:     #5F5B52;
-  --ink-3:     #948F82;
-  --red:       #C54E36;   /* 江城红 · 唯一强调色 */
+  --ink-3:     #716D61;   /* 次要文字，满足 WCAG AA（4.59:1） */
+  --red:       #B94933;   /* 江城红 · 唯一强调色 */
   --red-soft:  rgba(197,78,54,.08);
   --green:     #63715C;   /* 辅助绿 */
   --green-soft:rgba(99,113,92,.10);
@@ -73,6 +73,24 @@ body {
 }
 .serif { font-family: var(--serif); }
 .kai   { font-family: var(--kai); }
+
+/* 屏幕阅读器专用 + 跳至正文链接 */
+.sr-only, .skip-link {
+  position: absolute; left: -10000px; top: auto; width: 1px; height: 1px; overflow: hidden;
+}
+.skip-link:focus {
+  left: 16px; top: 14px; width: auto; height: auto; padding: 10px 16px;
+  z-index: 10000; background: var(--ink); color: var(--paper); border-radius: var(--r-btn);
+  text-decoration: none; font-weight: 700; box-shadow: 0 4px 12px rgba(0,0,0,.18);
+}
+
+/* 统一键盘焦点环：替换浏览器默认，保证在深浅背景上都可见 */
+:focus-visible, a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, [tabindex]:not([tabindex="-1"]):focus-visible {
+  outline: 2.5px solid var(--m, var(--red)); outline-offset: 2px;
+  border-radius: var(--r-btn);
+}
+/* 搜索框内部输入框需要保留轮廓 */
+.search-wrap input:focus-visible { outline-offset: 4px; }
 
 /* 顶部安全区（刘海屏）+ 底部给常驻栏让位 */
 .app {
@@ -287,7 +305,7 @@ body.no-scroll { overflow: hidden; }
 .tl-card .hd { display: flex; align-items: center; gap: 8px; }
 .tl-card .stage { font-size: 11px; letter-spacing: .12em; color: var(--ink-3); }
 .tl-card .count { margin-left: auto; font-size: 10.5px; color: var(--ink-3); }
-.tl-card h4 { font-size: 15px; font-weight: 700; margin-top: 4px; }
+.tl-card h2, .tl-card h4 { font-size: 15px; font-weight: 700; margin-top: 4px; }
 .tl-card p { font-size: 12px; color: var(--ink-2); margin-top: 4px; line-height: 1.6; }
 
 /* ============================================================
@@ -322,8 +340,8 @@ body.no-scroll { overflow: hidden; }
 .ticket::after { bottom: -9px; }
 .ticket .m { flex: 1; padding: 15px 16px; border-right: 1.5px dashed var(--line-ink); min-width: 0; }
 .ticket .m .lbl { font-size: 11px; letter-spacing: .26em; color: var(--ink-3); }
-.ticket .m h4 { font-size: 18px; font-weight: 900; letter-spacing: .04em; margin: 5px 0 4px; }
-.ticket .m h4 em { font-style: normal; color: var(--red); }
+.ticket .m h3, .ticket .m h4 { font-size: 18px; font-weight: 900; letter-spacing: .04em; margin: 5px 0 4px; }
+.ticket .m h3 em, .ticket .m h4 em { font-style: normal; color: var(--red); }
 .ticket .m .sub { font-size: 11px; color: var(--ink-2); }
 .ticket .s { width: 96px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; padding: 8px; }
 .ticket .s b { font-family: var(--serif); font-size: 23px; font-weight: 900; color: var(--red); }
@@ -335,13 +353,13 @@ body.no-scroll { overflow: hidden; }
    ============================================================ */
 .mrow { display: flex; align-items: center; gap: 14px; padding: 14px 4px; border-bottom: 1px solid var(--line); text-decoration: none; color: inherit; }
 .mrow:last-child { border-bottom: none; }
-.mrow .no { font-family: var(--serif); font-size: 22px; font-weight: 900; color: #C9C2B0; width: 34px; flex-shrink: 0; text-align: center; }
+.mrow .no { font-family: var(--serif); font-size: 22px; font-weight: 900; color: #8C8571; width: 34px; flex-shrink: 0; text-align: center; }
 .mrow .bd { flex: 1; min-width: 0; }
-.mrow h4 { font-size: 15px; font-weight: 700; letter-spacing: .01em; }
+.mrow h2, .mrow h4 { font-size: 15px; font-weight: 700; letter-spacing: .01em; }
 .mrow p { font-size: 12px; color: var(--ink-3); margin-top: 3px; line-height: 1.5; }
 .mrow .cat { font-size: 11px; letter-spacing: .08em; color: var(--green); border: 1px solid var(--line); border-radius: var(--r-pill); padding: 2px 9px; flex-shrink: 0; }
 .mrow .ar { font-size: 15px; color: var(--ink-3); flex-shrink: 0; }
-.mrow.hot h4::after { content: '荐'; font-size: 9px; color: #fff; background: var(--red); border-radius: 3px; padding: 1px 4px; margin-left: 6px; vertical-align: 2px; font-weight: 700; }
+.mrow.hot h2::after, .mrow.hot h4::after { content: '荐'; font-size: 9px; color: #fff; background: var(--red); border-radius: 3px; padding: 1px 4px; margin-left: 6px; vertical-align: 2px; font-weight: 700; }
 
 /* 建设中标记（不锁内容，只提示尚在补充） */
 .soon-pill { font-size: 11px; letter-spacing: .08em; color: var(--ink-3); border: 1px solid var(--line); border-radius: var(--r-pill); padding: 1px 8px; flex-shrink: 0; }
@@ -395,16 +413,16 @@ body.no-scroll { overflow: hidden; }
    改一章的色只需改这里一行。取色统一压低饱和，配合米纸底不刺眼。
    ============================================================ */
 body { --m: var(--red); --m-soft: var(--red-soft); }
-body[data-page="xinsheng"] { --m: #C54E36; --m-soft: rgba(197,78,54,.09); }
+body[data-page="xinsheng"] { --m: #B94933; --m-soft: rgba(185,73,51,.09); }
 body[data-page="jiaotong"] { --m: #4A6274; --m-soft: rgba(74,98,116,.10); }
-body[data-page="sushe"]    { --m: #8A6A4F; --m-soft: rgba(138,106,79,.10); }
-body[data-page="junxun"]   { --m: #6B7355; --m-soft: rgba(107,115,85,.11); }
+body[data-page="sushe"]    { --m: #86674D; --m-soft: rgba(134,103,77,.10); }
+body[data-page="junxun"]   { --m: #697053; --m-soft: rgba(105,112,83,.11); }
 body[data-page="xiaoqu"]   { --m: #56707A; --m-soft: rgba(86,112,122,.10); }
 body[data-page="rushi"]    { --m: #6E5F78; --m-soft: rgba(110,95,120,.10); }
 body[data-page="xueye"]    { --m: #46566E; --m-soft: rgba(70,86,110,.10); }
-body[data-page="shenghuo"] { --m: #B06A3B; --m-soft: rgba(176,106,59,.10); }
+body[data-page="shenghuo"] { --m: #9C5E34; --m-soft: rgba(156,94,52,.10); }
 body[data-page="growth"]   { --m: #4F6B57; --m-soft: rgba(79,107,87,.11); }
-body[data-page="jiangzhu"] { --m: #97722F; --m-soft: rgba(151,114,47,.11); }
+body[data-page="jiangzhu"] { --m: #89672B; --m-soft: rgba(137,103,43,.11); }
 body[data-page="shetuan"]  { --m: #9A5560; --m-soft: rgba(154,85,96,.10); }
 body[data-page="zuzhi"]    { --m: #5A6472; --m-soft: rgba(90,100,114,.10); }
 body[data-page="jingsai"]  { --m: #A9553E; --m-soft: rgba(169,85,62,.10); }
