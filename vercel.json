@@ -1,17 +1,6 @@
 {
-  "outputDirectory": "handbook",
-  "redirects": [
-    {
-      "source": "/peiyang(.*)",
-      "destination": "/growth.html",
-      "permanent": true
-    },
-    {
-      "source": "/xuanke(.*)",
-      "destination": "/growth.html",
-      "permanent": true
-    }
-  ],
+  "outputDirectory": "h5/dist",
+  "buildCommand": "cd h5 && npm install && npm run build",
   "rewrites": [
     {
       "source": "/(.*)",

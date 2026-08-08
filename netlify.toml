@@ -1,18 +1,9 @@
 [build]
-  base = "handbook"
-  publish = "."
+  base = "h5"
+  publish = "dist"
+  command = "npm install && npm run build"
 
-# 薄页合并后的旧链接兜底（已分享出去的书签 / 群消息不失效）
-[[redirects]]
-  from = "/peiyang*"
-  to = "/growth.html"
-  status = 301
-
-[[redirects]]
-  from = "/xuanke*"
-  to = "/growth.html"
-  status = 301
-
+# 单页应用（SPA）兜底：未匹配路由全部回退 index.html，保证前端路由刷新不 404。
 [[redirects]]
   from = "/*"
   to = "/index.html"

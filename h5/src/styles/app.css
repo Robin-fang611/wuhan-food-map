@@ -1,0 +1,334 @@
+/* 蛮有味 · 全局与组件样式（V2 国潮印章 × V5 财经票券） */
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  background-image:
+    radial-gradient(circle at 12% 8%, rgba(201,162,39,0.06), transparent 38%),
+    radial-gradient(circle at 88% 92%, rgba(192,57,43,0.05), transparent 42%);
+}
+#app { max-width: var(--maxw); margin: 0 auto; min-height: 100vh; padding: 0 0 32px; }
+
+/* 顶部品牌条 */
+.topbar {
+  position: sticky; top: 0; z-index: 20;
+  background: rgba(247,241,230,0.92);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--line);
+  padding: 12px 18px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.brand { display: flex; align-items: center; gap: 10px; }
+.brand .seal {
+  width: 38px; height: 38px; border-radius: 9px;
+  background: var(--seal-red); border: 2px solid var(--gold);
+  display: grid; place-items: center;
+  font-family: var(--font-display); color: #fff; font-size: 13px; line-height: 1;
+  box-shadow: var(--shadow-sm);
+}
+.brand .wordmark { font-family: var(--font-display); font-size: 24px; color: var(--seal-red); letter-spacing: 1px; }
+.brand .sub { font-size: 11px; color: var(--ink-2); margin-top: -2px; }
+.topbar .nav-btn {
+  border: 1px solid var(--line); background: var(--paper-2);
+  color: var(--ink); border-radius: 999px; padding: 6px 14px; font-size: 13px;
+  cursor: pointer;
+}
+.top-actions { display: flex; gap: 8px; align-items: center; }
+
+/* 通用容器 */
+.section { padding: 18px; }
+.section h2 { font-size: 17px; margin: 0 0 12px; display: flex; align-items: center; gap: 8px; }
+.section h2 .tag { font-size: 11px; color: var(--ticket-green); border: 1px solid var(--ticket-green); border-radius: 6px; padding: 1px 6px; }
+
+/* 卡片 */
+.card {
+  background: var(--paper-2); border: 1px solid var(--line);
+  border-radius: var(--r-lg); padding: 16px; box-shadow: var(--shadow-sm);
+}
+.hero {
+  background: linear-gradient(160deg, #fff 0%, var(--paper-2) 100%);
+  border: 1px solid var(--line); border-radius: var(--r-lg);
+  padding: 20px 18px; box-shadow: var(--shadow);
+}
+.hero .kicker { color: var(--ticket-green); font-size: 12px; letter-spacing: 1px; }
+.hero .headline { font-family: var(--font-display); font-size: 30px; color: var(--seal-red); margin: 6px 0 4px; }
+.hero .desc { color: var(--ink-2); font-size: 13px; }
+
+/* 按钮 */
+.btn {
+  appearance: none; border: none; cursor: pointer;
+  font-family: var(--font-body); font-weight: 500;
+  border-radius: 999px; padding: 12px 18px; font-size: 15px;
+  transition: transform .08s ease, filter .15s ease;
+}
+.btn:active { transform: scale(0.98); }
+.btn-primary { background: var(--seal-red); color: #fff; box-shadow: 0 4px 14px rgba(192,57,43,.3); }
+.btn-primary:disabled { background: var(--line); color: var(--ink-2); box-shadow: none; cursor: not-allowed; }
+.btn-ghost { background: transparent; color: var(--seal-red); border: 1px solid var(--seal-red); }
+.btn-block { width: 100%; }
+
+/* 签到面板 */
+.streak-strip { display: flex; gap: 6px; margin: 14px 0; }
+.streak-day {
+  flex: 1; aspect-ratio: 1; border-radius: var(--r-sm);
+  border: 1px solid var(--line); background: var(--paper);
+  display: grid; place-items: center; position: relative;
+  font-size: 12px; color: var(--ink-2);
+}
+.streak-day.done { background: var(--seal-red); color: #fff; border-color: var(--seal-red); }
+.streak-day.today { border-color: var(--gold); box-shadow: 0 0 0 2px rgba(201,162,39,.25); }
+.streak-day .dow { position: absolute; top: 3px; font-size: 9px; opacity: .8; }
+.streak-num { font-family: var(--font-display); font-size: 22px; color: var(--seal-red); }
+.reward-hint { font-size: 12px; color: var(--ink-2); margin-top: 4px; }
+
+/* 券票（票券语义：墨绿 + 票号条 + 锯齿） */
+.ticket {
+  position: relative; background: #fff; border-radius: var(--r-md);
+  border: 1px solid var(--line); overflow: hidden;
+  box-shadow: var(--shadow-sm); margin-bottom: 14px;
+  display: flex;
+}
+.ticket .stub {
+  width: 84px; flex: none; background: var(--ticket-green); color: #fff;
+  display: grid; place-items: center; text-align: center; padding: 8px;
+  position: relative;
+}
+.ticket .stub .amt { font-family: var(--font-display); font-size: 26px; line-height: 1; }
+.ticket .stub .amt small { font-size: 12px; }
+.ticket .stub::after {
+  content: ''; position: absolute; right: -7px; top: 0; bottom: 0; width: 14px;
+  background: radial-gradient(circle at 7px 7px, var(--paper) 6px, transparent 7px) 0 0 / 14px 14px repeat-y;
+}
+.ticket .body { flex: 1; padding: 12px 14px; min-width: 0; }
+.ticket .t-title { font-weight: 700; font-size: 15px; }
+.ticket .t-desc { font-size: 12px; color: var(--ink-2); margin-top: 2px; }
+.ticket .t-bar {
+  margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--line);
+  font-family: var(--font-mono); font-size: 10px; color: var(--ticket-green);
+  display: flex; justify-content: space-between; gap: 8px;
+}
+.ticket.used { filter: grayscale(.85); opacity: .6; }
+.ticket.expired { filter: grayscale(.6); opacity: .7; }
+.ticket .status-pill {
+  position: absolute; top: 10px; right: 10px; font-size: 10px;
+  background: var(--paper); border: 1px solid var(--line); border-radius: 999px;
+  padding: 1px 7px; color: var(--ink-2);
+}
+
+/* 券包二维码弹层 */
+.qr-wrap { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.qr-canvas { background: #fff; border: 1px solid var(--line); border-radius: var(--r-sm); padding: 8px; }
+.qr-code-text { font-family: var(--font-mono); font-size: 13px; color: var(--ink); letter-spacing: 1px; }
+.mask {
+  position: fixed; inset: 0; background: rgba(26,26,26,.5);
+  display: grid; place-items: center; z-index: 50; padding: 24px;
+}
+.mask .sheet { background: var(--paper-2); border-radius: var(--r-lg); padding: 18px; width: 100%; max-width: 340px; box-shadow: var(--shadow); }
+
+/* 小工具 */
+.muted { color: var(--ink-2); }
+.center { text-align: center; }
+.toast {
+  position: fixed; left: 50%; bottom: 40px; transform: translateX(-50%);
+  background: var(--ink); color: #fff; padding: 10px 18px; border-radius: 999px;
+  font-size: 13px; z-index: 60; box-shadow: var(--shadow); opacity: 0; transition: opacity .2s;
+}
+.toast.show { opacity: 1; }
+.empty { text-align: center; color: var(--ink-2); padding: 30px 0; font-size: 13px; }
+.badge-count {
+  background: var(--seal-red); color: #fff; border-radius: 999px;
+  font-size: 11px; padding: 1px 7px; margin-left: 4px;
+}
+.footnote { font-size: 11px; color: var(--ink-2); padding: 0 18px; line-height: 1.5; }
+
+/* 搜索框 */
+.search-bar { margin: 4px 0 14px; }
+.search-input {
+  width: 100%; box-sizing: border-box;
+  border: 1px solid var(--line); border-radius: 999px;
+  background: var(--paper-2); color: var(--ink);
+  padding: 11px 16px; font-size: 14px; font-family: var(--font-body);
+  outline: none;
+}
+.search-input:focus { border-color: var(--seal-red); box-shadow: 0 0 0 3px rgba(192,57,43,.12); }
+
+/* 筛选 chips */
+.filter-block { margin-bottom: 12px; }
+.filter-label { font-size: 12px; color: var(--ink-2); margin-bottom: 6px; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip {
+  border: 1px solid var(--line); background: var(--paper-2); color: var(--ink-2);
+  border-radius: 999px; padding: 6px 13px; font-size: 13px; cursor: pointer;
+  font-family: var(--font-body); transition: all .12s ease; white-space: nowrap;
+}
+.chip.active { background: var(--seal-red); color: #fff; border-color: var(--seal-red); }
+
+/* 结果工具条 */
+.m-toolbar { display: flex; justify-content: space-between; align-items: center; margin: 4px 0 10px; }
+.m-count { font-size: 12px; }
+.m-list { display: flex; flex-direction: column; gap: 12px; }
+.m-more { margin-top: 4px; }
+
+/* 商户卡 */
+.m-card {
+  background: var(--paper-2); border: 1px solid var(--line);
+  border-radius: var(--r-lg); padding: 14px; box-shadow: var(--shadow-sm);
+  transition: transform .08s ease;
+}
+.m-card[role="button"] { cursor: pointer; }
+.m-card[role="button"]:active { transform: scale(0.99); }
+.m-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+.m-name { font-weight: 700; font-size: 16px; line-height: 1.3; }
+.m-rating { font-size: 11px; border-radius: 6px; padding: 2px 7px; flex: none; }
+.m-rating.best { background: var(--seal-red); color: #fff; }
+.m-rating.good { background: var(--gold); color: #fff; }
+.m-meta { display: flex; gap: 8px; align-items: center; margin-top: 8px; }
+.m-tag { font-size: 12px; color: var(--ticket-green); border: 1px solid var(--ticket-green); border-radius: 6px; padding: 1px 7px; }
+.m-price { font-size: 13px; color: var(--ink-2); }
+.m-dishes { font-size: 13px; color: var(--ink); margin-top: 8px; }
+.m-addr { font-size: 12px; color: var(--ink-2); margin-top: 4px; }
+.m-foot { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; gap: 8px; }
+.m-meals { display: flex; flex-wrap: wrap; gap: 6px; }
+.m-meal { font-size: 11px; color: var(--ink-2); background: var(--paper); border: 1px solid var(--line); border-radius: 6px; padding: 1px 6px; }
+.m-coupon { font-size: 11px; color: #fff; background: var(--ticket-green); border-radius: 6px; padding: 2px 7px; flex: none; }
+
+/* 榜单（M7） */
+.rank-board { margin-bottom: 18px; }
+.rank-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
+.rank-title { display: flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 700; }
+.rank-title .tag { font-size: 11px; color: var(--ticket-green); border: 1px solid var(--ticket-green); border-radius: 6px; padding: 1px 6px; }
+.rank-hint { font-size: 11px; }
+.rank-row {
+  display: flex; gap: 10px; overflow-x: auto; padding-bottom: 4px;
+  scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch;
+}
+.rank-row::-webkit-scrollbar { height: 0; }
+.r-card {
+  flex: none; width: 168px; scroll-snap-align: start; text-align: left;
+  background: var(--paper-2); border: 1px solid var(--line); border-radius: var(--r-md);
+  padding: 12px; box-shadow: var(--shadow-sm); cursor: pointer;
+  display: flex; gap: 10px; align-items: flex-start;
+  font-family: var(--font-body); color: var(--ink);
+  transition: transform .08s ease;
+}
+.r-card:active { transform: scale(0.98); }
+.r-rank {
+  flex: none; width: 24px; height: 24px; border-radius: 7px; display: grid; place-items: center;
+  background: var(--seal-red); color: #fff; font-family: var(--font-display); font-size: 15px;
+}
+.r-main { flex: 1; min-width: 0; }
+.r-name { font-weight: 700; font-size: 14px; line-height: 1.3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.r-sub { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; font-size: 11px; color: var(--ink-2); }
+.r-price { color: var(--ticket-green); }
+.r-best { flex: none; margin-left: 4px; font-size: 10px; background: var(--seal-red); color: #fff; border-radius: 6px; padding: 1px 6px; align-self: center; }
+.r-good { flex: none; margin-left: 4px; font-size: 10px; background: var(--gold); color: #fff; border-radius: 6px; padding: 1px 6px; align-self: center; }
+
+/* 商户详情页（M8） */
+.detail-top {
+  position: sticky; top: 0; z-index: 20;
+  background: rgba(247,241,230,0.92);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--line);
+  padding: 12px 18px;
+  display: flex; align-items: center; gap: 12px;
+}
+.detail-top .nav-btn {
+  border: 1px solid var(--line); background: var(--paper-2);
+  color: var(--ink); border-radius: 999px; padding: 6px 14px; font-size: 13px; cursor: pointer;
+}
+.detail-top-title { font-family: var(--font-display); font-size: 18px; color: var(--seal-red); }
+
+.detail-hero { padding-bottom: 0; }
+.detail-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+.detail-name { font-family: var(--font-display); font-size: 26px; color: var(--ink); line-height: 1.25; }
+.detail-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+
+.detail-info { display: flex; flex-direction: column; gap: 10px; padding-top: 8px; }
+.detail-row { display: flex; gap: 12px; font-size: 14px; }
+.detail-label { flex: none; width: 64px; color: var(--ink-2); }
+.detail-value { flex: 1; color: var(--ink); word-break: break-word; }
+
+.detail-block { margin-top: 12px; }
+.detail-block-title { font-size: 12px; color: var(--ticket-green); margin-bottom: 4px; font-weight: 700; }
+.detail-dishes { font-size: 14px; }
+.detail-reason { font-size: 13px; color: var(--ink-2); }
+.detail-coupon { font-size: 13px; color: var(--seal-red); }
+
+.detail-nav-wrap { margin-top: 18px; }
+.detail-nav {
+  display: block; text-align: center; text-decoration: none;
+  font-size: 16px;
+}
+
+/* 地图视图（M9，辅助看位置；轻量坐标地图，无 Key） */
+.map-canvas {
+  position: relative; width: 100%; height: 380px;
+  background:
+    radial-gradient(circle at 20% 30%, rgba(201,162,39,0.10), transparent 40%),
+    radial-gradient(circle at 80% 75%, rgba(192,57,43,0.08), transparent 45%),
+    var(--paper-2);
+  border: 1px solid var(--line); border-radius: var(--r-lg);
+  overflow: hidden; box-shadow: var(--shadow-sm);
+}
+.map-canvas .empty { position: absolute; inset: 0; display: grid; place-items: center; }
+.map-pin {
+  position: absolute; transform: translate(-50%, -50%);
+  width: 16px; height: 16px; padding: 0; border: none; background: transparent; cursor: pointer;
+}
+.map-pin-dot {
+  display: block; width: 14px; height: 14px;
+  border-radius: 50% 50% 50% 0; transform: rotate(-45deg);
+  background: var(--ink-2); border: 2px solid var(--paper-2); box-shadow: var(--shadow-sm);
+}
+.map-pin.best .map-pin-dot { background: var(--seal-red); }
+.map-pin.good .map-pin-dot { background: var(--gold); }
+.map-pin.sel .map-pin-dot { background: var(--ticket-green); transform: rotate(-45deg) scale(1.25); }
+.map-count { font-size: 12px; }
+.map-info { margin-top: 12px; }
+.map-hint { font-size: 13px; padding: 8px 2px; }
+.map-info-actions { display: flex; gap: 10px; margin-top: 12px; }
+.map-info-actions .btn { flex: 1; text-align: center; text-decoration: none; }
+
+/* 账号中心（M12） */
+.ac-form { display: flex; flex-direction: column; gap: 10px; }
+.ac-input {
+  width: 100%; box-sizing: border-box;
+  border: 1px solid var(--line); border-radius: var(--r-sm);
+  background: var(--paper-2); color: var(--ink);
+  padding: 11px 14px; font-size: 14px; font-family: var(--font-body); outline: none;
+}
+.ac-input:focus { border-color: var(--seal-red); box-shadow: 0 0 0 3px rgba(192,57,43,.12); }
+.ac-name { font-family: var(--font-display); font-size: 22px; color: var(--ink); margin-bottom: 4px; }
+
+/* 详情页收藏按钮 */
+.detail-fav { margin-left: auto; }
+.detail-fav.on { color: var(--seal-red); border-color: var(--seal-red); background: rgba(192,57,43,.08); }
+
+/* 我的收藏卡（复用 .m-card 视觉） */
+.fav-remove {
+  flex: none; border: 1px solid var(--line); background: var(--paper-2);
+  color: var(--ink-2); border-radius: 999px; padding: 3px 10px; font-size: 12px; cursor: pointer;
+  font-family: var(--font-body);
+}
+
+/* 商家核销台（M14，v1.5） */
+.rd-intro { margin-bottom: 12px; }
+.rd-intro p { margin: 0; font-size: 13px; line-height: 1.5; }
+.rd-box { margin-bottom: 4px; }
+.rd-actions { display: flex; flex-direction: column; }
+.rd-result .rd-ok { border-color: var(--ticket-green); }
+.rd-result .rd-title { font-family: var(--font-display); font-size: 20px; color: var(--ticket-green); margin-bottom: 10px; }
+.rd-result .rd-fail { border-color: var(--seal-red); }
+.rd-result .rd-fail .rd-title { color: var(--seal-red); }
+.rd-reason { font-size: 14px; color: var(--ink-2); }
+.rd-line { display: flex; justify-content: space-between; gap: 12px; font-size: 14px; padding: 5px 0; border-top: 1px dashed var(--line); }
+.rd-line:first-of-type { border-top: none; }
+.rd-k { color: var(--ink-2); flex: none; }
+.rd-v { color: var(--ink); text-align: right; word-break: break-all; }
+.rd-v.mono { font-family: var(--font-mono); }
+

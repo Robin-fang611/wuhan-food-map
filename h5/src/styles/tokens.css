@@ -1,0 +1,29 @@
+/* 蛮有味 · 设计令牌（来源：brand-visual.md）
+   所有组件只消费这些变量，不写死颜色。 */
+:root {
+  /* 色彩系统 */
+  --seal-red: #C0392B;     /* 印章红·主色 */
+  --seal-red-d: #9E2D22;   /* 主色按下/深 */
+  --ink: #1A1A1A;          /* 墨色·文字 */
+  --ink-2: #5A524A;        /* 次级文字 */
+  --gold: #C9A227;         /* 金·边/波纹/点缀 */
+  --ticket-green: #1F4D3A; /* 墨绿·票券语义 */
+  --paper: #F7F1E6;        /* 宣纸·背景 */
+  --paper-2: #FBF7EF;      /* 卡片底 */
+  --line: #E6DCC8;         /* 分隔线 */
+
+  /* 字体 */
+  --font-display: 'Ma Shan Zheng', STKaiti, KaiTi, 'PingFang SC', serif;
+  --font-body: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  --font-mono: 'Space Mono', ui-monospace, Menlo, Consolas, monospace;
+
+  /* 间距 / 圆角 / 阴影 */
+  --r-lg: 18px;
+  --r-md: 14px;
+  --r-sm: 10px;
+  --gap: 16px;
+  --shadow: 0 6px 22px rgba(26, 26, 26, 0.08);
+  --shadow-sm: 0 2px 8px rgba(26, 26, 26, 0.06);
+
+  --maxw: 480px; /* 移动端优先容器宽 */
+}

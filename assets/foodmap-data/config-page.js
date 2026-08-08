@@ -1,18 +1,17 @@
 /**
  * 江城 · 味觉地图 - 全局配置
  * 
- * ⚠️ 高德地图 API Key 配置说明：
- * 请到 https://console.amap.com/dev/key/app 申请「Web端（JS API）」Key
- * 将下方 YOUR_AMAP_JS_API_KEY 替换为你的 Key 即可启用地图功能
- * 
- * 未配置 Key 时，应用仍可正常使用列表浏览、筛选、搜索功能，
- * 仅地图视图会显示占位提示。
+ * ⚠️ 高德地图 API Key 安全（M11 / §8）：明文 Key 已从源码移除，绝不再入库。
+ * Key 由运行时注入：构建/部署阶段写入 globalThis.__MANYOUWEI_CONFIG__.amapJsKey
+ * （本地见 h5/.env 的 VITE_AMAP_JS_API_KEY，已被 .gitignore 忽略），本文件仅读取它。
+ * 未注入时 key 为 ''，地图视图显示占位提示。高德控制台务必配置「域名白名单」+「安全密钥」。
+ * v1.5 真实安全方案见 docs/高德Key安全接入.md（后端代理，Key 永不下发浏览器）。
  */
 window.__AMAP_CONFIG__ = {
-  key: '9da1d18cc3c8b536f3b328293c2af861',
+  key: (globalThis.__MANYOUWEI_CONFIG__ && globalThis.__MANYOUWEI_CONFIG__.amapJsKey) || '',
   version: '2.0',
   plugins: ['AMap.Scale', 'AMap.MarkerClusterer'],
-  securityJsCode: '',  // 如启用了安全密钥，填入此处
+  securityJsCode: ''  // 安全密钥同样不入库；v1.5 走后端代理（docs/高德Key安全接入.md）
 };
 
 /** 社群配置（多个群，弹窗内并列展示） */

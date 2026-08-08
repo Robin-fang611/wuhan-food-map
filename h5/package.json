@@ -1,0 +1,15 @@
+{
+  "name": "manyouwei-h5",
+  "private": true,
+  "version": "0.5.0",
+  "type": "module",
+  "description": "蛮有味 · 武汉美食发现社区 H5（Vite 原生 JS，薄壳可转小程序）",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview --port 5180"
+  },
+  "devDependencies": {
+    "vite": "^5.4.0"
+  }
+}
