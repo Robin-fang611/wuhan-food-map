@@ -4,3 +4,5 @@ node_modules/
 .env.local
 .workbuddy/
 .audit/
+# Hypha 运行时会话态（含用户偏好/筛选状态，非源码，禁止入库）
+hypha/implementation/.agent-memory/
