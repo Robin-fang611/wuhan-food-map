@@ -1,0 +1,55 @@
+{
+  "version": 1,
+  "store": ".context-store",
+  "updated_at": "2026-08-12T15:52:50Z",
+  "control_tower": {
+    "path": "CONTROL_TOWER.md",
+    "tokens": 1027,
+    "updated_at": "2026-08-12T15:50:50Z"
+  },
+  "boot_prompt": {
+    "path": "boot-prompt.md",
+    "tokens": 0,
+    "updated_at": null
+  },
+  "layers": {
+    "api-contracts.md": {
+      "path": "layers/api-contracts.md",
+      "tokens": 1169,
+      "updated_at": "2026-08-12T15:51:46Z"
+    },
+    "architecture.md": {
+      "path": "layers/architecture.md",
+      "tokens": 1336,
+      "updated_at": "2026-08-12T15:51:02Z"
+    },
+    "decisions.md": {
+      "path": "layers/decisions.md",
+      "tokens": 2977,
+      "updated_at": "2026-08-12T15:51:31Z"
+    },
+    "open-threads.md": {
+      "path": "layers/open-threads.md",
+      "tokens": 1040,
+      "updated_at": "2026-08-12T15:51:57Z"
+    },
+    "progress.md": {
+      "path": "layers/progress.md",
+      "tokens": 929,
+      "updated_at": "2026-08-12T15:52:08Z"
+    },
+    "roadmap.md": {
+      "path": "layers/roadmap.md",
+      "tokens": 0,
+      "updated_at": "2026-08-12T15:56:00Z"
+    },
+    "iteration-log.md": {
+      "path": "layers/iteration-log.md",
+      "tokens": 0,
+      "updated_at": "2026-08-12T15:56:00Z"
+    }
+  },
+  "handoffs": [
+    "2026-08-12-2350.md"
+  ]
+}
