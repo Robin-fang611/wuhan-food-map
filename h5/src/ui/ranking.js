@@ -1,7 +1,7 @@
 // 榜单 —— UI 层（安全渲染 h()，无 innerHTML）。
 // 复用 core/ranking.js 的 buildRankings；M8 详情页上线后，卡片点击跳转详情页。
 import { h } from './dom.js';
-import { merchants } from '../data/merchants.js';
+import { allMerchants as merchants } from '../data/all-merchants.js';
 import { buildRankings } from '../core/ranking.js';
 
 const BOARDS = [

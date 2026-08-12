@@ -1,0 +1,247 @@
+{
+  "m0097": {
+    "avgPrice": "15",
+    "signatureDishes": "重油烧麦",
+    "recommendDishes": "重油烧麦、油饼包烧麦、三鲜豆皮、蛋酒、热干面",
+    "taste": "皮薄如蝉翼，糯米油润，黑胡椒香辣，一口爆汁",
+    "tasteTags": [
+      "香",
+      "辣",
+      "咸",
+      "早餐"
+    ],
+    "environment": "前进四路小店，常排队，有座位，大碗茶免费",
+    "environmentRating": 3,
+    "serviceRating": 4,
+    "ratingNum": 4.2,
+    "hours": "06:00-19:00",
+    "tel": null,
+    "occasions": [
+      "单人",
+      "快食",
+      "早餐"
+    ],
+    "tags": [
+      "重油烧麦",
+      "本地人常去",
+      "早餐必吃"
+    ],
+    "waitTime": "高峰期排队久，豆皮需等约1小时",
+    "reviewSummary": "武汉重油烧麦天花板，黑胡椒爆汁，本地人成笼买，烧麦配蛋酒是标配。",
+    "imageEmoji": "🥟",
+    "dataConfidence": "verified"
+  },
+  "m0096": {
+    "avgPrice": "15",
+    "signatureDishes": "油饼包烧麦",
+    "recommendDishes": "油饼包烧麦、红油热干面、蛋酒、脆皮烧麦、糯米鸡",
+    "taste": "现炸油饼酥到掉渣，裹油润烧麦，黑胡椒咸香，外脆里糯",
+    "tasteTags": [
+      "香",
+      "咸",
+      "脆",
+      "早餐"
+    ],
+    "environment": "粮道街人气老店，多档口，常排长队",
+    "environmentRating": 3,
+    "serviceRating": 4,
+    "ratingNum": 4.6,
+    "hours": "05:30-15:00",
+    "tel": null,
+    "occasions": [
+      "单人",
+      "快食",
+      "早餐"
+    ],
+    "tags": [
+      "粮道街",
+      "油饼包烧麦",
+      "网红",
+      "必吃榜"
+    ],
+    "waitTime": "排队王，常排1小时",
+    "reviewSummary": "粮道街过早排队王，油饼包烧麦外脆里糯碳水炸弹，本地人私藏老味道。",
+    "imageEmoji": "🥯",
+    "dataConfidence": "verified"
+  },
+  "m0004": {
+    "avgPrice": "50",
+    "signatureDishes": "郭场火锅鸡、火坑馍(火烧馍)、肥肠火锅、猪尾巴火锅、鲜鸭血",
+    "recommendDishes": "郭场火锅鸡、火坑馍、肥肠火锅、鲜鸭血、泡菜",
+    "taste": "宜昌当阳风味，鲜麻微辣，鸡肉入味紧实，汤底浓郁下饭，可涮冬瓜粉条青菜",
+    "tasteTags": [
+      "辣",
+      "麻辣",
+      "鲜麻",
+      "聚餐",
+      "下饭",
+      "烟火气"
+    ],
+    "environment": "市井火锅店，分量足、性价比高，环境一般但热闹接地气",
+    "environmentRating": 3,
+    "serviceRating": 4,
+    "ratingNum": 4,
+    "hours": "10:00-次日00:00",
+    "tel": "13720153009",
+    "occasions": [
+      "朋友聚餐",
+      "夜宵",
+      "家庭聚餐"
+    ],
+    "tags": [
+      "本地人常去",
+      "地道",
+      "性价比高",
+      "烟火气",
+      "宜昌风味"
+    ],
+    "waitTime": "饭点较满，部分店需等位",
+    "reviewSummary": "宜昌当阳风味火锅鸡，鲜麻过瘾、分量足，鸡肉嫩汤底浓，火坑馍和肥肠锅是灵魂，人均50左右。",
+    "imageEmoji": "🍲",
+    "dataConfidence": "verified"
+  },
+  "m0211": {
+    "avgPrice": "250",
+    "signatureDishes": "澳洲和牛拼盘、厚切奶香牛舌、牛肉四喜烧、芝士牛肉、墨鱼肠、椰子奶酪",
+    "recommendDishes": "和牛拼盘、厚切牛舌、牛肉四喜烧、墨鱼肠、椰子奶酪",
+    "taste": "日式烧肉，专人帮烤火候精准，和牛雪花丰腴奶香，蘸玫瑰盐或秘制酱",
+    "tasteTags": [
+      "日式",
+      "烤肉",
+      "约会",
+      "商务",
+      "高端"
+    ],
+    "environment": "日式烧肉专门店，小包间私密性好，暖光禅意，一对一服务需预约",
+    "environmentRating": 4,
+    "serviceRating": 5,
+    "ratingNum": 4.5,
+    "hours": "11:00-14:00;17:00-21:00",
+    "tel": null,
+    "occasions": [
+      "约会",
+      "商务",
+      "生日聚餐",
+      "朋友聚餐"
+    ],
+    "tags": [
+      "日式烤肉",
+      "高端",
+      "预约制",
+      "专人服务",
+      "本地知名"
+    ],
+    "waitTime": "预约制，建议提前订位",
+    "reviewSummary": "武汉高端日式烧肉老牌，和牛拼盘与厚切牛舌口碑佳，专人帮烤、私密包间，人均偏高。",
+    "imageEmoji": "🥩",
+    "dataConfidence": "verified"
+  },
+  "m0212": {
+    "avgPrice": "250",
+    "signatureDishes": "澳洲和牛拼盘、厚切奶香牛舌、牛肉四喜烧、芝士牛肉、墨鱼肠、椰子奶酪",
+    "recommendDishes": "和牛拼盘、厚切牛舌、牛肉四喜烧、墨鱼肠、椰子奶酪",
+    "taste": "日式烧肉，专人帮烤火候精准，和牛雪花丰腴奶香，蘸玫瑰盐或秘制酱",
+    "tasteTags": [
+      "日式",
+      "烤肉",
+      "约会",
+      "商务",
+      "高端"
+    ],
+    "environment": "日式烧肉专门店，小包间私密性好，暖光禅意，一对一服务需预约",
+    "environmentRating": 4,
+    "serviceRating": 5,
+    "ratingNum": 4.5,
+    "hours": "11:00-14:00;17:00-21:00",
+    "tel": null,
+    "occasions": [
+      "约会",
+      "商务",
+      "生日聚餐",
+      "朋友聚餐"
+    ],
+    "tags": [
+      "日式烤肉",
+      "高端",
+      "预约制",
+      "专人服务",
+      "本地知名"
+    ],
+    "waitTime": "预约制，建议提前订位",
+    "reviewSummary": "武汉高端日式烧肉老牌，和牛拼盘与厚切牛舌口碑佳，专人帮烤、私密包间，人均偏高。",
+    "imageEmoji": "🥩",
+    "dataConfidence": "verified"
+  },
+  "m0213": {
+    "avgPrice": "250",
+    "signatureDishes": "澳洲和牛拼盘、厚切奶香牛舌、牛肉四喜烧、芝士牛肉、墨鱼肠、椰子奶酪",
+    "recommendDishes": "和牛拼盘、厚切牛舌、牛肉四喜烧、墨鱼肠、椰子奶酪",
+    "taste": "日式烧肉，专人帮烤火候精准，和牛雪花丰腴奶香，蘸玫瑰盐或秘制酱",
+    "tasteTags": [
+      "日式",
+      "烤肉",
+      "约会",
+      "商务",
+      "高端"
+    ],
+    "environment": "日式烧肉专门店，小包间私密性好，暖光禅意，一对一服务需预约",
+    "environmentRating": 4,
+    "serviceRating": 5,
+    "ratingNum": 4.5,
+    "hours": "11:00-14:00;17:00-21:00",
+    "tel": null,
+    "occasions": [
+      "约会",
+      "商务",
+      "生日聚餐",
+      "朋友聚餐"
+    ],
+    "tags": [
+      "日式烤肉",
+      "高端",
+      "预约制",
+      "专人服务",
+      "本地知名"
+    ],
+    "waitTime": "预约制，建议提前订位",
+    "reviewSummary": "武汉高端日式烧肉老牌，和牛拼盘与厚切牛舌口碑佳，专人帮烤、私密包间，人均偏高。",
+    "imageEmoji": "🥩",
+    "dataConfidence": "verified"
+  },
+  "m0404": {
+    "avgPrice": "110",
+    "signatureDishes": "豆腐圆子、麻酱凤尾、小米蒸排骨、招牌牛肉豆皮、鲜花椒牛蛙",
+    "recommendDishes": "经典豆腐圆子、麻酱凤尾、竹香小米排骨、鲜花椒焗牛蛙、牛肉豆皮",
+    "taste": "精致湖北菜，清淡保留本味，做工考究，少油不腻",
+    "tasteTags": [
+      "鲜",
+      "清淡",
+      "精致",
+      "约会",
+      "宴请"
+    ],
+    "environment": "民国海派风公馆，环境雅致有格调，分店各有主题，适合小聚宴请",
+    "environmentRating": 5,
+    "serviceRating": 4,
+    "ratingNum": 4.6,
+    "hours": "11:30-14:00 17:30-21:00",
+    "tel": "027-85561617",
+    "occasions": [
+      "约会",
+      "朋友聚餐",
+      "家庭",
+      "商务",
+      "宴请"
+    ],
+    "tags": [
+      "精致湖北菜",
+      "环境好",
+      "老汉口风情",
+      "本地人请客"
+    ],
+    "waitTime": "包间需提前1天订，午市14点后停餐",
+    "reviewSummary": "武汉最精致的湖北菜连锁，豆腐圆子经久不衰，环境民国风适合请客拍照。",
+    "imageEmoji": "🥢",
+    "dataConfidence": "verified"
+  }
+}

@@ -1,0 +1,690 @@
+# =============================================================================
+# 蛮有味 · 美食发现 Agent — Hypha DomainPack（产品契约 / 可执行规格）
+# -----------------------------------------------------------------------------
+# 把 wuhan-food-map（纯前端 H5）现有的「场景/口味发现 → 榜单 → 详情 → 高德导航
+# → 收藏/签到得券 → 埋点」闭环，重写成 Hypha（CodeSoul-co/Hypha）严格智能体框架
+# 的原生表达。目标：让这个系统从「一组前端模块 + 纯函数」变成「框架自有运行时
+# 托管的真·智能体」——带 ReAct 循环、显式状态机（FSM）、受治理的工具/技能/记忆
+# 副作用、确定性 processHash、回放、审计与恢复。
+#
+# 设计基线（对齐 docs/美食集散平台产品方案.md §3 / §5 / §13 与 h5/src 实测代码）：
+#   - 数据资产：merchants 590 家（zone 财大南湖周边100/武汉全城490；mealTime 早73/午234/
+#     晚296/夜宵13；rating 必吃109/推荐85；has_coupon 0%）。places 32 个玩乐点。
+#   - 纯函数已实现：core/query.js（filter/search/sort）、core/ranking.js（四榜）。
+#   - 奖励引擎已实现：plays/checkin.js 等（pluggable），经 CouponIssuer 发券。
+#   - 导航：ui/map.js 用高德 JS API，Key 经 env 注入、绝不入库/进前端明文（§8）。
+#   - 埋点：core/analytics.js 定义 10 类行为事件，递归剥离 PII（user_id/phone/...）。
+#   - 安全红线：高德 Key / 微信 AppSecret / JWT 不入库不进前端包；渲染用 h() 防 XSS。
+#
+# 本 Pack 只声明产品契约与受治理工具/技能/策略，真实实现通过受治理 Adapter 绑定；
+# 不在此伪造后端、不写密钥、不碰付费发布（与项目红线一致）。
+# =============================================================================
+
+id: domain.manyouwei-food-discovery
+version: 0.1.0
+name: 蛮有味·美食发现 Agent
+description: >-
+  把「按场景/口味发现 → 榜单 → 详情 → 高德导航 → 收藏/签到得券 → 埋点」的
+  美食地图闭环表达为 Hypha 严格智能体框架原生运行时托管的 Agent——带 ReAct
+  + FSM + 受治理副作用 + 确定性 processHash + 回放/审计/恢复。面向财大南湖周边
+  与武汉全城的同学与食客，帮其就近、按场景、按口味找到真人探过的店。
+
+# -----------------------------------------------------------------------------
+# 1. 任务契约：一次「美食发现」请求（自然语言意图或结构化筛选）
+# -----------------------------------------------------------------------------
+taskSchemas:
+  - id: task.food-discovery
+    version: 0.1.0
+    taskType: food_discovery
+    inputSchema:
+      type: object
+      required: [intent]
+      additionalProperties: false
+      properties:
+        intent:
+          type: string
+          description: 用户自然语言诉求，如「财大南湖周边附近便宜的宵夜」「武汉全城必吃」「带朋友吃湖北菜」。
+        zone:
+          type: string
+          enum: [财大南湖周边, 武汉全城]
+          description: 校区/城市范围限定。
+        mealTime:
+          type: string
+          enum: [早, 午, 晚, 夜宵]
+          description: 场景（用餐时段）快捷入口。
+        category:
+          type: string
+          description: 分类（小吃宵夜/早餐/烧烤/私房菜/火锅… 共 18 类），可选。
+        maxPrice:
+          type: number
+          minimum: 0
+          description: 人均上限（元），用于性价比筛选。
+        sort:
+          type: string
+          enum: [rating, price, distance]
+          description: 排序：评分/人均/距离（默认按校区坐标就近）。
+        limit:
+          type: integer
+          minimum: 1
+          maximum: 50
+          description: 返回条数上限（默认 20）。
+    acceptanceCriteriaSchema:
+      type: object
+      required: [min_results]
+      additionalProperties: false
+      properties:
+        min_results:
+          type: integer
+          minimum: 1
+          description: 至少需返回多少家匹配商户（宽松，无匹配时转推荐/提示）。
+    outputContractRef: output.food-recommendation
+    defaultWorkflowRef: workflow.food-discovery
+    riskProfile:
+      defaultRiskLevel: low
+      escalationPolicyRef: policy.user-data-write
+
+# -----------------------------------------------------------------------------
+# 2. 输出契约：推荐商户集 + 决策摘要（单一事实来源，对齐 core/query.js + ranking.js）
+# -----------------------------------------------------------------------------
+outputContracts:
+  - id: output.food-recommendation
+    version: 0.1.0
+    schema:
+      type: object
+      required: [merchants, summary]
+      additionalProperties: false
+      properties:
+        merchants:
+          type: array
+          items:
+            type: object
+            required: [id, name, zone, category]
+            properties:
+              id: { type: string }
+              name: { type: string }
+              zone: { type: string, enum: [财大南湖周边, 武汉全城] }
+              category: { type: string }
+              cuisine: { type: string }
+              mealTime: { type: array, items: { type: string } }
+              avgPrice: { type: string }
+              rating: { type: string, enum: [必吃, 推荐, null] }
+              signatureDishes: { type: string }
+              reason: { type: string }
+              address: { type: string }
+              lng: { type: number }
+              lat: { type: number }
+              distanceKm: { type: number }
+              has_coupon: { type: boolean }
+              coupon_summary: { type: string }
+        summary:
+          type: object
+          required: [query, total_matched, ranked_by]
+          properties:
+            query: { type: string }
+            total_matched: { type: integer }
+            ranked_by: { type: string, enum: [rating, price, distance, mustEat, value, lateNight, newest] }
+            # 当前数据源标识（sample=示例数据 / wuhan=真实武汉数据集），供前端做信任标注。
+            dataSource:
+              type: string
+              description: 当前数据源标识（sample=示例数据 / wuhan=真实武汉数据集），前端据此明示是否为示例。
+            nearest:
+              type: object
+              properties:
+                id: { type: string }
+                name: { type: string }
+                distanceKm: { type: number }
+            coupon_hint: { type: string }
+            # 数据缺口降级说明（对齐 ARCHITECTURE §6.1：缺字段显式缺省 + 不编造）。
+            # 此前由 discovery-engine 产出但未在契约声明，此处正式补入以消弭契约漂移。
+            degradation:
+              type: array
+              items: { type: string }
+            # 由 skill.discovery-engine 结合 prompt.food.discover 生成的品牌化、意图感知一句话导览。
+            guidance: { type: string }
+            # Hypha 运行时溯源（确定性 + 可回放审计），证明本推荐由框架 FSM 驱动而非前端硬编码。
+            provenance:
+              type: object
+              properties:
+                driver: { type: string, description: 驱动来源，如 hypha-fsm(确定性) / hypha-react(LLM) }
+                processHash: { type: string, description: DomainPack 编译指纹（确定性） }
+                fsm: { type: array, items: { type: string } }
+                prompts: { type: array, items: { type: string } }
+                deterministic: { type: boolean }
+
+# -----------------------------------------------------------------------------
+# 3. 会话 / 记忆 / 上下文 / 推理 Profile（沿用 Hypha native，单用户前端形态）
+# -----------------------------------------------------------------------------
+sessionProfiles:
+  - id: session.food-discovery
+    version: 0.1.0
+    defaultMetadata:
+      runtimeMode: single-user
+    defaultMemoryProfileRef: memory.local
+    defaultContextProfileRef: context.local
+    defaultReasoningProfileRef: reasoning.local
+    defaultPolicyRefs:
+      - policy.readonly
+      - policy.user-data-write
+
+memoryProfiles:
+  - id: memory.local
+    version: 0.0.0
+    description: Hypha native durable Memory using Redis working state and MongoDB records.
+    providers:
+      - id: hypha-native-default
+        type: hybrid
+        providerRef: memory.provider.native-default
+    memoryTypes: [working, episodic, semantic]
+    structuredStoreRef: memory.store.record.mongodb
+    vectorIndexRef: memory.vector.local
+    artifactStoreRef: memory.artifact.local
+    provenancePolicy: required
+    retrievalPolicy:
+      defaultTopK: 5
+      requireScope: true
+    writePolicyConfig:
+      allowLongTerm: false
+      requireProvenance: true
+
+contextProfiles:
+  - id: context.local
+    version: 0.0.0
+    sources:
+      - id: context.source.user
+        version: 0.0.0
+        type: user_input
+      - id: context.source.memory
+        version: 0.0.0
+        type: memory
+        provenanceRequired: true
+        trustLevel: reviewed
+      - id: context.source.skill
+        version: 0.0.0
+        type: skill
+        provenanceRequired: true
+        trustLevel: reviewed
+    tokenBudget: 8000
+    provenancePolicy: required
+    instructionBoundaryPolicy: tagged
+
+reasoningProfiles:
+  - id: reasoning.local
+    version: 0.0.0
+    thinkingMode: structured
+    agenticMode: fsm_react
+    maxSteps: 8
+    persist: summary_only
+  - id: reasoning.discovery
+    version: 0.1.0
+    thinkingMode: structured
+    agenticMode: fsm_react
+    maxSteps: 24
+    persist: summary_only
+defaultReasoningProfile: reasoning.local
+
+mcpProfiles:
+  - id: mcp.local
+    version: 0.0.0
+    servers:
+      - id: classic
+        mode: local
+        command: mcp-server-classic
+    allowedCapabilities: [read_file, fetch, web_search]
+    trustPolicy: read-only reviewed capabilities
+    importPolicy: tools-only
+    toolPolicy: read-only
+    versionPinning: true
+    capabilityHashing: true
+
+# -----------------------------------------------------------------------------
+# 4. 工具契约（ToolSpec）：实现由受治理 Adapter 绑定到 h5/src 纯函数/UI 模块
+#    sideEffectLevel：read（发现/榜单/详情/导航/埋点）| write（收藏/签到得券）
+#    permissionScope：每个动作独立 scope，便于策略精确收窄
+# -----------------------------------------------------------------------------
+tools:
+  - id: discover.filter
+    version: 0.1.0
+    name: 组合筛选
+    description: 按 zone/category/mealTime/maxPrice/keyword 组合筛选商户（对齐 core/query.js filterMerchants/searchMerchants），返回候选集，不修改源数据。
+    source: local
+    inputSchema:
+      type: object
+      required: [merchants]
+      properties:
+        merchants: { type: array }
+        zone: { type: string, enum: [财大南湖周边, 武汉全城] }
+        categories: { type: array, items: { type: string } }
+        mealTime: { type: array, items: { type: string } }
+        maxPrice: { type: number }
+        keyword: { type: string }
+    outputSchema:
+      type: object
+    sideEffectLevel: read
+    permissionScope: [discover.filter]
+
+  - id: discover.rank
+    version: 0.1.0
+    name: 榜单生成
+    description: 四榜（必吃 mustEat / 性价比 value / 夜宵 lateNight / 新收录 newest），对齐 core/ranking.js。
+    source: local
+    inputSchema:
+      type: object
+      required: [merchants]
+      properties:
+        merchants: { type: array }
+        board: { type: string, enum: [mustEat, value, lateNight, newest] }
+        limit: { type: integer, minimum: 0, maximum: 50 }
+    outputSchema:
+      type: object
+    sideEffectLevel: read
+    permissionScope: [discover.rank]
+
+  - id: discover.detail
+    version: 0.1.0
+    name: 商户详情
+    description: 取单店招牌菜/人均/评分/理由/地址/坐标，对齐 ui/detail.js 与数据 schema。
+    source: local
+    inputSchema:
+      type: object
+      required: [merchantId]
+      properties:
+        merchantId: { type: string }
+    outputSchema:
+      type: object
+    sideEffectLevel: read
+    permissionScope: [discover.detail]
+
+  - id: discover.geo
+    version: 0.1.0
+    name: 就近距离计算
+    description: 按校区坐标（财大南湖周边 114.370,30.480）算球面距离并就近排序，对齐 core/query.js distKm/sortMerchants(distance)。
+    source: local
+    inputSchema:
+      type: object
+      required: [merchants, fromZone]
+      properties:
+        merchants: { type: array }
+        fromZone: { type: string, enum: [财大南湖周边, 武汉全城] }
+    outputSchema:
+      type: object
+    sideEffectLevel: read
+    permissionScope: [discover.geo]
+
+  - id: discover.navigate
+    version: 0.1.0
+    name: 高德导航链接
+    description: 用商户 GCJ-02 坐标生成高德导航 URL（Key 由后端代理/构建注入，绝不下发明文密钥到本工具）。
+    source: http
+    inputSchema:
+      type: object
+      required: [lng, lat, name]
+      properties:
+        lng: { type: number }
+        lat: { type: number }
+        name: { type: string }
+    outputSchema:
+      type: object
+    sideEffectLevel: read
+    permissionScope: [discover.navigate]
+
+  - id: user.favorite
+    version: 0.1.0
+    name: 收藏/取消收藏
+    description: 写入当前用户本地收藏（AuthProvider 本地原型），仅影响本人数据，幂等。
+    source: local
+    inputSchema:
+      type: object
+      required: [merchantId]
+      properties:
+        merchantId: { type: string }
+        action: { type: string, enum: [add, remove] }
+    outputSchema:
+      type: object
+    sideEffectLevel: write
+    permissionScope: [user.favorite]
+    humanApprovalPolicy:
+      required: false
+      reason: 收藏为本人数据写入，无需人工复核。
+    idempotencyPolicy:
+      mode: required
+
+  - id: reward.checkin
+    version: 0.1.0
+    name: 每日签到得券
+    description: 调用奖励引擎 plays/checkin.js，按连续签到档位经 CouponIssuer 发券（满20减3/满30减6/满50减12）。
+    source: local
+    inputSchema:
+      type: object
+      required: [userId]
+      properties:
+        userId: { type: string }
+    outputSchema:
+      type: object
+    sideEffectLevel: write
+    permissionScope: [reward.checkin]
+    idempotencyPolicy:
+      mode: required
+
+  - id: reward.view-wallet
+    version: 0.1.0
+    name: 查看券包
+    description: 读取当前用户已得/已核销/已过期券（本地原型），不泄露他人券数据。
+    source: local
+    inputSchema:
+      type: object
+      required: [userId]
+      properties:
+        userId: { type: string }
+    outputSchema:
+      type: object
+    sideEffectLevel: read
+    permissionScope: [reward.wallet]
+
+  - id: reward.claim
+    version: 0.1.0
+    name: 领商家券
+    description: 领取默认专属券（claim 玩法，CLAIM_DEFAULT.amount=5），经 CouponIssuer 发券；不伪造、不越权。
+    source: local
+    inputSchema:
+      type: object
+      required: [userId]
+      properties:
+        userId: { type: string }
+        merchantId: { type: string }
+    outputSchema:
+      type: object
+    sideEffectLevel: write
+    permissionScope: [reward.claim]
+    idempotencyPolicy:
+      mode: required
+
+  - id: analytics.track
+    version: 0.1.0
+    name: 行为埋点
+    description: 记录行为事件（app_open/detail_view/search/rank_click/nav_click/favorite/checkin/claim），本地缓冲 + 匿名 vid，递归剥离 PII（对齐 core/analytics.js）。
+    source: local
+    inputSchema:
+      type: object
+      required: [event]
+      properties:
+        event: { type: string }
+        payload: { type: object }
+    outputSchema:
+      type: object
+    sideEffectLevel: read
+    permissionScope: [analytics.track]
+
+# -----------------------------------------------------------------------------
+# 5. 技能（Skill）：意图解析/发现编排/详情讲解/奖励引导，由状态级 allowedSkills 收窄
+# -----------------------------------------------------------------------------
+allowedSkills:
+  - id: skill.intent-parser
+    version: 0.1.0
+  - id: skill.discovery-engine
+    version: 0.1.0
+  - id: skill.detail-explainer
+    version: 0.1.0
+  - id: skill.reward-advisor
+    version: 0.1.0
+defaultSkills:
+  - id: skill.intent-parser
+    version: 0.1.0
+  - id: skill.discovery-engine
+    version: 0.1.0
+skillPolicies:
+  - id: skill-policy.intent-parser
+    version: 0.1.0
+    skillRef: { id: skill.intent-parser, version: 0.1.0 }
+    policyRefs: [policy.readonly]
+    allowedTools: [discover.filter, discover.rank]
+    trustLevel: reviewed
+  - id: skill-policy.discovery-engine
+    version: 0.1.0
+    skillRef: { id: skill.discovery-engine, version: 0.1.0 }
+    policyRefs: [policy.readonly]
+    allowedTools: [discover.filter, discover.rank, discover.geo]
+    trustLevel: reviewed
+  - id: skill-policy.detail-explainer
+    version: 0.1.0
+    skillRef: { id: skill.detail-explainer, version: 0.1.0 }
+    policyRefs: [policy.readonly]
+    allowedTools: [discover.detail, discover.navigate, analytics.track]
+    trustLevel: reviewed
+  - id: skill-policy.reward-advisor
+    version: 0.1.0
+    skillRef: { id: skill.reward-advisor, version: 0.1.0 }
+    policyRefs: [policy.readonly, policy.user-data-write]
+    allowedTools: [user.favorite, reward.checkin, reward.view-wallet, reward.claim, analytics.track]
+    trustLevel: reviewed
+
+# -----------------------------------------------------------------------------
+# 6. 提示词引用（版本化，由应用组合层从 apps/server/src/prompts 解析）
+#    对应原前端各视图的交互意图，迁移为 Hypha Prompt 模板
+# -----------------------------------------------------------------------------
+allowedPromptRefs:
+  - id: prompt.food.intake
+    version: 0.1.0
+    required: true
+    priority: 0
+  - id: prompt.food.discover
+    version: 0.1.0
+    required: true
+    priority: 0
+  - id: prompt.food.detail
+    version: 0.1.0
+    required: true
+    priority: 0
+  - id: prompt.food.reward
+    version: 0.1.0
+    required: true
+    priority: 0
+defaultPromptRefs:
+  - id: prompt.food.intake
+    version: 0.1.0
+    required: true
+    priority: 0
+
+# -----------------------------------------------------------------------------
+# 7. 治理策略（Policy）：只读 + 本人数据写入 + 红线
+# -----------------------------------------------------------------------------
+policies:
+  # 只读策略：允许 none/read 级副作用，禁止 write/external_effect
+  - id: policy.readonly
+    version: 0.1.0
+    defaultEffect: deny
+    rules:
+      - id: policy.rule.read
+        version: 0.1.0
+        effect: allow
+        sideEffectLevels: [none, read]
+        scopes:
+          - discover.filter
+          - discover.rank
+          - discover.detail
+          - discover.geo
+          - discover.navigate
+          - reward.wallet
+          - analytics.track
+  # 本人数据写入策略：收藏/签到/领券须绑定本人，幂等，不外泄
+  - id: policy.user-data-write
+    version: 0.1.0
+    defaultEffect: deny
+    rules:
+      - id: policy.rule.user-write
+        version: 0.1.0
+        effect: allow
+        sideEffectLevels: [write]
+        scopes:
+          - user.favorite
+          - reward.checkin
+          - reward.claim
+  # 红线策略：被禁 scope 永远拒绝（对齐项目 §8 安全红线）
+  - id: policy.redlines-food
+    version: 0.1.0
+    defaultEffect: deny
+    rules:
+      - id: policy.rule.redline-deny
+        version: 0.1.0
+        effect: deny
+        sideEffectLevels: [none, read, write, external_effect, irreversible]
+        scopes:
+          - data.export-pii         # 不导出他人隐私/PII
+          - nav.fake-coords         # 不伪造导航坐标
+          - coupon.forge            # 不伪造/篡改优惠券
+          - key.expose              # 不暴露高德 Key/微信 AppSecret/JWT
+
+# -----------------------------------------------------------------------------
+# 8. 业务规则 + 评估（Evaluation）
+# -----------------------------------------------------------------------------
+businessRules:
+  - id: rule.output-contract
+    version: 0.1.0
+    scope: output
+    effect: postcondition
+    description: 最终输出须满足 output.food-recommendation 契约。
+    outputContractRef: output.food-recommendation
+    policyRefs: [policy.readonly]
+    evaluationRefs: [eval.output-contract]
+    severity: low
+  - id: rule.redlines
+    version: 0.1.0
+    scope: output
+    effect: postcondition
+    description: 任何结果不得含他人 PII；不得有任何工具使用导出隐私/伪造坐标/伪造券/暴露密钥 scope。
+    policyRefs: [policy.redlines-food]
+    evaluationRefs: [eval.redline-check]
+    severity: high
+
+evaluationProfiles:
+  - id: eval.output-contract
+    version: 0.1.0
+    type: output_contract
+    deterministic: true
+  - id: eval.redline-check
+    version: 0.1.0
+    type: process
+    deterministic: true
+
+# -----------------------------------------------------------------------------
+# 9. 工作流（Domain Pipeline → 框架自有 Harness FSM 的证据记录）
+#    状态级收窄能力：每状态只放行其所需 tool/skill/scope/policy
+# -----------------------------------------------------------------------------
+workflows:
+  - id: workflow.food-discovery
+    version: 0.1.0
+    initialState: Intake
+    terminalStates: [Completed, Failed]
+    states:
+      - id: Intake
+        goal: 把自然语言意图或结构化筛选归一化为发现参数（zone/mealTime/category/maxPrice/sort）。
+        allowedSkills: [skill.intent-parser]
+        requiredSkills: [skill.intent-parser]
+        requiredPromptRefs:
+          - id: prompt.food.intake
+            version: 0.1.0
+            required: true
+        policyRefs: [policy.readonly]
+        capabilityLoadPolicy: lazy
+
+      - id: Discover
+        goal: >-
+          ReAct 发现循环：filter + rank + geo 组合生成候选集，按评分/人均/距离
+          或指定榜单排序，给出推荐摘要（含最近一家与可领券提示）。
+        allowedTools:
+          - discover.filter
+          - discover.rank
+          - discover.geo
+        allowedSkills: [skill.discovery-engine]
+        requiredSkills: [skill.discovery-engine]
+        requiredPromptRefs:
+          - id: prompt.food.discover
+            version: 0.1.0
+            required: true
+        permissionScopes:
+          - discover.filter
+          - discover.rank
+          - discover.geo
+        policyRefs: [policy.readonly, policy.redlines-food]
+        reasoningProfileRef: reasoning.discovery
+        timeoutPolicy:
+          timeoutMs: 120000
+          onTimeout: fail
+        retryPolicy:
+          maxAttempts: 2
+        evaluationRefs: [eval.redline-check]
+
+      - id: Detail
+        goal: 展示单店详情（招牌菜/人均/评分/理由/距离）+ 高德导航入口 + 收藏按钮。
+        allowedTools:
+          - discover.detail
+          - discover.navigate
+          - analytics.track
+        allowedSkills: [skill.detail-explainer]
+        requiredSkills: [skill.detail-explainer]
+        requiredPromptRefs:
+          - id: prompt.food.detail
+            version: 0.1.0
+            required: true
+        permissionScopes:
+          - discover.detail
+          - discover.navigate
+          - analytics.track
+        policyRefs: [policy.readonly, policy.redlines-food]
+
+      - id: Engage
+        goal: 收藏/取消收藏、每日签到得券、查看券包、领商家券；仅在本人数据范围内操作。
+        allowedTools:
+          - user.favorite
+          - reward.checkin
+          - reward.view-wallet
+          - reward.claim
+          - analytics.track
+        allowedSkills: [skill.reward-advisor]
+        requiredSkills: [skill.reward-advisor]
+        requiredPromptRefs:
+          - id: prompt.food.reward
+            version: 0.1.0
+            required: true
+        permissionScopes:
+          - user.favorite
+          - reward.checkin
+          - reward.wallet
+          - reward.claim
+          - analytics.track
+        policyRefs: [policy.readonly, policy.user-data-write, policy.redlines-food]
+
+      - id: Track
+        goal: 汇总本轮行为事件（搜索词/榜单点击/详情 PV/导航点击/收藏/得券）入本地埋点缓冲。
+        allowedTools: [analytics.track]
+        permissionScopes: [analytics.track]
+        policyRefs: [policy.readonly]
+
+      - id: Completed
+        goal: 返回满足 output.food-recommendation 契约的推荐集与摘要。
+      - id: Failed
+        goal: 记录持久失败证据并终止。
+
+    transitions:
+      - { from: Intake, to: Discover, guard: "intent.parsed == true" }
+      - { from: Discover, to: Detail, guard: "detail.requested == true" }
+      - { from: Detail, to: Discover, guard: "detail.back == true" }
+      - { from: Discover, to: Engage, guard: "engage.requested == true" }
+      - { from: Engage, to: Discover, guard: "engage.back == true" }
+      - { from: Discover, to: Track }
+      - { from: Detail, to: Track }
+      - { from: Engage, to: Track }
+      - { from: Track, to: Completed }
+      - { from: Discover, to: Failed, guard: "discover.fatal == true" }
+      - { from: Detail, to: Failed, guard: "detail.fatal == true" }
+      - { from: Engage, to: Failed, guard: "engage.fatal == true" }
+
+defaultWorkflow: workflow.food-discovery
+
+# -----------------------------------------------------------------------------
+# 10. 部署 Profile
+# -----------------------------------------------------------------------------
+deploymentProfile:
+  id: deployment.local
+  version: 0.1.0
+  mode: local
+  runtimeMode: single-user

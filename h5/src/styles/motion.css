@@ -1,0 +1,114 @@
+/* 蛮有味 · 交互规范（F8 落地：动效 / 状态 / 信任手势）
+   只定义可复用动画与状态类，组件按需在 h() 中挂 class。
+   令牌来自 tokens.css（--ease-* / --dur-* / --trust-*）。 */
+
+/* —— 1. 入场：卡片弹簧（scale .96→1，过冲回弹） —— */
+@keyframes springIn {
+  from { opacity: 0; transform: scale(.96) translateY(6px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+.spring-in { animation: springIn var(--dur-base) var(--ease-spring) both; }
+
+/* —— 2. 渐显上浮（推理逐行 / 文案） —— */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+/* 整行错峰渐显：父级给每行设 --i（0,1,2…） */
+.reveal-line {
+  opacity: 0;
+  animation: fadeUp var(--dur-slow) var(--ease-out-soft) both;
+  animation-delay: calc(var(--i, 0) * 90ms);
+}
+/* 逐字渐显：JS 把文本拆成 <span class="reveal-char" style="--i:n"> —— */
+.reveal-char {
+  opacity: 0;
+  animation: fadeUp var(--dur-slow) var(--ease-out-soft) both;
+  animation-delay: calc(var(--i, 0) * var(--reveal-char));
+}
+
+/* —— 3. 页面切换（右滑 16px + 渐显） —— */
+@keyframes pageIn {
+  from { opacity: 0; transform: translateX(16px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+.page-enter { animation: pageIn var(--dur-page) var(--ease-out) both; }
+
+/* —— 4. 按压反馈（细腻：轻微收缩 + 缓出，统一 120ms） —— */
+.tap {
+  transition: transform var(--dur-fast) var(--ease-out), filter var(--dur-fast) var(--ease-out);
+  will-change: transform;
+}
+.tap:active { transform: scale(.97); }
+
+/* —— 5. 加载骨架（微光脉冲，无转圈） —— */
+@keyframes skeletonPulse {
+  0%   { background-color: var(--skeleton-base); }
+  50%  { background-color: var(--skeleton-shine); }
+  100% { background-color: var(--skeleton-base); }
+}
+.skeleton {
+  border-radius: var(--r-sm);
+  background-color: var(--skeleton-base);
+  animation: skeletonPulse 1.4s var(--ease-out) infinite;
+}
+
+/* —— 6. 空状态（柔和，不刺眼） —— */
+.empty-soft {
+  text-align: center; color: var(--ink-2);
+  padding: 28px 16px; font-size: 13px; opacity: .85;
+}
+
+/* —— 7. 信任手势：思考中（三点脉冲，非转圈） —— */
+@keyframes thinkPulse {
+  0%, 60%, 100% { opacity: .3; transform: translateY(0); }
+  30%           { opacity: 1;  transform: translateY(-3px); }
+}
+.thinking-dots { display: inline-flex; gap: 5px; align-items: center; }
+.thinking-dots i {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--thinking-dot); display: inline-block;
+  animation: thinkPulse 1.1s var(--ease-out) infinite;
+}
+.thinking-dots i:nth-child(2) { animation-delay: .18s; }
+.thinking-dots i:nth-child(3) { animation-delay: .36s; }
+
+/* —— 8. 信任手势：推理进度徽章（逐盏点亮） —— */
+@keyframes badgeLight {
+  from { opacity: .35; box-shadow: none; }
+  to   { opacity: 1; box-shadow: 0 0 0 3px rgba(201,162,39,.18); }
+}
+.trace-badge.lit {
+  animation: badgeLight var(--dur-slow) var(--ease-out-soft) both;
+  animation-delay: calc(var(--i, 0) * 160ms);
+}
+
+/* —— 9. 信任手势：封神时刻（金章弹簧） —— */
+@keyframes godSpring {
+  0%   { transform: scale(0) rotate(-12deg); opacity: 0; }
+  60%  { transform: scale(1.18) rotate(4deg); opacity: 1; }
+  100% { transform: scale(1) rotate(0); opacity: 1; }
+}
+.badge-god {
+  display: inline-grid; place-items: center;
+  background: var(--trust-gold); color: #fff;
+  border-radius: 999px; padding: 4px 12px; font-weight: 700;
+  animation: godSpring var(--dur-base) var(--ease-spring) both;
+}
+
+/* —— 10. 烟火气点缀（克制使用） —— */
+.accent-warm { color: var(--warm-orange); }
+.pill-warm {
+  background: rgba(232,116,59,.12); color: var(--warm-orange-d);
+  border: 1px solid rgba(232,116,59,.4); border-radius: 999px;
+  padding: 2px 9px; font-size: 12px;
+}
+
+/* 无障碍：尊重「减少动效」系统偏好 */
+@media (prefers-reduced-motion: reduce) {
+  .spring-in, .reveal-line, .reveal-char, .page-enter,
+  .thinking-dots i, .trace-badge.lit, .badge-god {
+    animation: none !important; opacity: 1 !important; transform: none !important;
+  }
+  .skeleton { animation: none; }
+}

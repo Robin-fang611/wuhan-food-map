@@ -1,0 +1,95 @@
+{
+  "ts": "2026-08-11T08:52:08.317Z",
+  "passed": true,
+  "item": "G1 口味记忆面板 + 一键清空（缺失）",
+  "processHash": "sha256:5305add2853abfc190076de535a496dc02134d65f8342c013b800e5a3efb4984",
+  "gates": {
+    "hyphaCompile": {
+      "ok": true,
+      "processHash": "sha256:5305add2853abfc190076de535a496dc02134d65f8342c013b800e5a3efb4984",
+      "out": "== 1. 加载并校验 DomainPack YAML ==\n   已加载: domain.manyouwei-food-discovery@0.1.0\n   校验通过 ✓\n\n== 2. 编译为框架自有 Harness 系统 ==\n   processHash        : sha256:5305add2853abfc190076de535a496dc02134d65f8342c013b800e5a3efb4984\n   compilerVersion    : 1.0.0\n   依赖快照条目数     : 23\n   FSM 节点           : 已生成\n\n== 3. 绑定摘要 "
+    },
+    "viteBuild": {
+      "ok": true,
+      "out": "dist/assets/index-BHzL9Nmi.css   26.81 kB │ gzip:  5.93 kB | dist/assets/index-MCFYaZTs.js   265.75 kB │ gzip: 67.55 kB | ✓ built in 1.18s | "
+    },
+    "backend": {
+      "ok": null,
+      "out": "8799 down(skip)"
+    }
+  },
+  "events": [
+    {
+      "t": "2026-08-11T08:52:05.267Z",
+      "state": "SCAN",
+      "msg": "迭代循环启动"
+    },
+    {
+      "t": "2026-08-11T08:52:05.342Z",
+      "state": "SCAN",
+      "msg": "改动文件 19 个",
+      "files": [
+        " M h5/index.html",
+        " M h5/src/core/query.js",
+        " M h5/src/data/merchants.js",
+        " M h5/src/data/places.js",
+        " M h5/src/main.js",
+        " M h5/src/styles/app.css",
+        " M h5/src/styles/tokens.css",
+        " M h5/src/ui/account.js",
+        " M h5/src/ui/detail.js",
+        " M h5/src/ui/home.js",
+        " M h5/src/ui/list.js",
+        " M h5/src/ui/map.js",
+        " M h5/src/ui/ranking.js",
+        "?? h5/src/data/all-merchants.js",
+        "?? h5/src/data/robin-99.mjs",
+        "?? h5/src/data/web-stalls.mjs",
+        "?? h5/src/styles/motion.css",
+        "?? h5/src/ui/taste.js",
+        "?? hypha/"
+      ]
+    },
+    {
+      "t": "2026-08-11T08:52:05.343Z",
+      "state": "PLAN",
+      "msg": "下一待办：G1 口味记忆面板 + 一键清空（缺失）",
+      "id": "G1",
+      "title": "口味记忆面板 + 一键清空（缺失）",
+      "status": "[ ]"
+    },
+    {
+      "t": "2026-08-11T08:52:05.343Z",
+      "state": "VERIFY",
+      "msg": "运行门禁…"
+    },
+    {
+      "t": "2026-08-11T08:52:06.291Z",
+      "state": "VERIFY",
+      "msg": "Gate·Hypha编译 ✅ sha256:5305add2853abfc190076de535a496dc02134d65f8342c013b800e5a3efb4984",
+      "ok": true,
+      "processHash": "sha256:5305add2853abfc190076de535a496dc02134d65f8342c013b800e5a3efb4984",
+      "out": "== 1. 加载并校验 DomainPack YAML ==\n   已加载: domain.manyouwei-food-discovery@0.1.0\n   校验通过 ✓\n\n== 2. 编译为框架自有 Harness 系统 ==\n   processHash        : sha256:5305add2853abfc190076de535a496dc02134d65f8342c013b800e5a3efb4984\n   compilerVersion    : 1.0.0\n   依赖快照条目数     : 23\n   FSM 节点           : 已生成\n\n== 3. 绑定摘要 "
+    },
+    {
+      "t": "2026-08-11T08:52:08.288Z",
+      "state": "VERIFY",
+      "msg": "Gate·vite build ✅",
+      "ok": true,
+      "out": "dist/assets/index-BHzL9Nmi.css   26.81 kB │ gzip:  5.93 kB | dist/assets/index-MCFYaZTs.js   265.75 kB │ gzip: 67.55 kB | ✓ built in 1.18s | "
+    },
+    {
+      "t": "2026-08-11T08:52:08.317Z",
+      "state": "VERIFY",
+      "msg": "Gate·backend :8799 未起，跳过（不误杀）",
+      "ok": null,
+      "out": "8799 down(skip)"
+    },
+    {
+      "t": "2026-08-11T08:52:08.317Z",
+      "state": "GATE",
+      "msg": "✅ 门禁通过（Hypha 指纹稳定 + build 通过）",
+      "processHash": "sha256:5305add2853abfc190076de535a496dc02134d65f8342c013b800e5a3efb4984"
+    }
+  ]
+}

@@ -13,8 +13,8 @@
   --line: #E6DCC8;         /* 分隔线 */
 
   /* 字体 */
-  --font-display: 'Ma Shan Zheng', STKaiti, KaiTi, 'PingFang SC', serif;
-  --font-body: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  --font-display: 'LXGW WenKai', 'Ma Shan Zheng', STKaiti, KaiTi, 'PingFang SC', serif;
+  --font-body: 'LXGW WenKai', 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
   --font-mono: 'Space Mono', ui-monospace, Menlo, Consolas, monospace;
 
   /* 间距 / 圆角 / 阴影 */
@@ -26,4 +26,27 @@
   --shadow-sm: 0 2px 8px rgba(26, 26, 26, 0.06);
 
   --maxw: 480px; /* 移动端优先容器宽 */
+
+  /* 烟火气点缀（食欲语义，克制使用，仅限少量 pill/强调） */
+  --warm-orange: #E8743B;
+  --warm-orange-d: #C85A2A;
+
+  /* 动效曲线与时长（F8 交互规范） */
+  --ease-spring: cubic-bezier(.34, 1.56, .64, 1); /* 卡片入场过冲 */
+  --ease-out-soft: cubic-bezier(.22, 1, .36, 1);  /* 推理逐字/渐显 */
+  --ease-out: cubic-bezier(.4, 0, .2, 1);         /* 通用缓出 */
+  --dur-fast: 120ms;                              /* 按压反馈 */
+  --dur-base: 240ms;                              /* 卡片弹簧 */
+  --dur-slow: 320ms;                              /* 推理渐显 */
+  --dur-page: 280ms;                             /* 页面切换 */
+  --reveal-char: 40ms;                           /* 逐字间隔 */
+
+  /* 状态令牌 */
+  --skeleton-base: rgba(26, 26, 26, 0.06);
+  --skeleton-shine: rgba(255, 255, 255, 0.65);
+  --thinking-dot: var(--seal-red);
+
+  /* 信任手势令牌 */
+  --trust-gold: var(--gold);
+  --trust-seal: var(--seal-red);
 }

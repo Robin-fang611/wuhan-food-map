@@ -9,7 +9,7 @@
 // 通过本文件底部的 getAmapKey() 读取运行时配置即可切换真实地图渲染，组件其余逻辑不变。
 
 import { h, clear } from './dom.js';
-import { merchants } from '../data/merchants.js';
+import { allMerchants as merchants } from '../data/all-merchants.js';
 import { buildAmapUrl } from './detail.js'; // 公开 URI 导航，无 Key
 import { filterMerchants, parsePrice, ratingRank } from '../core/query.js';
 
@@ -105,7 +105,7 @@ function loadAmap(key, securityCode) {
 
 // 地图视图组件（辅助：在导航前「看位置」）。
 // 策略：配置了高德 Key → 加载真实瓦片地图；无 Key / 加载失败 → 自动降级到离线坐标图（不白屏）。
-export async function MapView({ zone = '全城', goDetail, onBack } = {}) {
+export async function MapView({ zone = '武汉全城', goDetail, onBack } = {}) {
   const root = h('div');
   const state = { zone, selectedId: null, map: null };
 
@@ -114,7 +114,7 @@ export async function MapView({ zone = '全城', goDetail, onBack } = {}) {
     h('span', { class: 'detail-top-title', text: '地图找吃' })
   ]));
 
-  const ZONES = ['首义', '南湖', '全城'];
+  const ZONES = ['财大南湖周边', '武汉全城'];
   const zoneChips = ZONES.map((z) => chip(z, state.zone === z, () => {
     state.zone = z;
     state.selectedId = null;

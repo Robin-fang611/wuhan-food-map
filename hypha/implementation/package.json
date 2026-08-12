@@ -1,0 +1,11 @@
+{
+  "name": "manyouwei-food-implementation",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "蛮有味·美食地图 L1 适配层 + 自有 Node 后端（:8799，Path B）：确定性 FSM + DeepSeek ReAct 工具循环。薄绑 h5 真实实现，纯函数无 DOM。",
+  "scripts": {
+    "start": "MYWO_PORT=8799 node src/httpServer.js",
+    "start:wuhan": "MYWO_PORT=8799 MYWO_DATASOURCE=wuhan node src/httpServer.js"
+  }
+}

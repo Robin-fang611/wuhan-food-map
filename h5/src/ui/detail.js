@@ -4,7 +4,7 @@
 // （uri.amap.com，无需 Key，不把密钥进前端，符合 §8）。
 
 import { h, toast } from './dom.js';
-import { merchants } from '../data/merchants.js';
+import { allMerchants as merchants } from '../data/all-merchants.js';
 import { parsePrice, distKm, CAMPUS_COORDS, WUHAN_CENTER } from '../core/query.js';
 import { auth } from '../core/auth.js';
 import { analytics, EVENTS } from '../core/analytics.js';
@@ -82,8 +82,8 @@ export async function MerchantDetail({ id, userId, onBack }) {
   const price = parsePrice(m.avgPrice);
   const fromCoord = CAMPUS_COORDS[m.zone] || WUHAN_CENTER;
   const km = distKm(m, fromCoord);
-  const distLabel = m.zone && m.zone !== '全城'
-    ? `距${m.zone}校区约 ${km.toFixed(1)} km`
+  const distLabel = m.zone && m.zone !== '武汉全城'
+    ? `距${m.zone}约 ${km.toFixed(1)} km`
     : `距市中心约 ${km.toFixed(1)} km`;
 
   // 头部：店名 + 评分 + 分类
@@ -125,6 +125,35 @@ export async function MerchantDetail({ id, userId, onBack }) {
   if (m.has_coupon && m.coupon_summary) info.appendChild(h('div', { class: 'detail-block' }, [
     h('div', { class: 'detail-block-title', text: '优惠' }),
     h('div', { class: 'detail-coupon', text: m.coupon_summary })
+  ]));
+
+  // 数据层增强字段：把更丰富的商户信息（口味/推荐菜/评分/标签/置信度）完整呈现。
+  if (m.taste) info.appendChild(h('div', { class: 'detail-block' }, [
+    h('div', { class: 'detail-block-title', text: '口味' }),
+    h('div', { class: 'detail-dishes', text: m.taste })
+  ]));
+  if (m.recommendDishes) info.appendChild(h('div', { class: 'detail-block' }, [
+    h('div', { class: 'detail-block-title', text: '推荐菜' }),
+    h('div', { class: 'detail-dishes', text: m.recommendDishes })
+  ]));
+  const ratings = [
+    m.environmentRating != null ? `环境 ${m.environmentRating}` : null,
+    m.serviceRating != null ? `服务 ${m.serviceRating}` : null,
+  ].filter(Boolean);
+  if (ratings.length) info.appendChild(h('div', { class: 'detail-block' }, [
+    h('div', { class: 'detail-block-title', text: '评分' }),
+    h('div', { class: 'detail-ratings' }, ratings.map((r) => h('span', { class: 'm-rating-pill', text: r })))
+  ]));
+  if (Array.isArray(m.tags) && m.tags.length) info.appendChild(h('div', { class: 'detail-block' }, [
+    h('div', { class: 'detail-block-title', text: '标签' }),
+    h('div', { class: 'detail-tags' }, m.tags.map((t) => h('span', { class: 'm-tag', text: t })))
+  ]));
+  // 资料置信度：诚实标注 verified（联网核验）/ estimated（算法推导，待核验），不夸大。
+  const conf = m.dataConfidence || 'estimated';
+  const confText = conf === 'verified' ? '已联网核验（武汉真实名店）' : '算法按品类推导 · 待探店核验';
+  info.appendChild(h('div', { class: `detail-block detail-confidence detail-confidence-${conf}` }, [
+    h('div', { class: 'detail-block-title', text: '资料置信度' }),
+    h('div', { class: 'detail-confidence-val', text: confText })
   ]));
 
   root.appendChild(info);

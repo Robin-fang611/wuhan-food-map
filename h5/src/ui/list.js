@@ -2,7 +2,7 @@
 // 严格复用架构：纯逻辑在 core/query.js；本文件只做安全渲染（h()，无 innerHTML）。
 import { h, clear } from './dom.js';
 import { SearchBar } from './search.js';
-import { merchants } from '../data/merchants.js';
+import { allMerchants as merchants } from '../data/all-merchants.js';
 import {
   filterMerchants, sortMerchants, listCategories, parsePrice, CAMPUS_COORDS, WUHAN_CENTER
 } from '../core/query.js';
@@ -10,7 +10,7 @@ import {
 const PAGE = 20;
 
 // 单张商户卡（纯展示，无 innerHTML）。goDetail 存在时整卡可点跳转详情页。
-function MerchantCard(m, goDetail) {
+export function MerchantCard(m, goDetail) {
   const price = parsePrice(m.avgPrice);
   const ratingEl = m.rating === '必吃'
     ? h('span', { class: 'm-rating best', text: '必吃' })
@@ -28,6 +28,9 @@ function MerchantCard(m, goDetail) {
     props.tabindex = '0';
     props.onclick = () => goDetail(m.id);
   }
+  const couponTag = m.cpsTag
+    ? h('span', { class: 'm-coupon cps', text: '可核销优惠' })
+    : (m.has_coupon ? h('span', { class: 'm-coupon', text: '有券' }) : null);
   const card = h('div', props, [
     h('div', { class: 'm-head' }, [
       h('div', { class: 'm-name', text: m.name || '未命名商户' }),
@@ -43,7 +46,7 @@ function MerchantCard(m, goDetail) {
     m.address ? h('div', { class: 'm-addr', text: m.address }) : null,
     h('div', { class: 'm-foot' }, [
       h('div', { class: 'm-meals' }, mealTags || []),
-      m.has_coupon ? h('span', { class: 'm-coupon', text: '有券' }) : null
+      couponTag
     ])
   ]);
 
@@ -78,7 +81,7 @@ function chipRow(title, chips) {
  */
 export function Discover({ goDetail } = {}) {
   const CATS = listCategories(merchants);
-  const ZONES = ['首义', '南湖', '全城'];
+  const ZONES = ['财大南湖周边', '武汉全城'];
   const MEALS = ['早', '午', '晚', '夜宵'];
   const PRICES = [
     { label: '不限', val: null },
@@ -93,7 +96,7 @@ export function Discover({ goDetail } = {}) {
   ];
 
   const state = {
-    zone: '首义',
+    zone: '财大南湖周边',
     categories: new Set(),
     mealTime: new Set(),
     maxPrice: null,
@@ -185,7 +188,7 @@ export function Discover({ goDetail } = {}) {
     onInput: (v) => { state.keyword = v; refresh(); }
   }));
 
-  root.appendChild(chipRow('校区', zoneChips));
+  root.appendChild(chipRow('片区', zoneChips));
   root.appendChild(chipRow('分类', catChips));
   root.appendChild(chipRow('场景', mealChips));
   root.appendChild(chipRow('人均', priceChips));

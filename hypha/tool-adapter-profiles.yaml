@@ -1,0 +1,62 @@
+# Hypha tool-adapter-profiles —— 蛮有味 10 个工具经本机 :8788 工具服务暴露给 Hypha Server。
+#
+# 真实加载机制（已对 ~/opt/hypha 源码核实）：
+#   ToolManager.profileToolRegistry 在 Server 启动时从配置加载 kind:http 适配器
+#   （apps/server/src/core/tools/ToolManager.ts:591 / :1403 的 profileToolRegistry.registerAdapter）。
+#   本文件须合并进 ~/opt/hypha/configs/tools.yaml 的 `profiles:`（或对应 profiles 目录），
+#   并【重启 Hypha Server】后才会生效。这是把 10 工具激活进 3000 的唯一真实路径。
+#
+# 注意：本机 :8788 端口当前被外部 python 进程占用，工具服务实测跑在 :8799；
+# 正式接线请把所有 endpoint 的端口改为 Server 实际可达的端口（或先释放 :8788）。
+
+profiles:
+  - id: adapter.discover.filter
+    kind: http
+    toolSpecRef: { id: discover.filter, version: 0.1.0 }
+    endpoint: http://localhost:8788/tools/discover.filter
+    requiredCapabilities: [execute, health]
+  - id: adapter.discover.rank
+    kind: http
+    toolSpecRef: { id: discover.rank, version: 0.1.0 }
+    endpoint: http://localhost:8788/tools/discover.rank
+    requiredCapabilities: [execute, health]
+  - id: adapter.discover.detail
+    kind: http
+    toolSpecRef: { id: discover.detail, version: 0.1.0 }
+    endpoint: http://localhost:8788/tools/discover.detail
+    requiredCapabilities: [execute, health]
+  - id: adapter.discover.geo
+    kind: http
+    toolSpecRef: { id: discover.geo, version: 0.1.0 }
+    endpoint: http://localhost:8788/tools/discover.geo
+    requiredCapabilities: [execute, health]
+  - id: adapter.discover.navigate
+    kind: http
+    toolSpecRef: { id: discover.navigate, version: 0.1.0 }
+    endpoint: http://localhost:8788/tools/discover.navigate
+    requiredCapabilities: [execute, health]
+  - id: adapter.user.favorite
+    kind: http
+    toolSpecRef: { id: user.favorite, version: 0.1.0 }
+    endpoint: http://localhost:8788/tools/user.favorite
+    requiredCapabilities: [execute, health]
+  - id: adapter.reward.checkin
+    kind: http
+    toolSpecRef: { id: reward.checkin, version: 0.1.0 }
+    endpoint: http://localhost:8788/tools/reward.checkin
+    requiredCapabilities: [execute, health]
+  - id: adapter.reward.view-wallet
+    kind: http
+    toolSpecRef: { id: reward.view-wallet, version: 0.1.0 }
+    endpoint: http://localhost:8788/tools/reward.view-wallet
+    requiredCapabilities: [execute, health]
+  - id: adapter.reward.claim
+    kind: http
+    toolSpecRef: { id: reward.claim, version: 0.1.0 }
+    endpoint: http://localhost:8788/tools/reward.claim
+    requiredCapabilities: [execute, health]
+  - id: adapter.analytics.track
+    kind: http
+    toolSpecRef: { id: analytics.track, version: 0.1.0 }
+    endpoint: http://localhost:8788/tools/analytics.track
+    requiredCapabilities: [execute, health]

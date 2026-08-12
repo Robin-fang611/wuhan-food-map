@@ -2,10 +2,10 @@
 // 操作对象：统一商户表（schema 见 §5）。所有函数对入参数组不修改、返回新数组。
 // 设计要点：筛选/搜索/排序三者解耦，UI 层按需组合；均价解析、评分权重、距离计算都在此集中。
 
-// 校区/城市参考坐标（GCJ-02，近似值，仅用于同校区内的「距离」排序，非精确导航）。
+// 片区参考坐标（GCJ-02，近似值，仅用于同片区内的「距离」排序，非精确导航）。
 export const CAMPUS_COORDS = {
-  首义: { lng: 114.305, lat: 30.543 },
-  南湖: { lng: 114.370, lat: 30.480 }
+  '财大南湖周边': { lng: 114.370, lat: 30.480 },
+  '武汉全城': { lng: 114.3055, lat: 30.5928 }
 };
 export const WUHAN_CENTER = { lng: 114.3055, lat: 30.5928 };
 
@@ -52,7 +52,7 @@ export function searchMerchants(list, keyword) {
  * 组合筛选。
  * @param {Array} list 商户数组
  * @param {object} opts
- *   zone         {string}         校区：首义/南湖/全城（缺省或 '' 不过滤）
+ *   zone         {string}         片区：财大南湖周边/武汉全城（缺省或 '' 不过滤）
  *   categories   {string[]}       分类多选（空数组=不限）
  *   mealTime     {string[]}       场景多选 早/午/晚/夜宵（空=不限）
  *   maxPrice     {number|null}    人均上限（null=不限；均价空缺的店在设上限时被排除）

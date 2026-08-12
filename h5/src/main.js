@@ -10,11 +10,13 @@ import { MerchantDetail } from './ui/detail.js';
 import { MapView } from './ui/map.js';
 import { AccountView } from './ui/account.js';
 import { RedeemConsole } from './ui/redeem.js';
+import { ReasoningPage } from './ui/reasoning.js';
 import './plays/index.js'; // 注册所有玩法插件（新增玩法只需在 plays/ 加文件并 register）
 
 const app = document.getElementById('app');
 let view = 'home';
 let detailId = null;
+let reasoningInitial = null;
 
 // 启动钩子：① 接入百度统计（env 注入 ID 才生效）；② 记录 APP_OPEN 作为 DAU 计数基础。
 const cfg = globalThis.__MANYOUWEI_CONFIG__ || {};
@@ -25,6 +27,8 @@ function goDetail(id) { detailId = id; view = 'detail'; render(); }
 function goMap() { view = 'map'; render(); }
 function goAccount() { view = 'account'; render(); }
 function goRedeem() { view = 'redeem'; render(); }
+// 从首页带初始问句跳转推理页（首页元素多，开始对话即切到沉浸式推理页）。
+function goReasoning(text) { reasoningInitial = text || null; view = 'reasoning'; render(); }
 
 let firstRender = true; // 首屏由 hm.js 自动记，后续 SPA 切换才手动上报，避免重复计数
 async function render() {
@@ -53,6 +57,16 @@ async function render() {
     }));
   } else if (view === 'redeem') {
     app.appendChild(await RedeemConsole({ onBack: () => { view = 'home'; render(); } }));
+  } else if (view === 'reasoning') {
+    app.appendChild(await ReasoningPage({
+      userId,
+      onBack: () => { view = 'home'; render(); },
+      goDetail,
+      goRedeem: () => { view = 'redeem'; render(); },
+      goAccount,
+      goMap,
+      initialText: reasoningInitial,
+    }));
   } else {
     app.appendChild(await Home({
       userId,
@@ -60,6 +74,8 @@ async function render() {
       goMap,
       goAccount,
       goDetail,
+      goRedeem: () => { view = 'redeem'; render(); },
+      goReasoning,
       refresh: render
     }));
   }
