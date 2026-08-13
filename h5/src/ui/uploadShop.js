@@ -2,7 +2,7 @@
 // 三分支结果态：verified（高德匹配）/ verified_stall（流动摊收录）/ pending（待核验·不删）。
 // 入口由 main.js 经 ctx.goUpload 挂载；ctx 提供 goBack / goHome / goUpload / userId。
 import { h, toast, clear } from './dom.js';
-import { uploadShop } from '../../hypha/integration/agent-client.js';
+import { uploadShop } from '../../../hypha/integration/agent-client.js';
 
 function resultHead(d) {
   if (d === 'verified') return '已收录';
