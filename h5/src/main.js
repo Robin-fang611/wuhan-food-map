@@ -12,6 +12,7 @@ import { AccountView } from './ui/account.js';
 import { RedeemConsole } from './ui/redeem.js';
 import { ReasoningPage } from './ui/reasoning.js';
 import { GrowthDashboard } from './ui/growth-dashboard.js';
+import { UploadShop } from './ui/uploadShop.js';
 import './plays/index.js'; // 注册所有玩法插件（新增玩法只需在 plays/ 加文件并 register）
 
 const app = document.getElementById('app');
@@ -31,6 +32,7 @@ function goRedeem() { view = 'redeem'; render(); }
 function goGrowth() { view = 'growth'; render(); }
 // 从首页带初始问句跳转推理页（首页元素多，开始对话即切到沉浸式推理页）。
 function goReasoning(text) { reasoningInitial = text || null; view = 'reasoning'; render(); }
+function goUpload() { view = 'upload'; render(); }
 
 let firstRender = true; // 首屏由 hm.js 自动记，后续 SPA 切换才手动上报，避免重复计数
 async function render() {
@@ -72,6 +74,13 @@ async function render() {
       goMap,
       initialText: reasoningInitial,
     }));
+  } else if (view === 'upload') {
+    app.appendChild(await UploadShop({
+      userId,
+      goBack: () => { view = 'home'; render(); },
+      goHome: () => { view = 'home'; render(); },
+      goUpload: () => goUpload(),
+    }));
   } else {
     app.appendChild(await Home({
       userId,
@@ -81,6 +90,7 @@ async function render() {
       goDetail,
       goRedeem: () => { view = 'redeem'; render(); },
       goReasoning,
+      goUpload: () => goUpload(),
       refresh: render
     }));
   }

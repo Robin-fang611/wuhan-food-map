@@ -117,3 +117,14 @@ export async function viewWallet({ userId } = {}) {
   if (!res.ok) throw new Error(`agent viewWallet ${res.status}`);
   return res.json();
 }
+
+// 探店采集：用户上传店铺 → 后端 /upload（高德校验三分支：verified / verified_stall / pending）。
+export async function uploadShop(payload = {}) {
+  const res = await fetchWithTimeout(`${SERVER_AGENT}/upload`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  }, 20000);
+  if (!res.ok) throw new Error(`upload ${res.status}`);
+  return res.json();
+}

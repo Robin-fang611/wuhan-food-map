@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>蛮有味 · 用户上传店铺 / 探店采集 · 设计原型</title>
+<style>
+  /* ===== 设计令牌（取自 h5/src/styles/tokens.css 真实变量值） ===== */
+  :root{
+    --seal-red:#C0392B; --seal-red-d:#9E2D22;
+    --ink:#1A1A1A; --ink-2:#5A524A;
+    --gold:#C9A227; --ticket-green:#1F4D3A;
+    --paper:#F7F1E6; --paper-2:#FBF7EF; --line:#E6DCC8;
+    --warm-orange:#E8743B; --warm-orange-d:#C85A2A;
+    --font-display:'LXGW WenKai','Ma Shan Zheng',STKaiti,KaiTi,'PingFang SC',serif;
+    --font-body:'LXGW WenKai','Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif;
+    --font-mono:'Space Mono',ui-monospace,Menlo,Consolas,monospace;
+    --r-lg:18px; --r-md:14px; --r-sm:10px; --gap:16px;
+    --shadow:0 6px 22px rgba(26,26,26,.08); --shadow-sm:0 2px 8px rgba(26,26,26,.06);
+    --maxw:480px;
+    --skeleton-base:rgba(26,26,26,.06); --skeleton-shine:rgba(255,255,255,.65);
+    --ease-out:cubic-bezier(.4,0,.2,1); --dur-fast:120ms; --dur-slow:320ms; --dur-base:240ms;
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper); color:var(--ink); font-family:var(--font-body); font-size:15px; line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+    background-image:radial-gradient(circle at 12% 8%,rgba(201,162,39,.06),transparent 38%),
+                     radial-gradient(circle at 88% 92%,rgba(192,57,43,.05),transparent 42%);
+  }
+  .stage-wrap{max-width:var(--maxw); margin:0 auto; padding:18px 0 40px;}
+
+  /* 分屏标签（方便一眼看完 4 屏） */
+  .tabs{position:sticky; top:0; z-index:30; display:flex; gap:6px; padding:10px 14px;
+        background:rgba(251,247,239,.92); backdrop-filter:blur(8px); border-bottom:1px solid var(--line); flex-wrap:wrap;}
+  .tab{border:1px solid var(--line); background:var(--paper-2); color:var(--ink-2);
+       border-radius:999px; padding:6px 12px; font-size:12px; cursor:pointer; font-family:var(--font-body);}
+  .tab.active{background:var(--seal-red); color:#fff; border-color:var(--seal-red);}
+
+  .screen{margin:18px 14px; border:1px dashed var(--line); border-radius:var(--r-lg); padding:6px; background:rgba(255,255,255,.35);}
+  .screen-title{font-family:var(--font-display); color:var(--seal-red); font-size:15px; margin:6px 8px 10px;
+                display:flex; align-items:center; gap:8px;}
+  .screen-title .dot{width:8px; height:8px; border-radius:50%; background:var(--gold);}
+  .phone{border:1px solid var(--line); border-radius:var(--r-md); background:var(--paper); overflow:hidden;}
+
+  /* ===== 通用：顶部品牌条 ===== */
+  .topbar{position:sticky; top:0; z-index:20; background:rgba(247,241,230,.92); backdrop-filter:blur(8px);
+          border-bottom:1px solid var(--line); padding:12px 18px; display:flex; align-items:center; justify-content:space-between;}
+  .brand{display:flex; align-items:center; gap:10px;}
+  .seal{width:38px; height:38px; border-radius:9px; background:var(--seal-red); border:2px solid var(--gold);
+        display:grid; place-items:center; font-family:var(--font-display); color:#fff; font-size:13px; box-shadow:var(--shadow-sm);}
+  .wordmark{font-family:var(--font-display); font-size:24px; color:var(--seal-red); letter-spacing:1px;}
+  .sub{font-size:11px; color:var(--ink-2); margin-top:-2px;}
+  .nav-btn{border:1px solid var(--line); background:var(--paper-2); color:var(--ink);
+           border-radius:999px; padding:6px 14px; font-size:13px; cursor:pointer; font-family:var(--font-body);}
+  .top-actions{display:flex; gap:8px;}
+
+  /* ===== 英雄区（首页） ===== */
+  .home-hero{text-align:center; padding:30px 20px 26px; background:linear-gradient(180deg,var(--paper-2),var(--paper)); border-bottom:1px solid var(--line);}
+  .home-kicker{font-size:12px; letter-spacing:2px; color:var(--gold); margin-bottom:8px;}
+  .home-headline{font-family:var(--font-display); font-size:24px; color:var(--ink); line-height:1.35; margin-bottom:18px;}
+  .home-ask-row{display:flex; gap:10px; max-width:420px; margin:0 auto;}
+  .home-ask-input{flex:1; min-width:0; border:1.5px solid var(--line); background:#fff; border-radius:999px;
+                  padding:13px 18px; font-family:var(--font-body); font-size:14px; color:var(--ink); outline:none;}
+  .home-ask-btn{flex-shrink:0; border:none; background:var(--seal-red); color:#fff; border-radius:999px; padding:0 18px;
+                font-family:var(--font-display); font-size:15px; cursor:pointer;}
+  .home-quick{display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin-top:14px;}
+  .home-quick-chip{border:1px solid var(--line); background:#fff; color:var(--ink-2); border-radius:999px; padding:7px 14px;
+                   font-size:13px; cursor:pointer; font-family:var(--font-body);}
+  .home-hero-note{margin-top:14px; font-size:12px; color:var(--ink-2); opacity:.85;}
+
+  /* ===== 贡献店铺入口卡片 ===== */
+  .section{padding:18px;}
+  .shop-entry-card{display:flex; align-items:center; gap:12px; background:var(--paper-2); border:1px solid var(--line);
+                   border-radius:var(--r-lg); padding:14px 16px; box-shadow:var(--shadow-sm); cursor:pointer;}
+  .shop-entry-icon{width:40px; height:40px; flex:none; border-radius:var(--r-sm); background:var(--seal-red);
+                   border:2px solid var(--gold); display:grid; place-items:center; font-family:var(--font-display);
+                   color:#fff; font-size:18px;}
+  .shop-entry-body{flex:1; min-width:0;}
+  .shop-entry-title{font-family:var(--font-display); font-size:16px; color:var(--ink);}
+  .shop-entry-sub{font-size:12px; color:var(--ink-2); margin-top:2px;}
+  .shop-entry-arrow{color:var(--seal-red); font-size:18px;}
+
+  .hero-note-mini{font-size:11px; color:var(--ink-2); padding:0 18px; line-height:1.5;}
+
+  /* ===== 表单视图 ===== */
+  .detail-top{position:sticky; top:0; z-index:20; background:rgba(247,241,230,.92); backdrop-filter:blur(8px);
+              border-bottom:1px solid var(--line); padding:12px 18px; display:flex; align-items:center; gap:12px;}
+  .detail-top-title{font-family:var(--font-display); font-size:18px; color:var(--seal-red);}
+  .upload-intro{padding:14px 18px 0;}
+  .upload-intro-title{font-family:var(--font-display); font-size:14px; color:var(--ticket-green);}
+  .upload-intro-text{font-size:12.5px; color:var(--ink-2); margin-top:4px; line-height:1.6;}
+
+  .ac-form{display:flex; flex-direction:column; gap:14px; padding:16px 18px;}
+  .upload-field{display:flex; flex-direction:column; gap:6px;}
+  .upload-label{font-size:13px; color:var(--ink-2); font-family:var(--font-body);}
+  .upload-req{color:var(--seal-red);}
+  .ac-input{width:100%; box-sizing:border-box; border:1px solid var(--line); border-radius:var(--r-sm);
+            background:var(--paper-2); color:var(--ink); padding:11px 14px; font-size:14px; font-family:var(--font-body); outline:none;}
+  .ac-input:focus{border-color:var(--seal-red); box-shadow:0 0 0 3px rgba(192,57,43,.12);}
+  .upload-textarea{resize:vertical; min-height:88px;}
+  .upload-addr-row{display:flex; gap:8px; align-items:center;}
+  .upload-addr-row .ac-input{flex:1; min-width:0;}
+  .btn{appearance:none; border:none; cursor:pointer; font-family:var(--font-body); font-weight:500;
+       border-radius:999px; padding:12px 18px; font-size:15px; transition:transform var(--dur-fast) var(--ease-out),filter var(--dur-fast) var(--ease-out);}
+  .btn:active{transform:scale(.97);}
+  .btn-primary{background:var(--seal-red); color:#fff; box-shadow:0 4px 14px rgba(192,57,43,.3);}
+  .btn-ghost{background:transparent; color:var(--seal-red); border:1px solid var(--seal-red);}
+  .btn-block{width:100%;}
+  .upload-loc-btn{padding:10px 14px; font-size:13px; white-space:nowrap;}
+  .upload-loc-status{font-size:12px;}
+
+  /* toggle 开关 */
+  .upload-toggle{flex-direction:row; align-items:center; justify-content:space-between; gap:12px;
+                 background:var(--paper-2); border:1px solid var(--line); border-radius:var(--r-md); padding:12px 14px;}
+  .upload-toggle-text{display:flex; flex-direction:column; gap:2px;}
+  .upload-toggle-hint{font-size:11px; color:var(--ink-2);}
+  .upload-toggle-switch{position:relative; width:46px; height:26px; flex:none;}
+  .upload-toggle-input{position:absolute; opacity:0; width:100%; height:100%; margin:0; cursor:pointer; z-index:2;}
+  .upload-toggle-slider{position:absolute; inset:0; background:var(--line); border-radius:999px; transition:background var(--dur-fast) var(--ease-out);}
+  .upload-toggle-slider::after{content:''; position:absolute; top:3px; left:3px; width:20px; height:20px; border-radius:50%;
+                                background:#fff; box-shadow:0 1px 3px rgba(0,0,0,.2); transition:transform var(--dur-fast) var(--ease-out);}
+  .upload-toggle-input:checked + .upload-toggle-slider{background:var(--seal-red);}
+  .upload-toggle-input:checked + .upload-toggle-slider::after{transform:translateX(20px);}
+
+  /* ===== 结果视图 ===== */
+  .upload-result-badge{margin:16px 18px 0; padding:16px; border-radius:var(--r-lg); display:flex; align-items:center; gap:14px;}
+  .upload-result-badge.ok, .upload-result-badge.stall{background:rgba(192,57,43,.06);}
+  .upload-result-badge.pending{background:rgba(201,162,39,.10);}
+  .upload-result-seal{width:48px; height:48px; flex:none; border-radius:12px; display:grid; place-items:center;
+                      font-family:var(--font-display); color:#fff; font-size:22px; border:2px solid var(--gold);}
+  .upload-result-badge.ok .upload-result-seal, .upload-result-badge.stall .upload-result-seal{background:var(--seal-red);}
+  .upload-result-badge.pending .upload-result-seal{background:var(--gold);}
+  .upload-result-head{font-family:var(--font-display); font-size:18px;}
+  .upload-result-badge.ok .upload-result-head, .upload-result-badge.stall .upload-result-head{color:var(--seal-red);}
+  .upload-result-badge.pending .upload-result-head{color:var(--gold);}
+  .upload-result-sub{font-size:12.5px; color:var(--ink-2); margin-top:2px;}
+
+  .card{background:var(--paper-2); border:1px solid var(--line); border-radius:var(--r-lg); padding:16px; box-shadow:var(--shadow-sm); margin:14px 18px;}
+  .detail-block{margin-top:12px;}
+  .detail-block:first-child{margin-top:0;}
+  .detail-block-title{font-size:12px; color:var(--ticket-green); margin-bottom:4px; font-weight:700;}
+  .detail-dishes{font-size:14px;}
+  .detail-reason{font-size:13px; color:var(--ink-2);}
+  .upload-result-addr{font-size:13px; color:var(--ink-2); margin-top:4px;}
+  .upload-result-dist{font-size:12px; color:var(--ink-2); margin-top:4px;}
+  .m-tag{font-size:12px; color:var(--ticket-green); border:1px solid var(--ticket-green); border-radius:6px; padding:1px 7px;}
+  .agent-guidance{font-size:13px; line-height:1.6; color:var(--ink-2); background:linear-gradient(0deg,rgba(190,30,40,.04),rgba(190,30,40,.04));
+                   border-left:3px solid var(--seal-red); border-radius:var(--r-sm); padding:8px 10px; margin:12px 0 0;}
+  .upload-result-welcome{font-family:var(--font-display); font-size:18px; color:var(--seal-red); margin-top:12px; text-align:center;}
+  .upload-result-keep{font-size:13px; color:var(--ticket-green); margin-top:12px; font-weight:600; line-height:1.6;}
+  .upload-result-actions{display:flex; flex-direction:column; gap:10px; padding:14px 18px 6px;}
+  .upload-result-actions .btn:last-child{margin-bottom:0;}
+
+  /* ===== loading 覆盖层（印章红波纹 + 骨架） ===== */
+  .upload-loading{position:relative; min-height:360px; display:grid; place-items:center; background:rgba(247,241,230,.9);
+                  border-radius:var(--r-md); margin:14px 18px;}
+  .seal-ripple{position:relative; width:64px; height:64px; margin-bottom:18px;}
+  .seal-ripple::before, .seal-ripple::after{content:''; position:absolute; inset:0; border-radius:50%;}
+  .seal-ripple::before{background:var(--seal-red);}
+  .seal-ripple::after{border:3px solid var(--gold); animation:ripple var(--dur-slow) var(--ease-out) infinite;}
+  @keyframes ripple{0%{transform:scale(1); opacity:.8;} 100%{transform:scale(2.2); opacity:0;}}
+  .loading-inner{display:flex; flex-direction:column; align-items:center;}
+  .loading-text{color:var(--ink-2); font-size:14px; font-family:var(--font-body);}
+  .skeleton{margin-top:18px; width:78%; display:flex; flex-direction:column; gap:10px;}
+  .sk-bar{height:12px; border-radius:999px; background:var(--skeleton-base); overflow:hidden; position:relative;}
+  .sk-bar::after{content:''; position:absolute; inset:0; background:linear-gradient(90deg,transparent,var(--skeleton-shine),transparent);
+                 transform:translateX(-100%); animation:shine 1.2s infinite;}
+  .sk-bar.w1{width:90%;} .sk-bar.w2{width:70%;} .sk-bar.w3{width:80%;}
+  @keyframes shine{to{transform:translateX(100%);}}
+
+  /* error 重试块（复用 agent-error 视觉） */
+  .agent-error{background:#fff5f5; border:1px solid #fecaca; border-radius:12px; padding:16px; margin:14px 18px; text-align:center;}
+  .agent-error-title{font-size:15px; font-weight:500; color:#991b1b; margin-bottom:6px;}
+  .agent-error-hint{font-size:12px; color:#b91c1c; margin-bottom:12px; line-height:1.5;}
+
+  .footnote{font-size:11px; color:var(--ink-2); padding:0 18px; line-height:1.5; margin-top:8px;}
+  .toast{position:fixed; left:50%; bottom:40px; transform:translateX(-50%); background:var(--ink); color:#fff;
+         padding:10px 18px; border-radius:999px; font-size:13px; z-index:60; box-shadow:var(--shadow);}
+
+  .legend{font-size:12px; color:var(--ink-2); padding:4px 18px 0; line-height:1.6;}
+</style>
+</head>
+<body>
+<div class="tabs">
+  <span class="tab active" data-t="all">全部（纵向堆叠）</span>
+  <span class="tab" data-t="home">① 首页入口</span>
+  <span class="tab" data-t="form">② 上传表单</span>
+  <span class="tab" data-t="loading">③ 校验中</span>
+  <span class="tab" data-t="result">④ 三结果态</span>
+</div>
+
+<div class="stage-wrap">
+
+  <!-- ========== 屏 ① 首页含「贡献店铺」入口 ========== -->
+  <div class="screen" data-screen="home">
+    <div class="screen-title"><span class="dot"></span>① 首页 · 英雄区下方新增「贡献店铺」入口</div>
+    <div class="phone">
+      <div class="topbar">
+        <div class="brand"><div class="seal">味</div>
+          <div><div class="wordmark">蛮有味</div><div class="sub">武汉好吃的，真人探过的</div></div>
+        </div>
+        <div class="top-actions">
+          <button class="nav-btn">我的</button><button class="nav-btn">地图</button><button class="nav-btn">券包</button>
+        </div>
+      </div>
+      <div class="home-hero">
+        <div class="home-kicker">武汉美食发现 Agent</div>
+        <div class="home-headline">说一句话，今天吃啥它帮你定</div>
+        <div class="home-ask-row">
+          <input class="home-ask-input" placeholder="今天想吃啥？说一句话，Agent 帮你定" />
+          <button class="home-ask-btn">问蛮有味 →</button>
+        </div>
+        <div class="home-quick">
+          <button class="home-quick-chip">心情不好</button>
+          <button class="home-quick-chip">想省钱</button>
+          <button class="home-quick-chip">带人吃饭</button>
+          <button class="home-quick-chip">不知道吃啥</button>
+        </div>
+        <div class="home-hero-note">真人探过的，不恰饭 · 排序永不被出价影响</div>
+      </div>
+
+      <!-- 新增入口卡片 -->
+      <div class="section">
+        <div class="shop-entry-card">
+          <div class="shop-entry-icon">献</div>
+          <div class="shop-entry-body">
+            <div class="shop-entry-title">发现野店？贡献给蛮有味</div>
+            <div class="shop-entry-sub">街边摊、新开张、高德没挂的——你报，我们核</div>
+          </div>
+          <div class="shop-entry-arrow">→</div>
+        </div>
+      </div>
+      <div class="hero-note-mini">点击卡片进入上传表单视图（见屏 ②）。</div>
+    </div>
+  </div>
+
+  <!-- ========== 屏 ② 上传表单 ========== -->
+  <div class="screen" data-screen="form">
+    <div class="screen-title"><span class="dot"></span>② 上传表单 · 含流动摊开关</div>
+    <div class="phone">
+      <div class="detail-top">
+        <button class="nav-btn">返回</button>
+        <span class="detail-top-title">贡献店铺</span>
+      </div>
+      <div class="upload-intro">
+        <div class="upload-intro-title">探店采集 · 真人众包</div>
+        <div class="upload-intro-text">提交后蛮有味用高德自动校验，真实即收录，数据不删、排序永不被出价影响。</div>
+      </div>
+
+      <form class="ac-form" onsubmit="return false;">
+        <label class="upload-field">
+          <span class="upload-label">店名 <span class="upload-req">*</span></span>
+          <input class="ac-input upload-input" type="text" placeholder="例如：南湖校区后门煎饼摊" />
+        </label>
+
+        <label class="upload-field">
+          <span class="upload-label">地址</span>
+          <div class="upload-addr-row">
+            <input class="ac-input upload-input" type="text" placeholder="街道 / 门牌，或留空改用定位" />
+            <button class="btn btn-ghost upload-loc-btn">使用我的位置</button>
+          </div>
+          <span class="upload-loc-status muted">已获取你的定位（114.34, 30.51）</span>
+        </label>
+
+        <label class="upload-field">
+          <span class="upload-label">描述 <span class="upload-req">*</span></span>
+          <textarea class="ac-input upload-textarea" placeholder="卖啥、啥味、几点出摊？如果是流动摊/路边摊请说明，我们按摊类直接收录。"></textarea>
+        </label>
+
+        <label class="upload-field">
+          <span class="upload-label">分类</span>
+          <select class="ac-input upload-select">
+            <option>早餐</option><option>热干面</option><option>小吃</option>
+            <option>正餐</option><option>饮品</option><option>甜点</option><option>其他</option>
+          </select>
+        </label>
+
+        <label class="upload-field upload-toggle">
+          <span class="upload-toggle-text">
+            <span class="upload-label">流动摊 / 路边摊</span>
+            <span class="upload-toggle-hint">勾选后按摊类规则收录（坐标取你的定位，不伪造）</span>
+          </span>
+          <span class="upload-toggle-switch">
+            <input class="upload-toggle-input" type="checkbox" checked />
+            <span class="upload-toggle-slider"></span>
+          </span>
+        </label>
+
+        <button class="btn btn-primary btn-block" type="submit">提交，让蛮有味核验</button>
+      </form>
+      <div class="footnote">提交即表示你确认信息真实。坐标沿用你授权的定位，蛮有味绝不伪造地址。</div>
+    </div>
+  </div>
+
+  <!-- ========== 屏 ③ 校验中 loading ========== -->
+  <div class="screen" data-screen="loading">
+    <div class="screen-title"><span class="dot"></span>③ 校验中 · 印章红波纹 + 骨架屏</div>
+    <div class="phone">
+      <div class="detail-top">
+        <button class="nav-btn">返回</button>
+        <span class="detail-top-title">贡献店铺</span>
+      </div>
+      <div class="upload-loading">
+        <div class="loading-inner">
+          <div class="seal-ripple"></div>
+          <div class="loading-text">正在用高德校验…</div>
+          <div class="skeleton">
+            <div class="sk-bar w1"></div>
+            <div class="sk-bar w2"></div>
+            <div class="sk-bar w3"></div>
+          </div>
+        </div>
+      </div>
+      <div class="legend">提交后表单禁用、按钮置 loading；此处为覆盖层，不离开表单上下文，便于失败重试。</div>
+    </div>
+  </div>
+
+  <!-- ========== 屏 ④ 三分支结果态 ========== -->
+  <div class="screen" data-screen="result">
+    <div class="screen-title"><span class="dot"></span>④ 三分支结果态（已入库 / 流动摊已入库 / 待核验）</div>
+
+    <!-- ④-a verified -->
+    <div class="phone" style="margin-bottom:16px;">
+      <div class="detail-top"><button class="nav-btn">返回</button><span class="detail-top-title">核验结果</span></div>
+      <div class="upload-result-badge ok">
+        <div class="upload-result-seal">收</div>
+        <div><div class="upload-result-head">已加入蛮有味美食库</div>
+             <div class="upload-result-sub">高德匹配到该店，已正式收录</div></div>
+      </div>
+      <div class="card">
+        <div class="detail-block">
+          <div class="detail-block-title">高德匹配到</div>
+          <div class="detail-dishes">老通城豆皮（武昌旗舰店）</div>
+          <div class="upload-result-addr">武汉市武昌区武珞路 456 号</div>
+          <div class="upload-result-dist">距你约 320 m</div>
+        </div>
+        <div class="agent-guidance">已加入蛮有味美食库，真实收录，排序永不被出价影响。</div>
+      </div>
+      <div class="upload-result-actions">
+        <button class="btn btn-ghost btn-block">再贡献一家</button>
+        <button class="btn btn-primary btn-block">回首页</button>
+      </div>
+    </div>
+
+    <!-- ④-b verified_stall -->
+    <div class="phone" style="margin-bottom:16px;">
+      <div class="detail-top"><button class="nav-btn">返回</button><span class="detail-top-title">核验结果</span></div>
+      <div class="upload-result-badge stall">
+        <div class="upload-result-seal">收</div>
+        <div><div class="upload-result-head">按流动摊规则已收录</div>
+             <div class="upload-result-sub">高德没搜到，但你标注了摊类</div></div>
+      </div>
+      <div class="card">
+        <div class="detail-block">
+          <div class="detail-block-title">收录规则</div>
+          <div class="detail-dishes">按流动摊 / 路边摊规则已收录</div>
+        </div>
+        <div class="agent-guidance">坐标取自你上传的定位，不伪造。</div>
+        <div class="upload-result-welcome">欢迎街边好味道 🍜</div>
+      </div>
+      <div class="upload-result-actions">
+        <button class="btn btn-ghost btn-block">再贡献一家</button>
+        <button class="btn btn-primary btn-block">回首页</button>
+      </div>
+    </div>
+
+    <!-- ④-c pending -->
+    <div class="phone">
+      <div class="detail-top"><button class="nav-btn">返回</button><span class="detail-top-title">核验结果</span></div>
+      <div class="upload-result-badge pending">
+        <div class="upload-result-seal">核</div>
+        <div><div class="upload-result-head">已存为待核验</div>
+             <div class="upload-result-sub">高德没搜到，且非摊类</div></div>
+      </div>
+      <div class="card">
+        <div class="detail-block">
+          <div class="detail-block-title">状态标注</div>
+          <span class="m-tag">待核验</span>
+        </div>
+        <div class="detail-block">
+          <div class="detail-block-title">原因</div>
+          <div class="detail-reason">高德未匹配且非摊类</div>
+        </div>
+        <div class="upload-result-keep">不会删除，留待人工核实后入库。</div>
+      </div>
+      <div class="upload-result-actions">
+        <button class="btn btn-ghost btn-block">再贡献一家</button>
+        <button class="btn btn-primary btn-block">回首页</button>
+      </div>
+      <div class="footnote">异常态示例（网络错）：toast「网络开小差了，请重试」+ 表单内重试块，可重发上次 payload。</div>
+    </div>
+  </div>
+
+</div>
+
+<div class="toast" style="position:static; display:inline-block; margin:0 18px 24px; transform:none;">网络开小差了，请重试（异常态 toast 示意）</div>
+
+<script>
+  // 仅用于原型 tab 切换演示，无后端、无业务。
+  document.querySelectorAll('.tab').forEach(function(t){
+    t.addEventListener('click', function(){
+      document.querySelectorAll('.tab').forEach(function(x){x.classList.remove('active');});
+      t.classList.add('active');
+      var key = t.getAttribute('data-t');
+      document.querySelectorAll('.screen').forEach(function(s){
+        if(key === 'all'){ s.style.display = ''; }
+        else { s.style.display = (s.getAttribute('data-screen') === key) ? '' : 'none'; }
+      });
+    });
+  });
+</script>
+</body>
+</html>

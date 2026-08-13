@@ -6,3 +6,5 @@ node_modules/
 .audit/
 # Hypha 运行时会话态（含用户偏好/筛选状态，非源码，禁止入库）
 hypha/implementation/.agent-memory/
+# 探店采集运行态数据（用户众包上传，非源码）
+hypha/implementation/data/

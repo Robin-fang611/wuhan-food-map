@@ -21,6 +21,7 @@ import rewardCheckin from './tools/checkin.js';
 import rewardWallet from './tools/wallet.js';
 import rewardClaim from './tools/claim.js';
 import analyticsTrack from './tools/track.js';
+import { handleUpload } from './upload.js';
 
 // 工具表：id -> handler（对齐 domain.yaml 的 10 个 ToolSpec）。
 const TOOLS = {
@@ -112,6 +113,18 @@ const server = createServer(async (req, res) => {
         }
       }
       return send(res, 400, { success: false, error: 'agent 失败', detail: String(err && err.message || err) });
+    }
+  }
+
+  // POST /upload —— 探店采集：用户上传店铺 → 高德校验 → 三分支决策（SPEC §7.4）
+  if (req.method === 'POST' && url.pathname === '/upload') {
+    const input = await readBody(req);
+    if (!input || typeof input !== 'object') return send(res, 400, { success: false, error: '请求体非 JSON' });
+    try {
+      const out = await handleUpload(input);
+      return send(res, 200, out);
+    } catch (err) {
+      return send(res, 400, { success: false, error: 'upload 失败', detail: String(err && err.message || err) });
     }
   }
 

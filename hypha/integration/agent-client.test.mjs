@@ -2,7 +2,7 @@
 // 不依赖真实 :8799 后端或外网；锁定前端（reasoning.js）与后端（httpServer）之间的响应契约（SPEC §3 / §7.1）。
 // 运行：node hypha/integration/agent-client.test.mjs
 import assert from 'node:assert/strict';
-import { discover, agentChat, setBackend, getBackend } from './agent-client.js';
+import { discover, agentChat, setBackend, getBackend, uploadShop } from './agent-client.js';
 
 let passed = 0;
 function ok(name, cond) {
@@ -88,5 +88,12 @@ setBackend('server');
 let netThrew = false;
 try { await agentChat({ message: 'x', sessionId: 's' }); } catch { netThrew = true; }
 ok('网络不可达抛错（触发前端降级提示）', netThrew);
+
+console.log('Agent Client · 探店采集 uploadShop 路由（SPEC §7.4）');
+runFixture('/upload', { decision: 'pending', uploadId: 'u_1', label: '待核验', reason: '高德未匹配且非摊类' });
+const upRes = await uploadShop({ name: '神秘私房菜', description: '朋友家做的', isStall: false });
+ok('uploadShop 走 /upload 端点', lastReq.url.endsWith('/upload'));
+ok('uploadShop 用 POST + JSON', lastReq.init.method === 'POST' && lastReq.init.headers['Content-Type'] === 'application/json');
+ok('uploadShop 解析三分支 decision', upRes.decision === 'pending' && upRes.uploadId === 'u_1');
 
 console.log(`\nagent-client.test.mjs 全部通过（${passed} 项）`);

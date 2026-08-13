@@ -147,14 +147,20 @@
 - 前置：先治理 61 组后端重名（去重 / 修正店名），避免合并后计数漂移。
 - 红线：不得伪造外源坐标、不得引入密钥 / PII。详见 `datasource-reconcile.md`。
 
-### 7.4 探店采集（用户上传 + 高德校验）【新功能 · 待实施】
+### 7.4 探店采集（用户上传 + 高德校验）【已实施 · 2026-08-13】
 - **新形态（Robin 2026-08-13）**：前端新增「上传店铺」功能——用户填店铺（名称 / 地址或定位 / 描述 / 分类），提交后**后端调高德 API 自动校验**：
   - 高德搜到该店（POI 匹配）→ 入**正式数据库**；
   - 高德没搜到 → 看上传人描述：**流动摊 / 路边摊**类（描述明确）→ 也直接入正式库（坐标取上传定位，不伪造）；
   - 既搜不到、又非摊类 → 存为**待核验**数据并打标注，**不删除**，留待人工判断。
-- **依赖**：后端调高德需服务端 `高德 Key`（现有免费 Key，Robin 不重置；将置于 `.env`，不进前端 / 仓库）。若暂缺 Key，校验降级为「全部进待核验」。
-- **数据落点**：当下方进程 `:8799` 的 wuhan 数据源（或新增 merchant store）；待核验与正式分离存储。
+- **依赖**：后端调高德需服务端 `高德 Key`（Robin 2026-08-13 提供新的 Web 服务 Key，已验证可用、未降级，置于服务端 `.env` 的 `AMAP_SERVER_KEY`，不进前端 / 仓库）。若暂缺 Key，校验降级为「全部进待核验」。
+- **数据落点**：当下方进程 `:8799` 的 `merchant-uploads.json`（gitignored，verified / pending 分离数组），与 `ALL_MERCHANTS` 解耦；待核验与正式分离存储。
 - **价值**：把「探店采集」从「Robin 实地 + 脚本」变成「用户众包 + 智能体校验」，直接补 R3 数据完整度。
+- **实施要点 / 验收**：
+  - 后端 `hypha/implementation/src/upload.js` + `httpServer.js` 的 `POST /upload`；前端 `h5/src/ui/uploadShop.js`（h5 入口卡 + main 路由 + `app.css` 样式）。
+  - **相关性闸门（防误判，2026-08-13 修复）**：高德 `place/text` 模糊返回不简单等同「找到该店」。`verifyWithAmap` 须通过 ①店名相似度 ≥ 0.5（归一化 + bigram Jaccard + 包含判定）②若用户给了定位则 POI 须在其 3km 内，二者皆过才判定 `verified`；否则返回 null，逻辑自然落到 `verified_stall` / `pending`。
+  - **真跑三分支验收（真实 Key）**：①长子热干面→`verified`(10m)；②南湖后门流动煎饼摊·isStall→`verified_stall`；③zzz虚构店铺测试123·非摊→`pending`。均符合三分支契约。
+  - 设计先行：`docs/design/shop-upload-design.md` + `shop-upload-mockup.html`（子代理产出，已对齐契约）。
+  - 测试：`hypha/implementation/test/upload.test.mjs`（22 项）、`hypha/integration/agent-client.test.mjs`（含 `/upload` 路由契约，18 项）全绿。
 
 ### 7.5 增长实验【文件已删 · 2026-08-13】
 - Robin 决定删除增长框架 / 文案占位文件（`v3.4-growth-plan.md` / `v3.4-copywriting.md`），增长实验暂缓；待后续单独规划（试点校区 / 域名 / 节奏另议）。

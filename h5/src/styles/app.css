@@ -752,3 +752,65 @@ body {
 .gd-frow:last-child { border-bottom: none; }
 .gd-flabel { font-size: 13.5px; color: var(--ink-2); }
 .gd-fcount { font-size: 14px; color: var(--ink); font-variant-numeric: tabular-nums; font-weight: 600; }
+
+/* ============================================================
+   探店采集 · 用户上传店铺（SPEC §7.4）
+   ============================================================ */
+.upload-view { padding-bottom: 32px; }
+.upload-intro { padding: 16px 18px 4px; }
+.upload-intro-title { font-family: var(--font-display); font-size: 15px; color: var(--seal-red); }
+.upload-intro-text { font-size: 12px; color: var(--ink-2); margin-top: 4px; line-height: 1.5; }
+.upload-form { padding: 8px 18px 0; }
+.upload-field { display: flex; flex-direction: column; gap: 6px; }
+.upload-label { font-size: 13px; color: var(--ink-2); font-family: var(--font-body); }
+.upload-req { color: var(--seal-red); }
+.upload-textarea { resize: vertical; min-height: 88px; }
+.upload-addr-row { display: flex; gap: 8px; align-items: center; }
+.upload-addr-row .upload-input { flex: 1; min-width: 0; }
+.upload-loc-btn { flex: none; padding: 11px 14px; }
+.upload-loc-status { font-size: 11px; }
+.upload-toggle { flex-direction: row; align-items: center; justify-content: space-between; }
+.upload-toggle-text { display: flex; flex-direction: column; gap: 2px; }
+.upload-toggle-hint { font-size: 11px; color: var(--ink-2); }
+.upload-toggle-switch { position: relative; width: 46px; height: 26px; flex: none; }
+.upload-toggle-input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; z-index: 1; }
+.upload-toggle-slider { position: absolute; inset: 0; background: var(--line); border-radius: 999px; transition: background var(--dur-fast) var(--ease-out); }
+.upload-toggle-slider::after { content: ''; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: #fff; box-shadow: var(--shadow-sm); transition: transform var(--dur-fast) var(--ease-out); }
+.upload-toggle-input:checked + .upload-toggle-slider { background: var(--seal-red); }
+.upload-toggle-input:checked + .upload-toggle-slider::after { transform: translateX(20px); }
+.upload-submit { margin-top: 4px; }
+
+/* loading（印章红波纹 + 文案） */
+.upload-loading { position: fixed; inset: 0; background: rgba(247,241,230,.92); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; z-index: 40; }
+.seal-ripple { width: 48px; height: 48px; border-radius: 50%; background: var(--seal-red); position: relative; }
+.seal-ripple::after { content: ''; position: absolute; inset: -8px; border-radius: 50%; border: 2px solid var(--gold); opacity: .6; animation: ripple 1.2s ease-out infinite; }
+@keyframes ripple { from { transform: scale(.8); opacity: .6; } to { transform: scale(1.4); opacity: 0; } }
+.upload-loading-text { font-family: var(--font-body); color: var(--ink-2); font-size: 14px; }
+
+/* 结果视图 */
+.upload-result-badge { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 18px; border-radius: var(--r-lg); margin: 0 18px 14px; }
+.upload-result-ok, .upload-result-stall { background: rgba(192,57,43,.06); }
+.upload-result-pending { background: rgba(201,162,39,.10); }
+.upload-result-seal { width: 54px; height: 54px; border-radius: 14px; display: grid; place-items: center; font-family: var(--font-display); color: #fff; font-size: 28px; }
+.upload-result-ok .upload-result-seal, .upload-result-stall .upload-result-seal { background: var(--seal-red); }
+.upload-result-pending .upload-result-seal { background: var(--gold); }
+.upload-result-head { font-family: var(--font-display); font-size: 20px; }
+.upload-result-ok .upload-result-head, .upload-result-stall .upload-result-head { color: var(--seal-red); }
+.upload-result-pending .upload-result-head { color: var(--gold); }
+.upload-result-sub { font-size: 13px; color: var(--ink-2); }
+.upload-result-card { margin: 0 18px; }
+.upload-result-addr { font-size: 13px; color: var(--ink-2); margin-top: 4px; }
+.upload-result-dist { font-size: 12px; color: var(--ink-2); margin-top: 2px; }
+.upload-result-welcome { color: var(--seal-red); font-family: var(--font-display); font-size: 15px; margin-top: 6px; }
+.upload-result-keep { color: var(--ticket-green); font-size: 13px; margin-top: 6px; }
+.upload-result-actions { display: flex; flex-direction: column; gap: 10px; margin: 16px 18px 0; }
+
+/* 首页入口卡片 */
+.shop-upload-entry { margin: 16px 0; }
+.shop-entry-card { display: flex; align-items: center; gap: 12px; background: var(--paper-2); border: 1px solid var(--line); border-radius: var(--r-lg); padding: 14px 16px; box-shadow: var(--shadow-sm); cursor: pointer; transition: transform var(--dur-fast) var(--ease-out); }
+.shop-entry-card:active { transform: scale(.99); }
+.shop-entry-icon { width: 40px; height: 40px; border-radius: var(--r-sm); background: var(--seal-red); border: 2px solid var(--gold); display: grid; place-items: center; font-family: var(--font-display); color: #fff; font-size: 18px; flex: none; }
+.shop-entry-body { flex: 1; min-width: 0; }
+.shop-entry-title { font-family: var(--font-display); font-size: 16px; color: var(--ink); }
+.shop-entry-sub { font-size: 12px; color: var(--ink-2); margin-top: 2px; }
+.shop-entry-arrow { color: var(--seal-red); font-size: 20px; flex: none; }
