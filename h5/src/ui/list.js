@@ -2,6 +2,7 @@
 // 严格复用架构：纯逻辑在 core/query.js；本文件只做安全渲染（h()，无 innerHTML）。
 import { h, clear } from './dom.js';
 import { SearchBar } from './search.js';
+import { ConfidenceBadge } from './confidence.js';
 import { allMerchants as merchants } from '../data/all-merchants.js';
 import {
   filterMerchants, sortMerchants, listCategories, parsePrice, CAMPUS_COORDS, WUHAN_CENTER
@@ -38,7 +39,8 @@ export function MerchantCard(m, goDetail) {
     ]),
     h('div', { class: 'm-meta' }, [
       h('span', { class: 'm-tag', text: m.category || '其他' }),
-      h('span', { class: 'm-price', text: price != null ? `人均 ¥${price}` : '人均 待补' })
+      h('span', { class: 'm-price', text: price != null ? `人均 ¥${price}` : '人均 待补' }),
+      ConfidenceBadge(m)
     ]),
     m.signatureDishes
       ? h('div', { class: 'm-dishes', text: `招牌：${m.signatureDishes}` })

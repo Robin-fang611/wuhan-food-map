@@ -11,6 +11,7 @@ import { MapView } from './ui/map.js';
 import { AccountView } from './ui/account.js';
 import { RedeemConsole } from './ui/redeem.js';
 import { ReasoningPage } from './ui/reasoning.js';
+import { GrowthDashboard } from './ui/growth-dashboard.js';
 import './plays/index.js'; // 注册所有玩法插件（新增玩法只需在 plays/ 加文件并 register）
 
 const app = document.getElementById('app');
@@ -27,6 +28,7 @@ function goDetail(id) { detailId = id; view = 'detail'; render(); }
 function goMap() { view = 'map'; render(); }
 function goAccount() { view = 'account'; render(); }
 function goRedeem() { view = 'redeem'; render(); }
+function goGrowth() { view = 'growth'; render(); }
 // 从首页带初始问句跳转推理页（首页元素多，开始对话即切到沉浸式推理页）。
 function goReasoning(text) { reasoningInitial = text || null; view = 'reasoning'; render(); }
 
@@ -53,10 +55,13 @@ async function render() {
     app.appendChild(await AccountView({
       onBack: () => { view = 'home'; render(); },
       goDetail,
-      goRedeem
+      goRedeem,
+      goGrowth
     }));
   } else if (view === 'redeem') {
     app.appendChild(await RedeemConsole({ onBack: () => { view = 'home'; render(); } }));
+  } else if (view === 'growth') {
+    app.appendChild(await GrowthDashboard({ onBack: () => { view = 'home'; render(); } }));
   } else if (view === 'reasoning') {
     app.appendChild(await ReasoningPage({
       userId,

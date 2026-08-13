@@ -24,7 +24,7 @@ start() {  # name port cmd...
 start preview 5180 "$NODE" "$VITE" preview --port 5180 --host 127.0.0.1
 # 后端默认接真实武汉数据集（wuhan 数据源：590 真实商户，两类分区）。
 # 仅想跑演示合成数据时可临时：MYWO_DATASOURCE=sample bash start-dev.sh
-start backend 8799 env MYWO_PORT=8799 MYWO_DATASOURCE=wuhan "$NODE" "$ROOT/hypha/implementation/src/httpServer.js"
+start backend 8799 env MYWO_PORT=8799 MYWO_DATASOURCE=wuhan "$NODE" --env-file="$ROOT/.env" "$ROOT/hypha/implementation/src/httpServer.js"
 
 sleep 2
 echo "==> 健康检查:"

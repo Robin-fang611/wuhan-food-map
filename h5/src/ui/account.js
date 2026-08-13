@@ -8,7 +8,7 @@ import { allMerchants as merchants } from '../data/all-merchants.js';
 import { Wallet } from './home.js';
 import { analytics, EVENTS } from '../core/analytics.js';
 
-export async function AccountView({ onBack, goDetail, goRedeem }) {
+export async function AccountView({ onBack, goDetail, goRedeem, goGrowth }) {
   const root = h('div');
 
   async function mount() {
@@ -32,6 +32,13 @@ export async function AccountView({ onBack, goDetail, goRedeem }) {
     if (goRedeem) {
       root.appendChild(h('div', { class: 'section', style: 'padding-top:0' }, [
         h('button', { class: 'btn btn-ghost btn-block', text: '商家核销台（内部·v1.5）', style: 'margin-top:6px', onclick: () => goRedeem() })
+      ]));
+    }
+
+    // 增长看板入口（内部工具，v3.4）：只读本地埋点，不向外部上报。
+    if (goGrowth) {
+      root.appendChild(h('div', { class: 'section', style: 'padding-top:0' }, [
+        h('button', { class: 'btn btn-ghost btn-block', text: '增长看板（内部·v3.4）', style: 'margin-top:6px', onclick: () => goGrowth() })
       ]));
     }
   }

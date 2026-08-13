@@ -7,7 +7,7 @@
 - [x] **push 授权**：`git commit 0d38e8b`（数据层+算法层，111 文件）已提交本地。**已 push**（2026-08-13 Robin 授权，含本会话 roadmap/scripts/context-store）。
 - [x] **LLM 选型落地**：2026-08-13 定**先用 DeepSeek 付费档** + 允许实跑 `/agent` 实测成本/延迟（D-20260813-01）；可插拔接口保留，第二家延后。
 - [ ] **estimated 数据升级**：583 家 `estimated` 商户口味/环境为算法推导，待真实探店采集升级为 `verified`。当前诚实标注 `needsEnrichment:true`。
-- [ ] **前后端数据源口径统一**：后端 wuhan 数据源读 `merchants.js`（590/625），前端列表/地图用 `allMerchants`（832，含 robin-99/web-stalls）。Agent 返回 id 均⊂832，详情跳转不破；口径统一(832)可后续做。
+- [ ] **前后端数据源口径统一**：后端 wuhan 数据源读 `merchants.js`（实测 625），前端列表/地图用 `allMerchants`（实测 857，含 robin-99/web-stalls）。Agent 返回 id 均⊂857，详情跳转不破。（原记 832/590 已过时，以 `docs/datasource-reconcile.md` 实测为准）差异 = 前端独有 293（robin-99 87 + web-stalls 206，坐标全 null·无伪造）+ 后端内 61 组重名被合并去重吞掉；口径全量统一(改数据/构建)待 Robin 授权，reconcile 只读分析已于 2026-08-13 完成。
 - [ ] **M15 排行榜演进 + 新玩法**：legacy 路线图待开发。
 - [ ] **M16 手册互嵌**：legacy 路线图待开发。
 - [ ] **Hypha 3000 共享设施**：真·3000 原生运行时仍 BLOCKED（MCP 工具未注册/治理拒写动作），非本项目缺陷，且已放弃作为主路径（走自有 :8799 Path B）。仅记录，不投入。

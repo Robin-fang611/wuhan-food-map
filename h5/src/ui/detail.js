@@ -4,6 +4,7 @@
 // （uri.amap.com，无需 Key，不把密钥进前端，符合 §8）。
 
 import { h, toast } from './dom.js';
+import { confidenceInfo } from './confidence.js';
 import { allMerchants as merchants } from '../data/all-merchants.js';
 import { parsePrice, distKm, CAMPUS_COORDS, WUHAN_CENTER } from '../core/query.js';
 import { auth } from '../core/auth.js';
@@ -148,12 +149,19 @@ export async function MerchantDetail({ id, userId, onBack }) {
     h('div', { class: 'detail-block-title', text: '标签' }),
     h('div', { class: 'detail-tags' }, m.tags.map((t) => h('span', { class: 'm-tag', text: t })))
   ]));
-  // 资料置信度：诚实标注 verified（联网核验）/ estimated（算法推导，待核验），不夸大。
-  const conf = m.dataConfidence || 'estimated';
-  const confText = conf === 'verified' ? '已联网核验（武汉真实名店）' : '算法按品类推导 · 待探店核验';
-  info.appendChild(h('div', { class: `detail-block detail-confidence detail-confidence-${conf}` }, [
+  // 资料置信度：诚实标注 verified（已联网核验）/ partial（部分核验）/ estimated（算法推导·待核验），不夸大。
+  const ci = confidenceInfo(m);
+  const confText = ci.level === 'verified'
+    ? '已联网核验（武汉真实名店）'
+    : ci.level === 'partial'
+      ? '部分字段已核验 · 其余待探店核验'
+      : '算法按品类推导 · 待探店核验';
+  info.appendChild(h('div', { class: `detail-block detail-confidence detail-confidence-${ci.level}` }, [
     h('div', { class: 'detail-block-title', text: '资料置信度' }),
-    h('div', { class: 'detail-confidence-val', text: confText })
+    h('div', { class: 'detail-confidence-val', text: confText }),
+    ci.pending
+      ? h('div', { class: 'detail-confidence-hint', text: '资料待探店核验，欢迎反馈纠错' })
+      : null
   ]));
 
   root.appendChild(info);

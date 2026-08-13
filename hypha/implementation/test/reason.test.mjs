@@ -23,6 +23,7 @@ const ex = explainRecommendation(fake, {
 check(typeof ex.reason === 'string' && ex.reason.length > 0, 'explain.reason 非空');
 check(Array.isArray(ex.factors) && ex.factors.length > 0, 'explain.factors 为非空数组');
 check(ex.factors.every((f) => f.type && f.label && f.detail), '每个 factor 含 type/label/detail');
+check(ex.factors.every((f) => typeof f.weight === 'number' && f.weight >= 0), '每个 factor 含确定性 weight（V2.1 权重可视化）');
 check(ex.confidence === 'estimated', 'confidence 透传 estimated');
 check(typeof ex.scoreBreakdown.score === 'number' && ex.scoreBreakdown.score >= 0 && ex.scoreBreakdown.score <= 1, 'scoreBreakdown.score 在 [0,1]');
 const types = new Set(ex.factors.map((f) => f.type));
@@ -55,6 +56,7 @@ check(Array.isArray(m2.factors) && m2.factors.length > 0, 'wuhan 主推 factors 
 check(Array.isArray(r2.output.summary.decision.factors) && r2.output.summary.decision.factors.length > 0, 'decision.factors 非空（供时间线「为什么」）');
 const whyStep = (r2.trace.steps || []).find((s) => s.kind === 'why');
 check(!!whyStep && Array.isArray(whyStep.factors) && whyStep.factors.length > 0, 'trace 含「为什么推荐这家」步骤且带 factors');
+check(whyStep.factors.every((f) => typeof f.weight === 'number' && f.weight >= 0), 'trace factors 含 weight（前端时间线占比条）');
 
 // —— 5) 红线：输出不含 PII / 密钥回显 ——
 const blob = JSON.stringify(r2.output);

@@ -11,7 +11,7 @@ globalThis.localStorage = {
 
 const { store, DEMO_USER } = await import('../src/core/store.js');
 const { issueCoupon } = await import('../src/core/couponIssuer.js');
-const { normalizeCode, canRedeem, findCouponByCode, redeem } = await import('../src/core/redemption.js');
+const { normalizeCode, canRedeem, findCouponByCode, redeem, estimateCps, CPS_RATE_PLACEHOLDER } = await import('../src/core/redemption.js');
 
 let pass = 0, fail = 0;
 const ok = (c, m) => { if (c) { pass++; console.log('  PASS', m); } else { fail++; console.log('  FAIL', m); } };
@@ -50,6 +50,19 @@ ok(persisted && persisted.status === '已核销', '核销结果已持久化');
 const r2 = await redeem(issued.code, { now });
 ok(r2.ok === false, '重复核销被拒（幂等）');
 ok(r2.reason.includes('已核销'), '重复核销原因正确');
+
+// —— V3.3 CPS 分润占位 + 分润待结算标记 ——
+ok(estimateCps(30) === Math.round(30 * CPS_RATE_PLACEHOLDER * 100) / 100, 'estimateCps 按占位率预估面额 10%');
+ok(estimateCps(0) === 0 && estimateCps(-5) === 0, '非正面额预估为 0');
+ok(typeof estimateCps(30, 0.2) === 'number' && estimateCps(30, 0.2) > 0, '自定义费率可覆盖占位率');
+ok(r1.coupon.payout_status === '分润待结算', '核销后标记分润待结算');
+ok(typeof r1.coupon.cps_estimated_amount === 'number' && r1.coupon.cps_estimated_amount > 0, '写入预估 CPS 分润额');
+const persistedP = (await store.getCoupons(DEMO_USER)).find((c) => c.id === issued.id);
+ok(persistedP && persistedP.payout_status === '分润待结算', '分润待结算状态已持久化');
+// 零面额券 → 无分润(诚实不伪造)
+const zero = await issueCoupon(DEMO_USER, { title: '零面额', discountDesc: 'x', playType: 'checkin', amount: 0 });
+const rz = await redeem(zero.code, { now });
+ok(rz.ok === true && rz.coupon.payout_status === '无分润', '零面额券标记无分润');
 
 const r3 = await redeem('MYW-NOPE-NOPE', { now });
 ok(r3.ok === false && r3.reason.includes('不存在'), '未知码无法核销');

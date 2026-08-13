@@ -129,7 +129,12 @@ export function explainRecommendation(m, ctx = {}) {
 
   return {
     reason,
-    factors: factors.map((f) => ({ type: f.type, label: f.label, detail: f.detail })),
+    // V2.1 因子权重可视化：把确定性 WEIGHTS 挂到每个因子，供前端画「占比条形」。
+    // 注意：weight 仅作可解释展示，绝不参与真实排序/入选（防火墙，见 §8）。
+    factors: factors.map((f) => ({
+      type: f.type, label: f.label, detail: f.detail,
+      weight: Number((WEIGHTS[f.type] || 0).toFixed(2)),
+    })),
     scoreBreakdown: {
       score: Number(score.toFixed(2)),
       weights: factors.map((f) => ({ type: f.type, label: f.label, weight: Number((WEIGHTS[f.type] || 0).toFixed(2)) })),

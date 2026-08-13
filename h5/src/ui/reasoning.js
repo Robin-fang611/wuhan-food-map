@@ -217,6 +217,32 @@ export function ReasoningPage(ctx) {
     return chips.map((c) => h('span', { class: 'chat-chip', text: c }));
   }
 
+  // —— V2.1 因子权重可视化（条形/占比）——
+  // weight 来自 explain.js 确定性 WEIGHTS，仅作可解释展示，绝不参与排序/入选。
+  // confidence 因子是「资料待核验」提示，不计入占比分母（它不是正向推荐驱动）。
+  function factorWeightRows(factors) {
+    const list = Array.isArray(factors) ? factors : [];
+    const total = list
+      .filter((f) => f.type !== 'confidence')
+      .reduce((s, f) => s + (typeof f.weight === 'number' ? f.weight : 0), 0) || 1;
+    return h('div', { class: 'chat-factor-weights' }, list.map((f) => {
+      if (f.type === 'confidence') {
+        return h('div', { class: 'factor-wrow factor-wrow-cav' }, [
+          h('span', { class: 'chat-factor chat-factor-confidence', text: f.label }),
+        ]);
+      }
+      const w = typeof f.weight === 'number' ? f.weight : 0;
+      const pct = Math.round((w / total) * 100);
+      return h('div', { class: 'factor-wrow' }, [
+        h('span', { class: `chat-factor chat-factor-${f.type}`, text: f.label }),
+        h('div', { class: 'factor-wbar' }, [
+          h('div', { class: 'factor-wbar-fill', style: `width:${pct}%` }),
+        ]),
+        h('span', { class: 'factor-wpct', text: `${pct}%` }),
+      ]);
+    }));
+  }
+
   // —— 推理时间线（永远渲染；无 steps 时给确定性的兜底说明）——
   function renderTimeline(trace) {
     const steps = (trace && Array.isArray(trace.steps)) ? trace.steps : null;
@@ -238,14 +264,25 @@ export function ReasoningPage(ctx) {
         h('div', { class: 'reason-step-title', text: st.title || '' }),
         st.detail ? h('div', { class: 'reason-step-detail', text: st.detail }) : null,
       ];
-      // 「为什么推荐这家」：把逐店因子逐条列出，做到推荐理由完整透明。
+      // 「为什么推荐这家」：把逐店因子逐条列出，做到推荐理由完整透明；V2.1 附权重占比条。
       if (Array.isArray(st.factors) && st.factors.length) {
-        body.push(h('div', { class: 'reason-why-list' }, st.factors.map((f) =>
-          h('div', { class: 'reason-why-item' }, [
-            h('span', { class: 'reason-why-label', text: f.label }),
+        const whyTotal = st.factors
+          .filter((f) => f.type !== 'confidence')
+          .reduce((s, f) => s + (typeof f.weight === 'number' ? f.weight : 0), 0) || 1;
+        body.push(h('div', { class: 'reason-why-list' }, st.factors.map((f) => {
+          const w = typeof f.weight === 'number' ? f.weight : 0;
+          const pct = f.type === 'confidence' ? null : Math.round((w / whyTotal) * 100);
+          return h('div', { class: 'reason-why-item' }, [
+            h('span', { class: `chat-factor chat-factor-${f.type}`, text: f.label }),
             h('span', { class: 'reason-why-detail', text: f.detail }),
-          ])
-        )));
+            pct == null ? null : h('span', { class: 'factor-wbar-inline' }, [
+              h('span', { class: 'factor-wtrack' }, [
+                h('span', { class: 'factor-wbar-fill', style: `width:${pct}%` }),
+              ]),
+              h('span', { class: 'factor-wpct', text: `${pct}%` }),
+            ]),
+          ]);
+        })));
       }
       wrap.appendChild(h('div', { class: 'reason-step' }, [
         h('div', { class: 'reason-step-dot' }),
@@ -268,8 +305,7 @@ export function ReasoningPage(ctx) {
       sub ? h('div', { class: 'chat-main-sub', text: sub }) : null,
       m.reason ? h('div', { class: 'chat-main-reason', text: m.reason }) : null,
       factors && factors.length
-        ? h('div', { class: 'chat-main-factors' }, factors.slice(0, 5).map((f) =>
-            h('span', { class: `chat-factor chat-factor-${f.type}`, text: f.label })))
+        ? factorWeightRows(factors.slice(0, 5))
         : null,
     ]);
     const card = h('div', { class: 'chat-main-card', role: 'button', tabindex: '0' }, [

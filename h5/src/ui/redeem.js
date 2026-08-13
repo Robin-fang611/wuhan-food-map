@@ -26,7 +26,8 @@ export async function RedeemConsole(ctx = {}) {
         rdLine('券名', c.title || '优惠券'),
         rdLine('券码', c.code, true),
         rdLine('面额', `¥${c.amount || 0}`),
-        rdLine('核销时间', fmtTime(c.redeemed_at))
+        rdLine('核销时间', fmtTime(c.redeemed_at)),
+        rdLine('CPS 分润', c.payout_status === '无分润' ? '无分润' : `待结算 · 预估 ¥${c.cps_estimated_amount}（CPS）`)
       ]));
     } else {
       result.appendChild(h('div', { class: 'rd-fail card' }, [

@@ -12,6 +12,17 @@ import { store } from './store.js';
 
 const COUPON_PREFIX = 'myw:coupons:';
 
+// CPS 分润占位（V3.3）：真分润比例在 V4 BFF 后端配置；此处仅按占位率预估并标记"分润待结算"。
+// 不触碰真实资金 / 密钥 / 网络；预估值明确标注 estimated，绝不伪造真实分润。
+export const CPS_RATE_PLACEHOLDER = 0.1; // 预估:核销面额 10% 作为分润基数;真实比例 V4 由后端配置,此处仅为本地闭环演示
+
+// 纯函数:预估 CPS 分润金额(确定性,四舍五入到分)。amount 非正 → 0。
+export function estimateCps(amount, rate = CPS_RATE_PLACEHOLDER) {
+  const amt = Number(amount) || 0;
+  if (amt <= 0) return 0;
+  return Math.round(amt * rate * 100) / 100;
+}
+
 // 输入归一：去空白、转大写、仅保留字母数字与连字符（券码形如 MYW-XXXX-XXXX）。
 export function normalizeCode(raw) {
   if (raw == null) return '';
@@ -58,7 +69,14 @@ export async function redeem(code, opts = {}) {
   const coupon = findCouponByCode(code);
   const check = canRedeem(coupon, now);
   if (!check.ok) return { ok: false, reason: check.reason, coupon: coupon || null };
-  const patch = { status: '已核销', redeemed_at: now };
+  const cpsEstimated = estimateCps(coupon.amount);
+  const patch = {
+    status: '已核销',
+    redeemed_at: now,
+    // V3.3 CPS 闭环占位:核销即产生一笔待结算分润(真结算在 V4 BFF);预估额明确标注,不伪造。
+    payout_status: cpsEstimated > 0 ? '分润待结算' : '无分润',
+    cps_estimated_amount: cpsEstimated
+  };
   // v1.5：服务端按已验证商家会话记录 redeemed_by；原型不持密钥，仅留字段位。
   if (opts.operator) patch.redeemed_by = opts.operator;
   await store.updateCoupon(coupon.user_id, coupon.id, patch);

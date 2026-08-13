@@ -686,12 +686,40 @@ body {
 
 /* 推理时间线：为什么推荐这家 */
 .reason-why-list { margin-top: 6px; display: flex; flex-direction: column; gap: 4px; }
-.reason-why-item { display: flex; gap: 8px; align-items: baseline; }
+.reason-why-item { display: flex; gap: 8px; align-items: center; }
 .reason-why-label {
   flex: 0 0 auto; font-size: 11.5px; font-weight: 600; color: var(--seal-red);
   background: #fbeede; border: 1px solid #f3d8b8; border-radius: 6px; padding: 1px 6px;
 }
 .reason-why-detail { font-size: 12px; color: var(--ink-2); line-height: 1.5; }
+
+/* V2.1 因子权重可视化（条形/占比）：确定性 WEIGHTS，仅作可解释展示，不参与排序/入选 */
+.chat-factor-weights { display: flex; flex-direction: column; gap: 5px; margin-top: 6px; }
+.factor-wrow { display: flex; align-items: center; gap: 8px; }
+.factor-wrow .chat-factor { flex: 0 0 auto; }
+.factor-wbar {
+  flex: 1 1 auto; height: 6px; min-width: 48px;
+  background: var(--paper-2); border: 1px solid var(--line);
+  border-radius: 999px; overflow: hidden;
+}
+.factor-wbar-fill {
+  display: block; height: 100%;
+  background: linear-gradient(90deg, var(--gold), var(--seal-red));
+  border-radius: 999px;
+}
+.factor-wpct {
+  flex: 0 0 auto; min-width: 30px; text-align: right;
+  font-size: 11px; color: var(--ink-2); font-variant-numeric: tabular-nums;
+}
+.factor-wrow-cav .chat-factor { opacity: 0.92; }
+
+/* 时间线内联权重条 */
+.factor-wbar-inline { display: inline-flex; align-items: center; gap: 5px; margin-left: auto; }
+.factor-wtrack {
+  display: inline-block; width: 44px; height: 6px;
+  background: var(--paper-2); border: 1px solid var(--line);
+  border-radius: 999px; overflow: hidden; vertical-align: middle;
+}
 
 /* 详情页：增强字段 */
 .detail-ratings { display: flex; gap: 8px; flex-wrap: wrap; }
@@ -702,3 +730,25 @@ body {
 .detail-confidence-val { font-size: 12.5px; color: var(--ink-2); }
 .detail-confidence-verified .detail-confidence-val { color: #1f7a45; font-weight: 600; }
 .detail-confidence-estimated .detail-confidence-val { color: #6b7280; }
+.detail-confidence-partial .detail-confidence-val { color: #9a7d12; font-weight: 600; }
+.detail-confidence-hint { font-size: 11.5px; color: #8a8378; margin-top: 3px; }
+
+/* V2.2 真实性徽章（列表卡 .m-meta 内）：verified 绿 / partial 金 / estimated 灰。复用设计令牌，不写死色。 */
+.m-confidence {
+  font-size: 11px; line-height: 1; border-radius: 999px; padding: 2px 8px;
+  border: 1px solid transparent; white-space: nowrap; font-weight: 600;
+}
+.m-confidence-verified { color: #1f7a45; background: rgba(31,77,58,0.10); border-color: rgba(31,77,58,0.28); }
+.m-confidence-partial { color: #9a7d12; background: rgba(201,162,39,0.14); border-color: rgba(201,162,39,0.42); }
+.m-confidence-estimated { color: #6b7280; background: #eef0f3; border-color: #e0e3e8; }
+
+/* V3.4 增长看板：核心指标卡 + 漏斗行。复用设计令牌，不写死色。 */
+.gd-metrics { display: flex; gap: 10px; }
+.gd-metric { flex: 1 1 0; text-align: center; padding: 12px 6px; background: var(--paper-2); border: 1px solid var(--line); border-radius: var(--r-md); }
+.gd-metric-v { font-family: var(--font-display); font-size: 26px; color: var(--seal-red); line-height: 1.1; font-variant-numeric: tabular-nums; }
+.gd-metric-l { font-size: 13px; color: var(--ink); margin-top: 4px; }
+.gd-metric-s { font-size: 10.5px; margin-top: 2px; }
+.gd-frow { display: flex; align-items: center; justify-content: space-between; padding: 7px 2px; border-bottom: 1px solid var(--line); }
+.gd-frow:last-child { border-bottom: none; }
+.gd-flabel { font-size: 13.5px; color: var(--ink-2); }
+.gd-fcount { font-size: 14px; color: var(--ink); font-variant-numeric: tabular-nums; font-weight: 600; }
