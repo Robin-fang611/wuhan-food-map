@@ -162,6 +162,19 @@
   - 设计先行：`docs/design/shop-upload-design.md` + `shop-upload-mockup.html`（子代理产出，已对齐契约）。
   - 测试：`hypha/implementation/test/upload.test.mjs`（22 项）、`hypha/integration/agent-client.test.mjs`（含 `/upload` 路由契约，18 项）全绿。
 
+### 7.4.1 账号登录体系（手机验证码 + 图形验证码 + 微信）【已实施 · 2026-08-13】
+- **目标（Robin 决策）**：做「小程序式」登录——图形验证码（人机验证）+ 短信验证码（安全验证）+ 微信网页授权并行；密钥只在服务端，前端零密钥、零 innerHTML。
+- **后端（Path B，`:8799`，零外部依赖）**：`hypha/implementation/src/auth-server.js` + `httpServer.js` 路由：
+  - 图形验证码（人机验证）：服务端自绘 SVG（字母+数字，去除易混字符），一次性、5 分钟过期、常量时间比对；`POST /auth/captcha` 返回 `{token, svg}`（token 不含答案）。
+  - 短信验证码（安全验证）：`POST /auth/sms/send` 须先过图形验证，再走服务端频控（1 分钟 1 次 / 1 小时 ≤5 / 24 小时 ≤10）；6 位安全随机码、10 分钟过期、一次性失效、常量时间比对；返回 `{ok, devCode?}`。
+  - 登录：`POST /auth/login` 用短信码换 JWT（HMAC-SHA256 内联签发，零依赖，30 天）；返回 `{ok, token, user{id, nickname, phoneMasked}}`（**完整手机号永不下发前端**，隐私最小化）。
+  - 微信：`GET /auth/wechat/url`（拼授权页，AppSecret 仅服务端）+ `GET /auth/wechat/callback`（code→openid/unionid→JWT→302 回前端落地页带 token+state）；`GET /auth/me` 凭 token 取用户。
+  - **安全红线落地**：未配置 provider 时如实报错、不假装成功——生产环境（`NODE_ENV=production`）未配真实短信网关 → `/auth/sms/send` 报「短信服务未配置」；未配微信 AppID/AppSecret → 微信接口报「未配置」；未配 `AUTH_JWT_SECRET` → 不签发 token。JWT 密钥 / 微信 AppSecret / 短信密钥仅 env、不进前端不进仓库（`.env` 已 gitignore，`AUTH_JWT_SECRET` 为本地随机）。
+  - 存储为内存 Map（原型，重启清空；后续可平滑换 Redis/DB，接口不变）。
+- **前端（h5）**：`h5/src/api/auth-client.js`（封装 6 端点 + token 本地存取 + `apiBase` 可配）+ `h5/src/ui/login.js`（`LoginView`：手机+图形+短信+提交 状态机 + 微信按钮，全 `h()` 构建无 innerHTML）+ `h5/src/ui/account.js`（用 `LoginView` 替换原本地原型登录）+ `h5/src/core/auth.js`（`applyRemoteSession` 把后端会话写入本地存储，favorites/wallet 按 id 隔离零改动）+ `h5/src/main.js`（微信 callback 落地消费 token）+ `h5/src/config.js`（`VITE_API_BASE`）+ `h5/src/styles/app.css`（登录样式，全引用 tokens）。
+- **真跑验收（进程内单测 13/13 全绿 + 负路径 HTTP 200/400/401 实测）**：图形→短信(ok+devCode)→登录(ok+JWT+脱敏手机号)→`/me`(ok)；错误图形码→400「图形验证码错误」；无短信码登录→400「验证码不存在或已使用」；重复用码→400「已使用」；非法 token→`/me` 401；微信未配置→400「未配置」。
+- 设计先行：`docs/design/account-auth-design.md` + `account-auth-mockup.html`（子代理产出，已对齐契约）。
+
 ### 7.5 增长实验【文件已删 · 2026-08-13】
 - Robin 决定删除增长框架 / 文案占位文件（`v3.4-growth-plan.md` / `v3.4-copywriting.md`），增长实验暂缓；待后续单独规划（试点校区 / 域名 / 节奏另议）。
 

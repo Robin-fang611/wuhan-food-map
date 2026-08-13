@@ -818,3 +818,52 @@ body {
 .map-fab:active { transform: scale(.97); }
 .map-fab .fab-icon { font-size: 18px; line-height: 1; }
 .map-fab .fab-text { white-space: nowrap; }
+
+/* ===== 登录视图（小程序式：图形验证码 + 短信验证码 + 微信）===== */
+.login-view { padding: 0 18px; }
+.login-head { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 22px 0 18px; }
+.login-seal {
+  width: 44px; height: 44px; border-radius: 10px;
+  background: var(--seal-red); border: 2px solid var(--gold);
+  display: grid; place-items: center;
+  font-family: var(--font-display); color: #fff; font-size: 20px; line-height: 1;
+  box-shadow: var(--shadow-sm);
+}
+.login-title { font-family: var(--font-display); color: var(--ink); font-size: 22px; margin-top: 10px; }
+.login-sub { color: var(--ink-2); font-size: 12px; margin-top: 4px; }
+
+.login-form { display: flex; flex-direction: column; gap: 14px; }
+.login-field { display: flex; flex-direction: column; gap: 6px; }
+.login-label { font-size: 13px; color: var(--ink-2); font-family: var(--font-body); }
+
+.login-captcha-row { display: flex; align-items: center; gap: 8px; }
+.login-captcha-img {
+  width: 110px; height: 40px; flex: none;
+  border: 1px solid var(--line); border-radius: var(--r-sm); background: var(--paper-2);
+}
+.login-captcha-refresh { flex: none; padding: 9px 12px; font-size: 13px; }
+
+.login-sms-row { display: flex; align-items: center; gap: 8px; }
+.login-sms-row .login-input { flex: 1; min-width: 0; }
+.login-sms-btn { flex: none; padding: 11px 14px; font-size: 13px; white-space: nowrap; }
+.login-sms-btn:disabled { color: var(--ink-2); background: var(--paper-2); border-color: var(--line); cursor: not-allowed; }
+
+.login-submit { margin-top: 4px; }
+
+.login-divider {
+  text-align: center; color: var(--ink-2); font-size: 12px; margin: 18px 0 14px;
+  position: relative;
+}
+.login-divider::before, .login-divider::after {
+  content: ''; position: absolute; top: 50%; width: 28%; height: 1px; background: var(--line);
+}
+.login-divider::before { left: 0; }
+.login-divider::after { right: 0; }
+
+.login-wechat-btn {
+  background: #07c160; color: #fff; border: none;
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+}
+.login-wechat-btn:active { filter: brightness(.96); }
+
+.login-agreement { text-align: center; font-size: 11px; margin-top: 14px; }

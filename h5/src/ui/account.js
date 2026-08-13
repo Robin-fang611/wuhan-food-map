@@ -6,6 +6,8 @@ import { h, clear, toast } from './dom.js';
 import { auth, maskContact } from '../core/auth.js';
 import { allMerchants as merchants } from '../data/all-merchants.js';
 import { Wallet } from './home.js';
+import { LoginView } from './login.js';
+import * as authApi from '../api/auth-client.js';
 import { analytics, EVENTS } from '../core/analytics.js';
 
 export async function AccountView({ onBack, goDetail, goRedeem, goGrowth }) {
@@ -43,40 +45,12 @@ export async function AccountView({ onBack, goDetail, goRedeem, goGrowth }) {
     }
   }
 
-  // —— 登录/注册（前端原型：手机/邮箱建立本地身份，无密码）——
+  // —— 登录/注册（小程序式：图形验证码 + 短信验证码 + 微信，走后端 :8799）——
   function renderLogin() {
-    const wrap = h('div', { class: 'section', style: 'padding-top:0' }, [
-      h('h2', { text: '登录 / 注册' })
+    return h('div', { class: 'section', style: 'padding-top:0' }, [
+      h('h2', { text: '登录 / 注册' }),
+      h('div', { class: 'card' }, [ LoginView({ onLoggedIn: mount }) ]),
     ]);
-    const card = h('div', { class: 'card' });
-
-    const nick = h('input', { class: 'ac-input', type: 'text', placeholder: '昵称（必填）', maxlength: '20', 'aria-label': '昵称' });
-    const phone = h('input', { class: 'ac-input', type: 'tel', placeholder: '手机号', maxlength: '11', 'aria-label': '手机号' });
-    const email = h('input', { class: 'ac-input', type: 'email', placeholder: '邮箱（手机/邮箱二选一）', 'aria-label': '邮箱' });
-
-    const regBtn = h('button', { class: 'btn btn-primary btn-block', text: '注册并登录', style: 'margin-top:10px', onclick: async () => {
-      const r = await auth.register({ nickname: nick.value, phone: phone.value.trim(), email: email.value.trim() });
-      if (!r.ok) { toast(r.reason); return; }
-      toast(`欢迎，${r.user.nickname}！`);
-      mount();
-    } });
-    const loginBtn = h('button', { class: 'btn btn-ghost btn-block', text: '用手机/邮箱登录', style: 'margin-top:8px', onclick: async () => {
-      const r = await auth.loginWithPhoneEmail({ phone: phone.value.trim(), email: email.value.trim() });
-      if (!r.ok) { toast(r.reason); return; }
-      toast('登录成功');
-      mount();
-    } });
-    const wxBtn = h('button', { class: 'btn btn-ghost btn-block', text: '微信一键登录（即将上线）', style: 'margin-top:8px', onclick: async () => {
-      try { await auth.loginWithWechat(); }
-      catch (e) { toast('微信登录需 v1.5 后端授权'); }
-    } });
-
-    card.appendChild(h('div', { class: 'ac-form' }, [
-      nick, phone, email, regBtn, loginBtn, wxBtn,
-      h('div', { class: 'muted center', style: 'font-size:12px;margin-top:10px', text: '原型期无密码：仅建立本地身份，真鉴权将在 v1.5 上线' })
-    ]));
-    wrap.appendChild(card);
-    return wrap;
   }
 
   // —— 已登录：账号信息 + 退出 ——
@@ -84,11 +58,13 @@ export async function AccountView({ onBack, goDetail, goRedeem, goGrowth }) {
     const wrap = h('div', { class: 'section', style: 'padding-top:0' }, [
       h('h2', { text: '账号' })
     ]);
+    const contact = session.phoneMasked || maskContact(session.phone || session.email || '') || '未绑定联系方式';
     const card = h('div', { class: 'card' }, [
       h('div', { class: 'ac-name', text: session.nickname || '蛮友' }),
-      h('div', { class: 'muted', text: maskContact(session.phone || session.email || '') || '未绑定联系方式' }),
+      h('div', { class: 'muted', text: contact }),
       h('button', { class: 'btn btn-ghost btn-block', text: '退出登录', style: 'margin-top:12px', onclick: async () => {
         await auth.logout();
+        authApi.setStoredToken('');
         toast('已退出');
         mount();
       } })

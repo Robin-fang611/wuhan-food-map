@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>蛮有味 · 账号登录体系 · 设计原型</title>
+<style>
+  /* ===== 设计令牌（取自 h5/src/styles/tokens.css 真实变量值） ===== */
+  :root{
+    --seal-red:#C0392B; --seal-red-d:#9E2D22;
+    --ink:#1A1A1A; --ink-2:#5A524A;
+    --gold:#C9A227; --ticket-green:#1F4D3A;
+    --paper:#F7F1E6; --paper-2:#FBF7EF; --line:#E6DCC8;
+    --warm-orange:#E8743B; --warm-orange-d:#C85A2A;
+    --font-display:'LXGW WenKai','Ma Shan Zheng',STKaiti,KaiTi,'PingFang SC',serif;
+    --font-body:'LXGW WenKai','Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif;
+    --font-mono:'Space Mono',ui-monospace,Menlo,Consolas,monospace;
+    --r-lg:18px; --r-md:14px; --r-sm:10px; --gap:16px;
+    --shadow:0 6px 22px rgba(26,26,26,.08); --shadow-sm:0 2px 8px rgba(26,26,26,.06);
+    --maxw:480px;
+    --skeleton-base:rgba(26,26,26,.06); --skeleton-shine:rgba(255,255,255,.65);
+    --ease-out:cubic-bezier(.4,0,.2,1); --dur-fast:120ms; --dur-slow:320ms; --dur-base:240ms;
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper); color:var(--ink); font-family:var(--font-body); font-size:15px; line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+    background-image:radial-gradient(circle at 12% 8%,rgba(201,162,39,.06),transparent 38%),
+                     radial-gradient(circle at 88% 92%,rgba(192,57,43,.05),transparent 42%);
+  }
+  .stage-wrap{max-width:var(--maxw); margin:0 auto; padding:18px 0 40px;}
+
+  /* 分屏标签 */
+  .tabs{position:sticky; top:0; z-index:30; display:flex; gap:6px; padding:10px 14px;
+        background:rgba(251,247,239,.92); backdrop-filter:blur(8px); border-bottom:1px solid var(--line); flex-wrap:wrap;}
+  .tab{border:1px solid var(--line); background:var(--paper-2); color:var(--ink-2);
+       border-radius:999px; padding:6px 12px; font-size:12px; cursor:pointer; font-family:var(--font-body);}
+  .tab.active{background:var(--seal-red); color:#fff; border-color:var(--seal-red);}
+
+  .screen{margin:18px 14px; border:1px dashed var(--line); border-radius:var(--r-lg); padding:6px; background:rgba(255,255,255,.35);}
+  .screen-title{font-family:var(--font-display); color:var(--seal-red); font-size:15px; margin:6px 8px 10px;
+                display:flex; align-items:center; gap:8px;}
+  .screen-title .dot{width:8px; height:8px; border-radius:50%; background:var(--gold);}
+  .phone{border:1px solid var(--line); border-radius:var(--r-md); background:var(--paper); overflow:hidden; position:relative;}
+
+  /* 通用顶部条 */
+  .topbar{position:sticky; top:0; z-index:20; background:rgba(247,241,230,.92); backdrop-filter:blur(8px);
+          border-bottom:1px solid var(--line); padding:12px 18px; display:flex; align-items:center; justify-content:space-between;}
+  .brand{display:flex; align-items:center; gap:10px;}
+  .seal{width:38px; height:38px; border-radius:9px; background:var(--seal-red); border:2px solid var(--gold);
+        display:grid; place-items:center; font-family:var(--font-display); color:#fff; font-size:13px; box-shadow:var(--shadow-sm);}
+  .wordmark{font-family:var(--font-display); font-size:24px; color:var(--seal-red); letter-spacing:1px;}
+  .sub{font-size:11px; color:var(--ink-2); margin-top:-2px;}
+  .nav-btn{border:1px solid var(--line); background:var(--paper-2); color:var(--ink);
+           border-radius:999px; padding:6px 14px; font-size:13px; cursor:pointer; font-family:var(--font-body);}
+  .top-actions{display:flex; gap:8px;}
+
+  /* 登录标题区 */
+  .login-head{text-align:center; padding:28px 20px 10px;}
+  .login-seal{width:54px; height:54px; margin:0 auto 12px; border-radius:14px; background:var(--seal-red);
+              border:2px solid var(--gold); display:grid; place-items:center; font-family:var(--font-display);
+              color:#fff; font-size:24px; box-shadow:var(--shadow-sm);}
+  .login-title{font-family:var(--font-display); font-size:22px; color:var(--ink);}
+  .login-sub{font-size:12px; color:var(--ink-2); margin-top:2px;}
+
+  /* 表单 */
+  .ac-form{display:flex; flex-direction:column; gap:14px; padding:14px 18px;}
+  .login-field{display:flex; flex-direction:column; gap:6px;}
+  .login-label{font-size:13px; color:var(--ink-2); font-family:var(--font-body);}
+  .ac-input{width:100%; box-sizing:border-box; border:1px solid var(--line); border-radius:var(--r-sm);
+            background:var(--paper-2); color:var(--ink); padding:11px 14px; font-size:14px; font-family:var(--font-body); outline:none;}
+  .ac-input:focus{border-color:var(--seal-red); box-shadow:0 0 0 3px rgba(192,57,43,.12);}
+
+  /* 图形验证码行 */
+  .login-captcha-row{display:flex; gap:8px; align-items:center;}
+  .login-captcha-img{width:96px; height:38px; flex:none; border:1px solid var(--line); border-radius:var(--r-sm);
+                     background:var(--paper-2); cursor:pointer;}
+  .login-captcha-row .ac-input{flex:1; min-width:0;}
+  .btn{appearance:none; border:none; cursor:pointer; font-family:var(--font-body); font-weight:500;
+       border-radius:999px; padding:12px 18px; font-size:15px; transition:transform var(--dur-fast) var(--ease-out),filter var(--dur-fast) var(--ease-out);}
+  .btn:active{transform:scale(.97);}
+  .btn-primary{background:var(--seal-red); color:#fff; box-shadow:0 4px 14px rgba(192,57,43,.3);}
+  .btn-ghost{background:transparent; color:var(--seal-red); border:1px solid var(--seal-red);}
+  .btn-block{width:100%;}
+  .login-captcha-refresh{padding:8px 12px; font-size:13px; white-space:nowrap;}
+
+  /* 短信行 */
+  .login-sms-row{display:flex; gap:8px; align-items:center;}
+  .login-sms-row .ac-input{flex:1; min-width:0;}
+  .login-sms-btn{padding:10px 14px; font-size:13px; white-space:nowrap;}
+  .login-sms-btn:disabled{color:var(--ink-2); background:var(--paper-2); border-color:var(--line); box-shadow:none; cursor:not-allowed;}
+
+  /* 提交 */
+  .login-submit{margin-top:4px;}
+
+  /* 分隔符 */
+  .login-divider{display:flex; align-items:center; gap:12px; padding:6px 18px; color:var(--ink-2); font-size:12px;}
+  .login-divider::before, .login-divider::after{content:''; flex:1; height:1px; background:var(--line);}
+
+  /* 微信按钮 */
+  .login-wechat-btn{display:flex; align-items:center; justify-content:center; gap:8px;
+                    background:var(--ticket-green); color:#fff; box-shadow:0 4px 14px rgba(31,77,58,.25); margin:4px 18px 0;}
+  .login-wechat-btn:active{transform:scale(.97);}
+  .login-wechat-icon{width:20px; height:20px; display:grid; place-items:center; background:#fff; color:var(--ticket-green);
+                     border-radius:5px; font-family:var(--font-display); font-size:13px;}
+
+  /* 协议 */
+  .login-agreement{font-size:11px; color:var(--ink-2); padding:12px 18px 18px; line-height:1.5; text-align:center;}
+  .muted{color:var(--ink-2);}
+
+  /* 成功态 */
+  .login-success-badge{margin:16px 18px 0; padding:16px; border-radius:var(--r-lg); background:rgba(192,57,43,.06);
+                       display:flex; align-items:center; gap:14px;}
+  .login-success-seal{width:48px; height:48px; flex:none; border-radius:12px; display:grid; place-items:center;
+                      font-family:var(--font-display); color:#fff; font-size:22px; border:2px solid var(--gold);
+                      background:var(--seal-red);}
+  .login-success-head{font-family:var(--font-display); font-size:18px; color:var(--seal-red);}
+  .login-success-sub{font-size:12.5px; color:var(--ink-2); margin-top:2px;}
+  .card{background:var(--paper-2); border:1px solid var(--line); border-radius:var(--r-lg); padding:16px; box-shadow:var(--shadow-sm); margin:14px 18px;}
+  .login-welcome{font-family:var(--font-display); font-size:20px; color:var(--seal-red); text-align:center; margin:14px 18px 0;}
+  .detail-block{margin-top:12px;}
+  .detail-block:first-child{margin-top:0;}
+  .detail-block-title{font-size:12px; color:var(--ticket-green); margin-bottom:4px; font-weight:700;}
+  .detail-dishes{font-size:14px;}
+  .detail-reason{font-size:13px; color:var(--ink-2);}
+  .agent-guidance{font-size:13px; line-height:1.6; color:var(--ink-2); background:linear-gradient(0deg,rgba(190,30,40,.04),rgba(190,30,40,.04));
+                   border-left:3px solid var(--seal-red); border-radius:var(--r-sm); padding:8px 10px; margin:12px 0 0;}
+
+  /* loading 覆盖层 */
+  .login-loading{position:absolute; inset:0; min-height:360px; display:grid; place-items:center; background:rgba(247,241,230,.9);
+                 border-radius:var(--r-md); z-index:15;}
+  .seal-ripple{position:relative; width:64px; height:64px; margin-bottom:18px;}
+  .seal-ripple::before, .seal-ripple::after{content:''; position:absolute; inset:0; border-radius:50%;}
+  .seal-ripple::before{background:var(--seal-red);}
+  .seal-ripple::after{border:3px solid var(--gold); animation:ripple var(--dur-slow) var(--ease-out) infinite;}
+  @keyframes ripple{0%{transform:scale(1); opacity:.8;} 100%{transform:scale(2.2); opacity:0;}}
+  .loading-inner{display:flex; flex-direction:column; align-items:center;}
+  .loading-text{color:var(--ink-2); font-size:14px; font-family:var(--font-body);}
+
+  /* toast */
+  .toast{position:fixed; left:50%; bottom:40px; transform:translateX(-50%) translateY(20px); background:var(--ink); color:#fff;
+         padding:10px 18px; border-radius:999px; font-size:13px; z-index:60; box-shadow:var(--shadow); opacity:0;
+         transition:opacity var(--dur-base) var(--ease-out),transform var(--dur-base) var(--ease-out); pointer-events:none;}
+  .toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+
+  .legend{font-size:12px; color:var(--ink-2); padding:4px 18px 0; line-height:1.6;}
+  .note-mini{font-size:11px; color:var(--ink-2); padding:0 18px; line-height:1.5;}
+</style>
+</head>
+<body>
+<div class="tabs">
+  <span class="tab active" data-t="all">全部（纵向堆叠）</span>
+  <span class="tab" data-t="phone">① 手机登录页</span>
+  <span class="tab" data-t="wechat">② 微信登录入口</span>
+  <span class="tab" data-t="loading">③ 校验中</span>
+  <span class="tab" data-t="success">④ 成功态</span>
+</div>
+
+<div class="stage-wrap">
+
+  <!-- ========== 屏 ① 手机登录页（可交互） ========== -->
+  <div class="screen" data-screen="phone">
+    <div class="screen-title"><span class="dot"></span>① 手机登录页 · 图形验证码 + 短信倒计时（可点击体验）</div>
+    <div class="phone" id="phonePhone">
+
+      <div class="topbar">
+        <div class="brand"><div class="seal">味</div>
+          <div><div class="wordmark">蛮有味</div><div class="sub">武汉好吃的，真人探过的</div></div>
+        </div>
+        <div class="top-actions"><button class="nav-btn">返回</button></div>
+      </div>
+
+      <div class="login-head">
+        <div class="login-seal">味</div>
+        <div class="login-title">欢迎来到蛮有味</div>
+        <div class="login-sub">武汉好吃的，真人探过的</div>
+      </div>
+
+      <form class="ac-form" id="phoneForm" onsubmit="return false;">
+        <label class="login-field">
+          <span class="login-label">手机号</span>
+          <input class="ac-input" id="phoneInput" type="tel" inputmode="numeric" maxlength="11" placeholder="请输入手机号" aria-label="手机号" />
+        </label>
+
+        <label class="login-field">
+          <span class="login-label">图形验证（人机验证）</span>
+          <div class="login-captcha-row">
+            <img class="login-captcha-img" id="captchaImg" alt="图形验证码，请抄写图中的字母数字" width="96" height="38" title="点图可换一张" />
+            <input class="ac-input" id="captchaInput" type="text" inputmode="text" autocomplete="off" maxlength="6" placeholder="输入图中字符" aria-label="图形验证码" />
+            <button class="btn btn-ghost login-captcha-refresh" type="button" id="captchaRefresh">换一张</button>
+          </div>
+        </label>
+
+        <label class="login-field">
+          <span class="login-label">短信验证码</span>
+          <div class="login-sms-row">
+            <input class="ac-input" id="smsInput" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="6 位短信验证码" aria-label="短信验证码" />
+            <button class="btn btn-ghost login-sms-btn" type="button" id="smsBtn">获取短信验证码</button>
+          </div>
+        </label>
+
+        <button class="btn btn-primary btn-block login-submit" type="submit" id="submitBtn">登录 / 注册</button>
+      </form>
+
+      <div class="login-divider">或</div>
+      <button class="btn login-wechat-btn btn-block" type="button" id="wechatBtnPhone">
+        <span class="login-wechat-icon">微</span> 微信登录
+      </button>
+      <div class="login-agreement">登录即代表同意《用户协议》《隐私政策》</div>
+      <div class="note-mini">提示：先点「换一张」加载图形验证码；点「获取短信验证码」体验 60s 倒计时；图形码未填会被拦截。</div>
+    </div>
+  </div>
+
+  <!-- ========== 屏 ② 微信登录入口 ========== -->
+  <div class="screen" data-screen="wechat">
+    <div class="screen-title"><span class="dot"></span>② 微信登录入口 · snsapi_userinfo（前端仅跳转授权页）</div>
+    <div class="phone">
+      <div class="topbar">
+        <div class="brand"><div class="seal">味</div>
+          <div><div class="wordmark">蛮有味</div><div class="sub">武汉好吃的，真人探过的</div></div>
+        </div>
+        <div class="top-actions"><button class="nav-btn">返回</button></div>
+      </div>
+
+      <div class="login-head">
+        <div class="login-seal">味</div>
+        <div class="login-title">换种方式登录</div>
+        <div class="login-sub">已登录微信？一键授权即可</div>
+      </div>
+
+      <form class="ac-form" onsubmit="return false;">
+        <label class="login-field">
+          <span class="login-label">手机号</span>
+          <input class="ac-input" type="tel" placeholder="请输入手机号" disabled />
+        </label>
+        <label class="login-field">
+          <span class="login-label">图形验证（人机验证）</span>
+          <div class="login-captcha-row">
+            <img class="login-captcha-img" alt="图形验证码" width="96" height="38" style="opacity:.5;" />
+            <input class="ac-input" type="text" placeholder="输入图中字符" disabled />
+            <button class="btn btn-ghost login-captcha-refresh" type="button" disabled>换一张</button>
+          </div>
+        </label>
+        <button class="btn btn-primary btn-block login-submit" type="button" disabled>登录 / 注册</button>
+      </form>
+
+      <div class="login-divider">或</div>
+      <button class="btn login-wechat-btn btn-block" type="button" id="wechatBtnMain">
+        <span class="login-wechat-icon">微</span> 微信登录
+      </button>
+      <div class="login-agreement">微信登录即授权蛮有味获取你的微信昵称与头像（snsapi_userinfo）。AppSecret 仅服务端持有，前端不接触。</div>
+      <div class="note-mini">点击「微信登录」将向后端要授权页 URL 并跳转；未配置微信 provider 时后端会明确报错，前端如实提示，不假装成功。</div>
+    </div>
+  </div>
+
+  <!-- ========== 屏 ③ 校验中 loading ========== -->
+  <div class="screen" data-screen="loading">
+    <div class="screen-title"><span class="dot"></span>③ 校验中 · 提交 /auth/login 后印章红波纹</div>
+    <div class="phone">
+      <div class="topbar">
+        <div class="brand"><div class="seal">味</div>
+          <div><div class="wordmark">蛮有味</div><div class="sub">武汉好吃的，真人探过的</div></div>
+        </div>
+        <div class="top-actions"><button class="nav-btn">返回</button></div>
+      </div>
+      <div class="login-loading">
+        <div class="loading-inner">
+          <div class="seal-ripple"></div>
+          <div class="loading-text">正在登录，请稍候…</div>
+        </div>
+      </div>
+      <div class="legend">提交 /auth/login 后表单禁用、按钮置 loading；此处为覆盖层，失败则回到手机登录页（error 态 toast），不假装成功。</div>
+    </div>
+  </div>
+
+  <!-- ========== 屏 ④ 成功态 ========== -->
+  <div class="screen" data-screen="success">
+    <div class="screen-title"><span class="dot"></span>④ 成功态 · 欢迎语 + 脱敏用户信息（loggedIn）</div>
+    <div class="phone">
+      <div class="topbar">
+        <div class="brand"><div class="seal">味</div>
+          <div><div class="wordmark">蛮有味</div><div class="sub">武汉好吃的，真人探过的</div></div>
+        </div>
+        <div class="top-actions"><button class="nav-btn">我的</button></div>
+      </div>
+
+      <div class="login-success-badge">
+        <div class="login-success-seal">味</div>
+        <div><div class="login-success-head">登录成功</div>
+             <div class="login-success-sub">欢迎回来，武汉吃货</div></div>
+      </div>
+
+      <div class="login-welcome">欢迎来到蛮有味 🍜</div>
+
+      <div class="card">
+        <div class="detail-block">
+          <div class="detail-block-title">登录账号</div>
+          <div class="detail-dishes">武汉吃货</div>
+          <div class="detail-reason">手机号：138****1111（已脱敏）</div>
+        </div>
+        <div class="agent-guidance">JWT 登录态已存入本地（前端仅持有 token，不持有任何密钥）。微信 openid/unionid 仅服务端可见。</div>
+      </div>
+
+      <div class="ac-form" style="padding-top:0;">
+        <button class="btn btn-primary btn-block" type="button">进入首页</button>
+      </div>
+      <div class="note-mini">成功态展示昵称与脱敏手机号（138****1111）；不展示完整手机号、不展示 openid/unionid，符合数据安全约束。</div>
+    </div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+  // ===== 仅用于原型交互演示，无后端、无业务；符合 h() 安全约束（动态文案走 textContent，无 innerHTML） =====
+  var toastEl = document.getElementById('toast');
+  var toastTimer = null;
+  function toast(msg){
+    toastEl.textContent = msg;
+    toastEl.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function(){ toastEl.classList.remove('show'); }, 2000);
+  }
+
+  // 图形验证码样本（服务端自绘 svg，无外部依赖；此处为静态示意 data URI）
+  var captchas = [
+    "data:image/svg+xml;utf8," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="96" height="38"><rect width="96" height="38" fill="%23FBF7EF"/><text x="14" y="26" font-size="22" fill="%23C0392B" font-family="monospace">A3k9</text><text x="52" y="26" font-size="22" fill="%23C9A227" font-family="monospace">Z</text></svg>'),
+    "data:image/svg+xml;utf8," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="96" height="38"><rect width="96" height="38" fill="%23FBF7EF"/><text x="12" y="26" font-size="20" fill="%231F4D3A" font-family="monospace">7mQ2</text></svg>'),
+    "data:image/svg+xml;utf8," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="96" height="38"><rect width="96" height="38" fill="%23FBF7EF"/><text x="16" y="27" font-size="22" fill="%23C0392B" font-family="monospace">xK4p</text></svg>')
+  ];
+  var capIdx = 0;
+  var captchaImg = document.getElementById('captchaImg');
+  function refreshCaptcha(){
+    captchaImg.src = captchas[capIdx % captchas.length];
+    capIdx++;
+    sessionStorage.setItem('captchaToken','cap_demo_' + capIdx); // 仅 token 不含答案
+  }
+  refreshCaptcha();
+  captchaImg.addEventListener('click', refreshCaptcha);
+  document.getElementById('captchaRefresh').addEventListener('click', refreshCaptcha);
+
+  // 短信倒计时
+  var smsBtn = document.getElementById('smsBtn');
+  var counting = false;
+  document.getElementById('smsBtn').addEventListener('click', function(){
+    if(counting) return;
+    var phone = document.getElementById('phoneInput').value.trim();
+    var cap = document.getElementById('captchaInput').value.trim();
+    if(!/^1\d{10}$/.test(phone)){ toast('请输入正确的 11 位手机号'); return; }
+    if(!cap){ toast('请先完成图形验证'); return; }
+    // 演示：模拟后端 ok → 进入 smsSent 态（60s 倒计时）
+    counting = true;
+    var left = 60;
+    smsBtn.disabled = true;
+    smsBtn.textContent = left + 's 后重发';
+    toast('短信已发送，请查收（演示）');
+    var t = setInterval(function(){
+      left--;
+      if(left <= 0){ clearInterval(t); counting = false; smsBtn.disabled = false; smsBtn.textContent = '获取短信验证码'; }
+      else { smsBtn.textContent = left + 's 后重发'; }
+    }, 1000);
+  });
+
+  // 提交（演示 → 跳到成功态 tab）
+  document.getElementById('phoneForm').addEventListener('submit', function(){
+    var phone = document.getElementById('phoneInput').value.trim();
+    var sms = document.getElementById('smsInput').value.trim();
+    if(!/^1\d{10}$/.test(phone)){ toast('请输入正确的 11 位手机号'); return; }
+    if(!/^\d{6}$/.test(sms)){ toast('请输入 6 位短信验证码'); return; }
+    toast('登录成功（演示）');
+    setTimeout(function(){ document.querySelector('.tab[data-t="success"]').click(); }, 400);
+  });
+
+  // 微信登录（演示：如实提示，不假装跳转）
+  function wechatDemo(){
+    toast('向后端请求授权页 URL…（演示：未配置则如实报错）');
+  }
+  document.getElementById('wechatBtnPhone').addEventListener('click', wechatDemo);
+  document.getElementById('wechatBtnMain').addEventListener('click', wechatDemo);
+
+  // tab 切换
+  document.querySelectorAll('.tab').forEach(function(t){
+    t.addEventListener('click', function(){
+      document.querySelectorAll('.tab').forEach(function(x){x.classList.remove('active');});
+      t.classList.add('active');
+      var key = t.getAttribute('data-t');
+      document.querySelectorAll('.screen').forEach(function(s){
+        if(key === 'all'){ s.style.display = ''; }
+        else { s.style.display = (s.getAttribute('data-screen') === key) ? '' : 'none'; }
+      });
+    });
+  });
+</script>
+</body>
+</html>

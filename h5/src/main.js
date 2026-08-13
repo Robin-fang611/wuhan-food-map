@@ -13,6 +13,7 @@ import { RedeemConsole } from './ui/redeem.js';
 import { ReasoningPage } from './ui/reasoning.js';
 import { GrowthDashboard } from './ui/growth-dashboard.js';
 import { UploadShop } from './ui/uploadShop.js';
+import * as authApi from './api/auth-client.js';
 import './plays/index.js'; // 注册所有玩法插件（新增玩法只需在 plays/ 加文件并 register）
 
 const app = document.getElementById('app');
@@ -97,4 +98,26 @@ async function render() {
   }
 }
 
+// 微信回跳落地：/auth/wechat/callback 302 到 ?cb=wechat&token=&state= 时，校验 state 后把 token 写入本地会话。
+// 失败/不一致只 toast，不假装成功（安全红线）。
+function consumeWechatCallback() {
+  const sp = new URLSearchParams(location.search);
+  if (sp.get('cb') !== 'wechat') return;
+  const token = sp.get('token') || '';
+  const state = sp.get('state') || '';
+  const saved = sessionStorage.getItem('wechatState');
+  history.replaceState(null, '', location.pathname + location.hash); // 清理 URL，避免刷新重复消费
+  if (!token || state !== saved) { toast('微信登录校验失败'); return; }
+  authApi.getMe(token).then((r) => {
+    if (r && r.ok) {
+      auth.applyRemoteSession({ id: r.user.id, nickname: r.user.nickname, phoneMasked: r.user.phoneMasked, token });
+      authApi.setStoredToken(token);
+      toast(`欢迎，${r.user.nickname}！`);
+    } else {
+      toast('微信登录失败');
+    }
+  }).catch(() => toast('微信登录失败'));
+}
+
+consumeWechatCallback();
 render();

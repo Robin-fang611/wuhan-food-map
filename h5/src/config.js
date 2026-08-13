@@ -24,7 +24,13 @@ const amapSecurityCode =
 const tongjiId =
   (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_TONGJI_ID) || null;
 
+// 自有 Node 后端基址（Path B，:8799）：账号体系 / Agent / 上传 等接口统一前缀。
+// 经 env 注入（Vite 约定），未配置时兜底本机 8799；绝不硬编码 Key，仅前端持有「登录态 token」。
+const apiBase =
+  (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_API_BASE) || 'http://127.0.0.1:8799';
+
 globalThis.__MANYOUWEI_CONFIG__ = globalThis.__MANYOUWEI_CONFIG__ || {};
 globalThis.__MANYOUWEI_CONFIG__.amapJsKey = globalThis.__MANYOUWEI_CONFIG__.amapJsKey || amapJsKey;
 globalThis.__MANYOUWEI_CONFIG__.amapSecurityCode = globalThis.__MANYOUWEI_CONFIG__.amapSecurityCode || amapSecurityCode;
 globalThis.__MANYOUWEI_CONFIG__.tongjiId = globalThis.__MANYOUWEI_CONFIG__.tongjiId || tongjiId;
+globalThis.__MANYOUWEI_CONFIG__.apiBase = globalThis.__MANYOUWEI_CONFIG__.apiBase || apiBase;

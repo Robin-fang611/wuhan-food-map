@@ -154,6 +154,21 @@ export class LocalAuthProvider extends BaseAuth {
 
   async logout() { this.storage.removeItem(SKEY); this._emit(); return { ok: true }; }
 
+  // BFF 登录后把后端会话写入本地存储（favorites/wallet 按 id 隔离继续工作，零改动）。
+  // 后端只回传脱敏手机号(phoneMasked)，完整手机号永不落地前端（隐私最小化）。
+  applyRemoteSession(session) {
+    if (!session || !session.id) return { ok: false, reason: '无效会话' };
+    this._saveSession({
+      id: session.id,
+      nickname: session.nickname || '蛮友',
+      phone: null,
+      phoneMasked: session.phoneMasked || '',
+      token: session.token || null,     // 后端签发的 JWT；仅前端持有登录态，不含任何密钥
+      created_at: session.created_at || Date.now(),
+    });
+    return { ok: true };
+  }
+
   _readFav(key) {
     try { const v = this.storage.getItem(key); return v ? JSON.parse(v) : []; }
     catch { return []; }

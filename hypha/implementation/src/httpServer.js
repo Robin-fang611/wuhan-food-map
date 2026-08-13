@@ -22,6 +22,9 @@ import rewardWallet from './tools/wallet.js';
 import rewardClaim from './tools/claim.js';
 import analyticsTrack from './tools/track.js';
 import { handleUpload } from './upload.js';
+import {
+  createCaptcha, sendSms, loginWithPhone, getUserByToken, wechatAuthorizeUrl, wechatCallback,
+} from './auth-server.js';
 
 // 工具表：id -> handler（对齐 domain.yaml 的 10 个 ToolSpec）。
 const TOOLS = {
@@ -126,6 +129,57 @@ const server = createServer(async (req, res) => {
     } catch (err) {
       return send(res, 400, { success: false, error: 'upload 失败', detail: String(err && err.message || err) });
     }
+  }
+
+  // ===== 账号体系（图形验证码 + 短信验证码 + 手机登录 + 微信授权）=====
+  // POST /auth/captcha —— 图形验证码（人机验证，服务端自绘 SVG）
+  if (req.method === 'POST' && url.pathname === '/auth/captcha') {
+    try {
+      const c = createCaptcha();
+      return send(res, 200, { token: c.token, svg: c.svg });
+    } catch (err) {
+      return send(res, 500, { ok: false, error: '验证码生成失败', detail: String(err && err.message || err) });
+    }
+  }
+  // POST /auth/sms/send —— 发送短信验证码（先过图形验证 + 频控；未配置 provider 如实报错）
+  if (req.method === 'POST' && url.pathname === '/auth/sms/send') {
+    const input = await readBody(req);
+    if (!input || typeof input !== 'object') return send(res, 400, { ok: false, error: '请求体非 JSON' });
+    const r = await sendSms(input);
+    return send(res, r.ok ? 200 : 400, r);
+  }
+  // POST /auth/login —— 手机验证码登录 / 注册，签发 JWT
+  if (req.method === 'POST' && url.pathname === '/auth/login') {
+    const input = await readBody(req);
+    if (!input || typeof input !== 'object') return send(res, 400, { ok: false, error: '请求体非 JSON' });
+    try {
+      const r = loginWithPhone(input);
+      return send(res, r.ok ? 200 : 400, r);
+    } catch (err) {
+      return send(res, 500, { ok: false, error: '登录服务异常', detail: String(err && err.message || err) });
+    }
+  }
+  // GET /auth/wechat/url —— 微信网页授权页 URL（AppSecret 仅服务端）
+  if (req.method === 'GET' && url.pathname === '/auth/wechat/url') {
+    const state = url.searchParams.get('state') || '';
+    const r = wechatAuthorizeUrl(state);
+    return send(res, r.ok ? 200 : 400, r);
+  }
+  // GET /auth/wechat/callback —— code 换 token 后重定向到前端落地页（带 token+state）
+  if (req.method === 'GET' && url.pathname === '/auth/wechat/callback') {
+    const code = url.searchParams.get('code') || '';
+    const state = url.searchParams.get('state') || '';
+    const r = await wechatCallback(code, state);
+    if (!r.ok || !r.redirect) return send(res, 400, r);
+    res.writeHead(302, { Location: r.redirect });
+    return res.end();
+  }
+  // GET /auth/me —— 凭 token 取当前用户（微信回跳等场景补齐会话）
+  if (req.method === 'GET' && url.pathname === '/auth/me') {
+    const authz = req.headers['authorization'] || '';
+    const token = authz.startsWith('Bearer ') ? authz.slice(7) : '';
+    const u = getUserByToken(token);
+    return send(res, u ? 200 : 401, u ? { ok: true, user: u } : { ok: false, error: '未登录或登录已过期' });
   }
 
   // /memory/:sessionId —— 后端化口味档案（R5）
