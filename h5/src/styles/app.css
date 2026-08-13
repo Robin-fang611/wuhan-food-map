@@ -805,12 +805,16 @@ body {
 .upload-result-keep { color: var(--ticket-green); font-size: 13px; margin-top: 6px; }
 .upload-result-actions { display: flex; flex-direction: column; gap: 10px; margin: 16px 18px 0; }
 
-/* 首页入口卡片 */
-.shop-upload-entry { margin: 16px 0; }
-.shop-entry-card { display: flex; align-items: center; gap: 12px; background: var(--paper-2); border: 1px solid var(--line); border-radius: var(--r-lg); padding: 14px 16px; box-shadow: var(--shadow-sm); cursor: pointer; transition: transform var(--dur-fast) var(--ease-out); }
-.shop-entry-card:active { transform: scale(.99); }
-.shop-entry-icon { width: 40px; height: 40px; border-radius: var(--r-sm); background: var(--seal-red); border: 2px solid var(--gold); display: grid; place-items: center; font-family: var(--font-display); color: #fff; font-size: 18px; flex: none; }
-.shop-entry-body { flex: 1; min-width: 0; }
-.shop-entry-title { font-family: var(--font-display); font-size: 16px; color: var(--ink); }
-.shop-entry-sub { font-size: 12px; color: var(--ink-2); margin-top: 2px; }
-.shop-entry-arrow { color: var(--seal-red); font-size: 20px; flex: none; }
+/* 地图页「贡献野店」浮动按钮（不抢地图主内容；详见 SPEC §7.4） */
+.map-fab {
+  position: fixed; right: 16px; bottom: 18px; z-index: 30;
+  display: inline-flex; align-items: center; gap: 8px;
+  background: var(--seal-red); color: #fff; border: 2px solid var(--gold);
+  border-radius: 999px; padding: 11px 18px;
+  font-family: var(--font-display); font-size: 15px; line-height: 1;
+  box-shadow: var(--shadow-md); cursor: pointer;
+  transition: transform var(--dur-fast) var(--ease-out);
+}
+.map-fab:active { transform: scale(.97); }
+.map-fab .fab-icon { font-size: 18px; line-height: 1; }
+.map-fab .fab-text { white-space: nowrap; }

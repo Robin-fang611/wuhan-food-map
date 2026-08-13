@@ -105,7 +105,7 @@ function loadAmap(key, securityCode) {
 
 // 地图视图组件（辅助：在导航前「看位置」）。
 // 策略：配置了高德 Key → 加载真实瓦片地图；无 Key / 加载失败 → 自动降级到离线坐标图（不白屏）。
-export async function MapView({ zone = '武汉全城', goDetail, onBack } = {}) {
+export async function MapView({ zone = '武汉全城', goDetail, onBack, goUpload } = {}) {
   const root = h('div');
   const state = { zone, selectedId: null, map: null };
 
@@ -214,6 +214,17 @@ export async function MapView({ zone = '武汉全城', goDetail, onBack } = {}) 
           : h('span', { class: 'muted', text: '导航暂不可用（缺坐标）' }),
         goDetail ? h('button', { class: 'btn btn-ghost', type: 'button', text: '查看详情', onclick: () => goDetail(m.id) }) : null
       ])
+    ]));
+  }
+
+  // 探店采集浮动入口（地图页「看位置」场景自然，不抢首页主流量；详见 SPEC §7.4 / docs/design）
+  if (goUpload) {
+    root.appendChild(h('button', {
+      class: 'map-fab', type: 'button', 'aria-label': '贡献野店',
+      onclick: () => goUpload()
+    }, [
+      h('span', { class: 'fab-icon', text: '献' }),
+      h('span', { class: 'fab-text', text: '贡献野店' })
     ]));
   }
 

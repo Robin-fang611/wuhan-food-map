@@ -51,7 +51,8 @@ async function render() {
   } else if (view === 'map') {
     app.appendChild(await MapView({
       goDetail,
-      onBack: () => { view = 'home'; render(); }
+      onBack: () => { view = 'home'; render(); },
+      goUpload: () => goUpload()
     }));
   } else if (view === 'account') {
     app.appendChild(await AccountView({

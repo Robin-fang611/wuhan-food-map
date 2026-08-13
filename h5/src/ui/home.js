@@ -18,7 +18,7 @@ const HOME_QUICK = [
 ];
 
 export async function Home(ctx) {
-  const { userId, goWallet, goMap, goAccount, refresh, goDetail, goRedeem, goReasoning, goUpload } = ctx;
+  const { userId, goWallet, goMap, goAccount, refresh, goDetail, goRedeem, goReasoning } = ctx;
   const root = h('div', { class: 'home-landing' });
 
   // —— 顶部品牌条 ——
@@ -61,21 +61,6 @@ export async function Home(ctx) {
       }))
     ),
     h('div', { class: 'home-hero-note', text: '真人探过的，不恰饭 · 排序永不被出价影响' }),
-  ]));
-
-  // 探店采集入口（英雄区下方，顺承「不恰饭」信任调性；详见 SPEC §7.4 / docs/design）
-  root.appendChild(h('div', { class: 'section shop-upload-entry' }, [
-    h('div', { class: 'shop-entry-card', role: 'button', tabindex: '0',
-      onclick: () => goUpload && goUpload(),
-      onkeydown: (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); goUpload && goUpload(); } }
-    }, [
-      h('div', { class: 'shop-entry-icon', text: '献' }),
-      h('div', { class: 'shop-entry-body' }, [
-        h('div', { class: 'shop-entry-title', text: '发现野店？贡献给蛮有味' }),
-        h('div', { class: 'shop-entry-sub', text: '街边摊、新开张、高德没挂的——你报，我们核' })
-      ]),
-      h('div', { class: 'shop-entry-arrow', text: '→' })
-    ])
   ]));
 
   // —— 其余产品元素（首页还有好多内容）——

@@ -156,7 +156,7 @@
 - **数据落点**：当下方进程 `:8799` 的 `merchant-uploads.json`（gitignored，verified / pending 分离数组），与 `ALL_MERCHANTS` 解耦；待核验与正式分离存储。
 - **价值**：把「探店采集」从「Robin 实地 + 脚本」变成「用户众包 + 智能体校验」，直接补 R3 数据完整度。
 - **实施要点 / 验收**：
-  - 后端 `hypha/implementation/src/upload.js` + `httpServer.js` 的 `POST /upload`；前端 `h5/src/ui/uploadShop.js`（h5 入口卡 + main 路由 + `app.css` 样式）。
+  - 后端 `hypha/implementation/src/upload.js` + `httpServer.js` 的 `POST /upload`；前端 `h5/src/ui/uploadShop.js`（上传表单/结果态视图 + main 路由 + `app.css` 样式）。**入口位置（Robin 2026-08-13 决策）：放在地图页右下浮动按钮（`.map-fab`，`map.js` 内），不在首页——避免抢占首页主流量；首页 `home.js` 已移除该入口。**
   - **相关性闸门（防误判，2026-08-13 修复）**：高德 `place/text` 模糊返回不简单等同「找到该店」。`verifyWithAmap` 须通过 ①店名相似度 ≥ 0.5（归一化 + bigram Jaccard + 包含判定）②若用户给了定位则 POI 须在其 3km 内，二者皆过才判定 `verified`；否则返回 null，逻辑自然落到 `verified_stall` / `pending`。
   - **真跑三分支验收（真实 Key）**：①长子热干面→`verified`(10m)；②南湖后门流动煎饼摊·isStall→`verified_stall`；③zzz虚构店铺测试123·非摊→`pending`。均符合三分支契约。
   - 设计先行：`docs/design/shop-upload-design.md` + `shop-upload-mockup.html`（子代理产出，已对齐契约）。
