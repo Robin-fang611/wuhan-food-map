@@ -589,6 +589,14 @@ body {
 }
 .home-quick-chip:active { border-color: var(--seal-red); color: var(--seal-red); }
 .home-hero-note { margin-top: 14px; font-size: 12px; color: var(--ink-2); opacity: .85; }
+.home-entry-bar { display: flex; gap: 10px; justify-content: center; margin: 18px auto 0; flex-wrap: wrap; }
+.home-entry-chip {
+  border: 1px solid var(--line); background: #fff; color: var(--ink-1);
+  border-radius: 999px; padding: 8px 22px; font-family: var(--font-display); font-size: 14px; cursor: pointer;
+  transition: border-color var(--dur-fast), color var(--dur-fast), transform var(--dur-fast);
+}
+.home-entry-chip:active { border-color: var(--seal-red); color: var(--seal-red); transform: scale(.97); }
+.chat-followups { padding-top: 2px; padding-bottom: 6px; }
 
 /* ============================================================
    推理页（沉浸式武汉地标背景 + 居中对话 + 推理时间线）

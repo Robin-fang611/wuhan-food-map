@@ -3,7 +3,9 @@
 // 严守架构：所有 Agent 回传经 h() 安全渲染（无 innerHTML）；导航走公开高德 URI（无 Key）。
 import { h, toast, clear } from './dom.js';
 import { store } from '../core/store.js';
+import { auth } from '../core/auth.js';
 import { buildAmapUrl } from './detail.js';
+import { buildFollowupChips, shouldShowFollowups } from './chatFollowups.js';
 import {
   discover as agentDiscover, agentChat,
   getBackend, getMemory, clearMemory,
@@ -376,6 +378,25 @@ export function ReasoningPage(ctx) {
       const hash = String(s.provenance.processHash || '').replace(/^sha256:/, '').slice(0, 10);
       const driver = s.provenance.driver === 'hypha-react' ? 'LLM ReAct' : '确定性';
       convo.appendChild(h('div', { class: 'agent-provenance', text: `由蛮有味 Agent 驱动 · ${driver} · 可回放审计 #${hash}` }));
+    }
+
+    // —— S6：多轮追问快捷条（换一家 / 再便宜点 / 换个附近 / 收藏这家）——
+    const primaryId = (decision && decision.primaryId) || (merchants.length ? merchants[0].id : null);
+    if (shouldShowFollowups({ needsClarification: !!data.needsClarification, merchantCount: merchants.length })) {
+      const followWrap = h('div', { class: 'chat-chips chat-followups' });
+      for (const f of buildFollowupChips({ hasPrimary: !!primaryId })) {
+        followWrap.appendChild(h('button', {
+          class: 'chat-chip', type: 'button', text: f.label,
+          onclick: () => {
+            if (f.primaryAction === 'favorite' && primaryId) {
+              auth.addFavorite(primaryId).then(() => toast('已加入收藏'));
+            } else {
+              ask(f.followup, !!f.resetSeen);
+            }
+          },
+        }));
+      }
+      convo.appendChild(followWrap);
     }
 
     scrollToBottom();

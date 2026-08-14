@@ -63,6 +63,16 @@ export async function Home(ctx) {
     h('div', { class: 'home-hero-note', text: '真人探过的，不恰饭 · 排序永不被出价影响' }),
   ]));
 
+  // —— S6：确定性入口条（缓解冷启动空屏，老用户「回去看看」的抓手）——
+  root.appendChild(h('div', { class: 'home-entry-bar' }, [
+    h('button', { class: 'home-entry-chip', type: 'button', text: '常去', onclick: () => {
+      const el = document.getElementById('home-discover');
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } }),
+    h('button', { class: 'home-entry-chip', type: 'button', text: '收藏', onclick: goAccount }),
+    h('button', { class: 'home-entry-chip', type: 'button', text: '附近', onclick: goMap }),
+  ]));
+
   // —— 其余产品元素（首页还有好多内容）——
   root.appendChild(h('div', { class: 'section', style: 'padding-top:0' }, [
     h('h2', {}, [document.createTextNode('每日签到'), h('span', { class: 'tag', text: '得券' })]),
@@ -77,7 +87,9 @@ export async function Home(ctx) {
     await TaskPanel({ userId, onChanged: refresh })
   ]));
 
-  root.appendChild(Discover({ goDetail }));
+  const disc = Discover({ goDetail });
+  disc.id = 'home-discover';
+  root.appendChild(disc);
   root.appendChild(Ranking({ goDetail }));
 
   const coupons = await store.getCoupons(userId);

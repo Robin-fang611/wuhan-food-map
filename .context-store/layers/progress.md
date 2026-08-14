@@ -51,3 +51,8 @@
 - HTTP：GET /upload/pending + POST /upload/govern；CLI：scripts/govern-uploads.mjs。
 - 测试：upload.test.mjs +15 治理断言；engage.test.mjs +5 HTTP 契约断言；40 测试文件全绿。
 - 已 commit + push。下一步：S6 对话体验打磨（chat-first）。
+
+## 2026-08-15（S6 对话体验完成 —— S2–S6 全部交付）
+- 首页确定性入口条（常去/收藏/附近）；推理页多轮追问快捷条（换一家/再便宜点/换个附近/收藏这家）；纯逻辑模块 chatFollowups.js + 3 组单测。
+- 验证：43 子测试全绿；vite build 51 模块；静态服务 200；已 commit + push。
+- **S2–S6 循环目标完成**。后续：SPEC §11 后置项（多为 Robin 决策项）。

@@ -305,9 +305,9 @@ docs/BFF接口契约.md：RewardStore 后端契约（checkin / coupons CRUD / �
 - **结果**：upload.js 新增 listPendingUploads（治理视图脱敏，不含 userId/原始 source）+ governUpload（promote 人工收录 / reject 驳回，均保留审计轨迹，rejected 不硬删守红线；dryRun 预演）；存储扩展 { verified, pending, rejected, audit }（向后兼容）；HTTP 端点 GET /upload/pending + POST /upload/govern（404 未知 id）；CLI scripts/govern-uploads.mjs（list / promote / reject，--dry-run / --note / --by）。
 - 验收达成：pending 可查可治理（HTTP 契约 + 函数级双测）；操作带审计日志；upload 原 22 项保持全绿 + 新增 15 项治理断言；40 测试文件全绿；ranking-audit PASS。
 
-### S6 对话体验打磨（chat-first）
-- 目标：首页对话优先形态（输入框 + 情境 chips + 顶部常去 / 收藏 / 附近）+ 多轮追问（换一家 / 再便宜点）走 /agent。
-- 验收：首页意图栏 → 推理页 → 多轮追问链路可用；h5 单测全绿；vite build 通过。
+### S6 对话体验打磨（chat-first）（✅ 2026-08-15 完成）
+- **结果**：首页新增确定性入口条（常去滚动到发现区 / 收藏进账号中心 / 附近进地图，缓解冷启动空屏）；推理页每次回复后新增**多轮追问快捷条（换一家 / 再便宜点 / 换个附近 / 收藏这家）**——追问走既有会话链路（server 后端 agentChat 带 history / 本地 agentDiscover），收藏走 auth（云端/本地自动兜底）；逻辑抽为纯模块 h5/src/ui/chatFollowups.js（可单测）。
+- 验收达成：首页意图栏 → 推理页 → 多轮追问链路可用（vite build 51 模块 + 静态服务 200）；**新增 h5/test/chat-followups.test.mjs（3 组）**；43 子测试全绿。
 
 ### 后置（不阻塞，另行规划）
 - 短信网关生产化（SMS_PROVIDER=tencent + TENCENT_SMS_SECRET_ID/KEY）与微信凭据配置（WECHAT_APPID/SECRET/REDIRECT_URI）。
