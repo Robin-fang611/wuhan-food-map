@@ -175,10 +175,40 @@ export class LocalAuthProvider extends BaseAuth {
   }
   _writeFav(key, ids) { this.storage.setItem(key, JSON.stringify(ids)); }
 
+  // —— 云端收藏同步（S4 · 2026-08-15）：JWT 会话时以后端为准（跨设备可见），失败/未登录回落本地 ——
+  // 仅对后端签发的真 JWT（3 段）启用同步；本地原型会话（tok_xxx）不触发网络。
+  _cloudToken() {
+    const s = this._loadSession();
+    const t = s && s.token;
+    return t && String(t).split('.').length === 3 ? String(t) : '';
+  }
+  async _cloudFavorite(action, merchantId, token) {
+    try {
+      const apiBase = (globalThis.__MANYOUWEI_CONFIG__ && globalThis.__MANYOUWEI_CONFIG__.apiBase) || 'http://127.0.0.1:8799';
+      const body = { action };
+      if (merchantId) body.merchantId = merchantId;   // 绝不发送 userId：服务端从 JWT 解析本人（防越权）
+      const res = await fetch(`${apiBase}/tools/user.favorite`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify(body),
+      });
+      return res.json().catch(() => null);
+    } catch { return null; }   // 离线 / 后端不可达 → 调用方回落本地
+  }
+
   async getFavorites() {
     const uid0 = this.currentUserId();
-    const ids = this._readFav(uid0 ? FAV_USER(uid0) : FAV_ANON);
-    return [...new Set(ids)];
+    const key = uid0 ? FAV_USER(uid0) : FAV_ANON;
+    const token = this._cloudToken();
+    if (token) {
+      const res = await this._cloudFavorite('list', null, token);
+      if (res && res.success && res.output && Array.isArray(res.output.favorites)) {
+        this._writeFav(key, res.output.favorites);   // 以服务端为准（含其他设备新增），本地仅作缓存
+        return [...new Set(res.output.favorites)];
+      }
+      // 后端拒绝（如 token 过期）或不可达 → 回落本地缓存
+    }
+    return [...new Set(this._readFav(key))];
   }
   async isFavorite(merchantId) {
     const list = await this.getFavorites();
@@ -191,6 +221,14 @@ export class LocalAuthProvider extends BaseAuth {
     const ids = this._readFav(key);
     if (!ids.includes(merchantId)) { ids.push(merchantId); this._writeFav(key, ids); }
     this._emit();
+    const token = this._cloudToken();
+    if (token) {
+      const res = await this._cloudFavorite('add', merchantId, token);
+      if (res && res.success && res.output && Array.isArray(res.output.favorites)) {
+        this._writeFav(key, res.output.favorites);   // 服务端为准（幂等 + 跨设备合并）
+      }
+      // 失败静默回落：本地已写入，离线可用
+    }
     return { ok: true, favorited: true };
   }
   async removeFavorite(merchantId) {
@@ -199,6 +237,13 @@ export class LocalAuthProvider extends BaseAuth {
     const ids = this._readFav(key).filter((x) => x !== merchantId);
     this._writeFav(key, ids);
     this._emit();
+    const token = this._cloudToken();
+    if (token) {
+      const res = await this._cloudFavorite('remove', merchantId, token);
+      if (res && res.success && res.output && Array.isArray(res.output.favorites)) {
+        this._writeFav(key, res.output.favorites);
+      }
+    }
     return { ok: true, favorited: false };
   }
   // 登录时把未登录期间的 anon 收藏并入该用户（§4.1 未登录可本地临时收藏，登录后合并）。

@@ -124,3 +124,30 @@ test('重启后旧 JWT 仍有效 + 同号重登返回同一账号（子进程模
   assert.equal(b.relogin, a.id, '重启后同号登录命中同一账号（phoneIndex 已持久化）');
   assert.equal(b.me, b.relogin);
 });
+
+test('跨设备收藏同步：设备A收藏 → 设备B同账号可见（独立进程 = 独立设备）', () => {
+  const FAV_MODULE = fileURLToPath(new URL('../src/tools/favorite.js', import.meta.url));
+  // 设备 A：登录 + 收藏
+  const a = runChild(`
+    import { createCaptcha, sendSms, loginWithPhone } from '${AUTH_MODULE}';
+    import userFavorite from '${FAV_MODULE}';
+    const cap = createCaptcha();
+    const sms = await sendSms({ phone: '13800000031', captchaToken: cap.token, captchaInput: cap._devText });
+    const login = loginWithPhone({ phone: '13800000031', smsCode: sms.devCode });
+    const r = await userFavorite({ merchantId: 'm-cross-a', action: 'add', token: login.token });
+    if (!r.success) throw new Error(JSON.stringify(r));
+    console.log(JSON.stringify({ token: login.token, id: login.user.id }));
+  `);
+  // 设备 B：全新进程（无频控残留）同号重登 → 应看到 A 的收藏
+  const b = runChild(`
+    import { createCaptcha, sendSms, loginWithPhone } from '${AUTH_MODULE}';
+    import userFavorite from '${FAV_MODULE}';
+    const cap = createCaptcha();
+    const sms = await sendSms({ phone: '13800000031', captchaToken: cap.token, captchaInput: cap._devText });
+    const login = loginWithPhone({ phone: '13800000031', smsCode: sms.devCode });
+    const list = await userFavorite({ action: 'list', token: login.token });
+    console.log(JSON.stringify({ id: login.user.id, has: !!(list.output && list.output.favorites.includes('m-cross-a')) }));
+  `);
+  assert.equal(b.id, a.id, '设备 B 与设备 A 同一账号');
+  assert.equal(b.has, true, '设备 B 可见设备 A 的收藏（跨设备同步达成）');
+});

@@ -105,7 +105,7 @@ flowchart LR
 | 3 | discover.detail | read | 商户详情 + 距离 + 理由 + 推荐菜 | 匿名可调 |
 | 4 | discover.geo | read | 距离计算与就近排序（CAMPUS_COORDS，不伪造坐标） | 匿名可调 |
 | 5 | discover.navigate | read | 公开 uri.amap.com 导航 URL（无 Key；缺坐标返回 null） | 匿名可调 |
-| 6 | user.favorite | write | 收藏 / 取消收藏（幂等；按 JWT 用户隔离，S4 后端化） | 本人 |
+| 6 | user.favorite | write | 收藏 / 取消收藏 / list（幂等；**JWT 鉴权，服务端从 token 解析本人，忽略客户端 userId**；持久化 favorites.json） | 本人（需登录） |
 | 7 | reward.checkin | write | 签到得券（同日幂等） | 本人 |
 | 8 | reward.view-wallet | read | 本人券包（已得 / 已核销 / 已过期） | 仅本人 |
 | 9 | reward.claim | write | 领券（每商家每用户限 1 张，幂等） | 本人 |
@@ -295,9 +295,9 @@ docs/BFF接口契约.md：RewardStore 后端契约（checkin / coupons CRUD / �
 - **结果**：auth-server 账号（users / phoneIndex / unionIndex）文件持久化到 data/auth-users.json（gitignored、原子写 tmp+rename、失败降级不阻断登录）；验证码 / 频控保持内存态（短时效安全语义）。
 - 验收达成：**重启后旧 JWT 仍有效（子进程模拟真实验证）**；同号重登命中同一账号（phoneIndex 已落盘）；**新增 hypha/implementation/test/auth.test.mjs（5 组：图形码/短信/登录/持久化/重启）**，补齐此前缺失的后端账号单测；34 子测试全绿；数据文件 gitignored。
 
-### S4 收藏跨设备同步
-- 目标：user.favorite 工具后端化（按 JWT 解析用户，服务端忽略客户端传入 userId 防越权）；前端收藏读写走 BFF（LocalStore 兜底）。
-- 验收：设备 A 收藏 → 设备 B 登录同账号可见；未登录回落本地；越权读写被拒；全量单测全绿。
+### S4 收藏跨设备同步（✅ 2026-08-15 完成）
+- **结果**：user.favorite 工具按 JWT 鉴权（服务端从 token 解析 sub，忽略客户端传入 userId 防越权；无 token/伪造 → 拒绝「请先登录」）；收藏持久化 data/favorites.json（gitignored、原子写）；httpServer /tools/:id 自动注入 Authorization Bearer；前端 LocalAuthProvider 增云端同步（仅真 JWT 会话触发，成功后以服务端为准回写本地缓存，失败/未登录回落本地——调用方零改动）。
+- 验收达成：**设备 A 收藏 → 设备 B 同账号可见（两个独立进程模拟，实测通过）**；未登录纯本地（0 网络调用）；越权（客户端传 userId）被忽略；**新增 h5/test/favorite-sync.test.mjs（5 组）+ engage 收藏段改 JWT 契约 + auth.test.mjs 跨设备用例**；40 子测试全绿；vite build 通过。
 
 ### S5 pending 上传治理
 - 目标：/upload/pending 查询端点 + 治理工具（列表 / 批量操作 dry-run）+ 待核验数据可人工处理。

@@ -8,9 +8,17 @@
 //   - analytics.track 入库事件不含 PII；
 //   - discovery 输出 summary 含 total_matched 与 degradation（数据缺口显式标注，不编造）。
 import assert from 'node:assert/strict';
+import { mkdtempSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 
 process.env.MYWO_PORT = '8797';
+// S4：favorite 按 JWT 鉴权 —— 测试环境注入密钥 / 图形码开发态 / 账号落临时目录
+process.env.AUTH_JWT_SECRET = 'engage-test-secret';
+process.env.AUTH_DEV_EXPOSE_CAPTCHA = '1';
+process.env.AUTH_DATA_DIR = mkdtempSync(join(tmpdir(), 'mywo-engage-'));
 const { server } = await import('../src/httpServer.js');
+const authApi = await import('../src/auth-server.js');
 const { getAnalytics } = await import('../src/runtime.js');
 const { redlineCheck } = await import('../src/orchestrator.js');
 
@@ -18,13 +26,25 @@ const BASE = `http://127.0.0.1:${process.env.MYWO_PORT}`;
 const UID = 'utest-engage';
 const MID = 'm-test-engage';
 
-async function callTool(id, body) {
+async function callTool(id, body, token) {
+  const headers = { 'Content-Type': 'application/json' };
+  if (token) headers.Authorization = `Bearer ${token}`;
   const res = await fetch(`${BASE}/tools/${id}`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers,
     body: JSON.stringify(body),
   });
   return res.json();
+}
+
+// S4：走真实登录链路取 JWT（图形码→短信→登录）
+async function obtainToken(phone) {
+  const cap = authApi.createCaptcha();
+  const sms = await authApi.sendSms({ phone, captchaToken: cap.token, captchaInput: cap._devText });
+  if (!sms.ok || !sms.devCode) throw new Error('sms failed: ' + JSON.stringify(sms));
+  const login = authApi.loginWithPhone({ phone, smsCode: sms.devCode });
+  if (!login.ok) throw new Error('login failed: ' + JSON.stringify(login));
+  return login.token;
 }
 async function runDiscovery(input) {
   const res = await fetch(`${BASE}/run`, {
@@ -42,14 +62,23 @@ function ok(name, cond) {
   console.log('  ✓', name);
 }
 
-// —— 1. favorite 幂等 + 无 PII 回显 ——
+// —— 1. favorite（S4：JWT 鉴权 + 防越权 + 跨设备 + 无 PII 回显）——
 console.log('Engage · user.favorite');
-const fa1 = await callTool('user.favorite', { merchantId: MID, action: 'add', userId: UID });
-ok('add → success & favorited=true', fa1.success && fa1.output.favorited === true);
+const noAuth = await callTool('user.favorite', { merchantId: MID, action: 'add' });
+ok('无 token → 拒绝（请先登录）', noAuth.success === false && String(noAuth.error || '').includes('登录'));
+const badAuth = await callTool('user.favorite', { merchantId: MID, action: 'add', token: 'fake.token.x' });
+ok('伪造 token → 拒绝', badAuth.success === false);
+const TOKEN_A = await obtainToken('13800000021');
+const fa1 = await callTool('user.favorite', { merchantId: MID, action: 'add' }, TOKEN_A);
+ok('add（Bearer JWT）→ success & favorited=true', fa1.success && fa1.output.favorited === true);
 ok('add 输出无 userId 回显', !('userId' in (fa1.output || {})));
-const fa2 = await callTool('user.favorite', { merchantId: MID, action: 'remove', userId: UID });
+const faIntrude = await callTool('user.favorite', { merchantId: 'm-other', action: 'add', userId: 'victim-user' }, TOKEN_A);
+ok('客户端传 userId 被忽略（服务端从 JWT 解析本人）', faIntrude.success && faIntrude.output.favorites.includes('m-other'));
+const faList = await callTool('user.favorite', { action: 'list' }, TOKEN_A);
+ok('list 返回本人收藏', faList.success && faList.output.favorites.includes(MID) && faList.output.favorites.includes('m-other'));
+const fa2 = await callTool('user.favorite', { merchantId: MID, action: 'remove' }, TOKEN_A);
 ok('remove → success & favorited=false', fa2.success && fa2.output.favorited === false);
-const fa3 = await callTool('user.favorite', { merchantId: MID, action: 'remove', userId: UID });
+const fa3 = await callTool('user.favorite', { merchantId: MID, action: 'remove' }, TOKEN_A);
 ok('remove 重复不报错（幂等）', fa3.success && fa3.output.favorited === false);
 
 // —— 2. checkin 同日幂等 ——

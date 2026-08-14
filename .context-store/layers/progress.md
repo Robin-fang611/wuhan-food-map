@@ -38,3 +38,10 @@
 - 补齐后端账号单测（此前「13/13 进程内单测」从未入库）：hypha/implementation/test/auth.test.mjs 5 组（图形码一次性/短信频控/登录 JWT+脱敏/持久化文件/**子进程模拟重启：旧 JWT 仍有效 + 同号重登同账号**）。
 - 验证：34 子测试全绿；node --check 通过；无运行态数据入库；已 commit + push。
 - 下一步：S4 收藏跨设备同步（user.favorite 后端化）→ S5 上传治理 → S6 对话体验。
+
+## 2026-08-15（S4 收藏跨设备同步完成）
+- 后端 user.favorite：JWT 鉴权（服务端 verifyJwt 解析 sub，忽略客户端 userId 防越权；无/伪 token → 请先登录）；收藏持久化 data/favorites.json（gitignored、原子写）；新增 list action；httpServer /tools/:id 注入 Authorization Bearer。
+- 前端 LocalAuthProvider：云端同步（仅真 JWT 触发；add/remove/list 以服务端为准回写本地；断网/未登录回落本地；UI 调用方零改动）。
+- 测试：favorite-sync.test.mjs 5 组 + engage 收藏段 JWT 契约 + auth.test.mjs 跨设备用例（两独立进程同账号收藏互通）。
+- 验证：40 子测试全绿；vite build 通过；ranking-audit PASS；已 commit + push。
+- 下一步：S5 pending 上传治理 → S6 对话体验。

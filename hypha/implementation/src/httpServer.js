@@ -210,6 +210,12 @@ const server = createServer(async (req, res) => {
     try {
       const input = await readBody(req);
       if (!input) return send(res, 400, { success: false, error: '请求体非 JSON' });
+      // S4：把 Authorization: Bearer <JWT> 注入为 input.token（工具从 JWT 解析身份，
+      // 服务端忽略客户端传入的 userId 防越权；无 token 的写工具如实拒绝，前端回落本地）。
+      if (!input.token) {
+        const authz = req.headers['authorization'] || '';
+        if (authz.startsWith('Bearer ')) input.token = authz.slice(7).trim();
+      }
       const out = await handler(input);
       return send(res, 200, out);
     } catch (err) {
