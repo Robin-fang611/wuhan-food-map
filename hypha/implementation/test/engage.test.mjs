@@ -128,6 +128,33 @@ ok('redlineCheck 拒绝含 PII 输出（data.export-pii）', bad.passed === fals
 const good = redlineCheck({ merchants: [], summary: {} });
 ok('redlineCheck 放行干净输出', good.passed === true);
 
+// —— 7. S5：/upload/pending + /upload/govern HTTP 契约（临时存储文件）——
+console.log('S5 · upload 治理端点（HTTP）');
+process.env.UPLOAD_STORE_FILE = join(mkdtempSync(join(tmpdir(), 'mywo-engage-upload-')), 'merchant-uploads.json');
+const up = await fetch(`${BASE}/upload`, {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ name: 'HTTP待核验店', description: '契约测试', isStall: false }),
+}).then((r) => r.json());
+ok('POST /upload → pending（无 Key 降级）', up.decision === 'pending' && !!up.uploadId);
+const pend = await fetch(`${BASE}/upload/pending`).then((r) => r.json());
+ok('GET /upload/pending → 含该条且脱敏', pend.ok && pend.total >= 1 && pend.items.some((i) => i.uploadId === up.uploadId && !('userId' in i)));
+const gov = await fetch(`${BASE}/upload/govern`, {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ uploadId: up.uploadId, action: 'reject', by: 'engage-test', note: '契约测试驳回' }),
+}).then((r) => r.json());
+ok('POST /upload/govern reject → ok + 审计', gov.ok && gov.action === 'reject' && gov.audit && gov.audit.action === 'reject');
+const pend2 = await fetch(`${BASE}/upload/pending`).then((r) => r.json());
+ok('govern 后 pending 清空', pend2.total === 0);
+const govBad = await fetch(`${BASE}/upload/govern`, {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ uploadId: 'u_nope', action: 'promote' }),
+}).then((r) => r.json());
+ok('未知 uploadId → 404 + 错误体', govBad.ok === false && /未找到/.test(govBad.error));
+delete process.env.UPLOAD_STORE_FILE;
+
 console.log(`\nALL ENGAGE/Track/Redline TESTS PASSED (${passed} assertions)`);
 server.close();
 process.exit(0);

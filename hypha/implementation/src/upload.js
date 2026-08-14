@@ -11,7 +11,11 @@ import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DATA_DIR = path.resolve(__dirname, '..', 'data');
-const STORE_FILE = path.join(DATA_DIR, 'merchant-uploads.json');
+// UPLOAD_STORE_FILE 可覆盖存储路径（单测用临时文件；生产/默认走 data/merchant-uploads.json）。
+// 惰性读取：调用时才读 env，测试可在 import 后设置临时路径。
+function getStoreFile() {
+  return process.env.UPLOAD_STORE_FILE || path.join(DATA_DIR, 'merchant-uploads.json');
+}
 
 function makeId(prefix) {
   return `${prefix}_${Date.now().toString(36)}${Math.random().toString(36).slice(2, 7)}`;
@@ -146,16 +150,17 @@ async function persistUpload(record) {
   if (process.env.MYWO_NO_PERSIST) return; // 单测用：跳过文件 IO
   try {
     if (!existsSync(DATA_DIR)) await mkdir(DATA_DIR, { recursive: true });
+    const storeFile = getStoreFile();
     let data = { verified: [], pending: [] };
-    if (existsSync(STORE_FILE)) {
-      try { data = JSON.parse(await readFile(STORE_FILE, 'utf8')); } catch { data = { verified: [], pending: [] }; }
+    if (existsSync(storeFile)) {
+      try { data = JSON.parse(await readFile(storeFile, 'utf8')); } catch { data = { verified: [], pending: [] }; }
       if (!Array.isArray(data.verified)) data.verified = [];
       if (!Array.isArray(data.pending)) data.pending = [];
     }
     const entry = { ...record, receivedAt: new Date().toISOString() };
     if (record.decision === 'pending') data.pending.push(entry);
     else data.verified.push(entry);
-    await writeFile(STORE_FILE, JSON.stringify(data, null, 2), 'utf8');
+    await writeFile(storeFile, JSON.stringify(data, null, 2), 'utf8');
   } catch (err) {
     console.error('[upload] persist failed:', err && err.message); // 不抛，避免阻断用户
   }
@@ -175,4 +180,92 @@ export async function handleUpload(payload = {}, { amapKey, fetchImpl } = {}) {
   });
   await persistUpload({ ...decision, source: payload, userId: payload.userId || null });
   return decision;
+}
+
+// ——————————————————————————————————————————————
+// S5 · pending 上传治理（2026-08-15）
+// 能力：待核验列表（脱敏，不输出 userId/原始 source）+ 人工治理（promote 收录 / reject 驳回，
+//       均保留审计轨迹，rejected 不硬删——守「不删数据」红线）+ dry-run 预演。
+// 存储：merchant-uploads.json 结构扩展为 { verified, pending, rejected, audit }（向后兼容旧文件）。
+// ——————————————————————————————————————————————
+async function readStore() {
+  try {
+    const storeFile = getStoreFile();
+    if (!existsSync(storeFile)) return { verified: [], pending: [], rejected: [], audit: [] };
+    const data = JSON.parse(await readFile(storeFile, 'utf8'));
+    return {
+      verified: Array.isArray(data.verified) ? data.verified : [],
+      pending: Array.isArray(data.pending) ? data.pending : [],
+      rejected: Array.isArray(data.rejected) ? data.rejected : [],
+      audit: Array.isArray(data.audit) ? data.audit : [],
+    };
+  } catch {
+    return { verified: [], pending: [], rejected: [], audit: [] };
+  }
+}
+
+async function writeStore(data) {
+  if (process.env.MYWO_NO_PERSIST) return;
+  try {
+    const storeFile = getStoreFile();
+    if (!existsSync(DATA_DIR)) await mkdir(DATA_DIR, { recursive: true });
+    await writeFile(storeFile, JSON.stringify(data, null, 2), 'utf8');
+  } catch (err) {
+    // eslint-disable-next-line no-console
+    console.error('[upload] store write failed:', err && err.message);
+  }
+}
+
+// 治理视图：只暴露人工判断所需字段，不输出 userId / 原始 source（守 PII 红线）。
+export function toGovernanceView(entry) {
+  const src = entry.source || {};
+  return {
+    uploadId: entry.uploadId || null,
+    name: src.name || entry.name || '',
+    address: src.address || '',
+    category: src.category || '',
+    description: src.description || '',
+    location: src.location || null,
+    isStall: !!src.isStall,
+    reason: entry.reason || '',
+    receivedAt: entry.receivedAt || null,
+  };
+}
+
+// 待核验列表（新→旧）。limit 默认全量；返回 { ok, count, items }。
+export async function listPendingUploads({ limit } = {}) {
+  const data = await readStore();
+  const items = data.pending
+    .slice()
+    .reverse()
+    .map(toGovernanceView);
+  const out = typeof limit === 'number' && limit > 0 ? items.slice(0, limit) : items;
+  return { ok: true, count: out.length, total: items.length, items: out };
+}
+
+// 治理动作：promote（人工确认收录 → verified，标注 governance）/ reject（驳回 → rejected，保留轨迹）。
+// dryRun=true 只预演不落盘。by/note 记入审计日志（默认 'admin-cli'）。
+export async function governUpload({ uploadId, action = 'promote', dryRun = false, by = 'admin-cli', note = '' } = {}) {
+  if (!uploadId) return { ok: false, error: '缺少 uploadId' };
+  if (!['promote', 'reject'].includes(action)) return { ok: false, error: 'action 必须是 promote/reject' };
+  const data = await readStore();
+  const idx = data.pending.findIndex((e) => e.uploadId === uploadId);
+  if (idx < 0) return { ok: false, error: '未找到该待核验记录（可能已处理）' };
+  const entry = data.pending[idx];
+  const audit = { at: new Date().toISOString(), action, uploadId, by, note, dryRun: !!dryRun };
+  if (dryRun) {
+    return { ok: true, dryRun: true, would: action, uploadId, audit, pendingTotal: data.pending.length };
+  }
+  data.pending.splice(idx, 1);
+  const governed = { ...entry, governance: { action, at: audit.at, by, note } };
+  if (action === 'promote') {
+    // 人工确认收录：decision 标为 verified（带 governance 标记，区别于自动核验）
+    data.verified.push({ ...governed, decision: 'verified', label: '人工收录', reason: note || entry.reason });
+  } else {
+    data.rejected.push(governed);
+  }
+  data.audit = data.audit || [];
+  data.audit.push(audit);
+  await writeStore(data);
+  return { ok: true, action, uploadId, by, note, pendingTotal: data.pending.length, audit };
 }

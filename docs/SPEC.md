@@ -210,6 +210,8 @@ id, name, zone, category, cuisine, mealTime[], avgPrice(string), avgPriceNum(num
 | POST | /tools/:id | 单工具调用（10 个领域工具 adapter） |
 | GET/POST/DELETE | /memory/:sessionId | 口味档案读写 / 清除 |
 | POST | /upload | 探店采集（高德校验三分支：verified / verified_stall / pending） |
+| GET | /upload/pending | 待核验列表（治理视图：脱敏，不含 userId/原始 source） |
+| POST | /upload/govern | 治理：promote（人工收录）/ reject（驳回），支持 dryRun，写审计日志 |
 | POST | /auth/captcha | 图形验证码（{token, svg}，token 不含答案） |
 | POST | /auth/sms/send | 短信验证码（先过图形验证 + 频控；未配 provider 如实报错） |
 | POST | /auth/login | 短信码换 JWT（{ok, token, user{id, nickname, phoneMasked}}，完整手机号永不下发） |
@@ -299,9 +301,9 @@ docs/BFF接口契约.md：RewardStore 后端契约（checkin / coupons CRUD / �
 - **结果**：user.favorite 工具按 JWT 鉴权（服务端从 token 解析 sub，忽略客户端传入 userId 防越权；无 token/伪造 → 拒绝「请先登录」）；收藏持久化 data/favorites.json（gitignored、原子写）；httpServer /tools/:id 自动注入 Authorization Bearer；前端 LocalAuthProvider 增云端同步（仅真 JWT 会话触发，成功后以服务端为准回写本地缓存，失败/未登录回落本地——调用方零改动）。
 - 验收达成：**设备 A 收藏 → 设备 B 同账号可见（两个独立进程模拟，实测通过）**；未登录纯本地（0 网络调用）；越权（客户端传 userId）被忽略；**新增 h5/test/favorite-sync.test.mjs（5 组）+ engage 收藏段改 JWT 契约 + auth.test.mjs 跨设备用例**；40 子测试全绿；vite build 通过。
 
-### S5 pending 上传治理
-- 目标：/upload/pending 查询端点 + 治理工具（列表 / 批量操作 dry-run）+ 待核验数据可人工处理。
-- 验收：pending 列表可查可治理；操作带审计日志；upload 22 项单测保持全绿 + 新增治理单测。
+### S5 pending 上传治理（✅ 2026-08-15 完成）
+- **结果**：upload.js 新增 listPendingUploads（治理视图脱敏，不含 userId/原始 source）+ governUpload（promote 人工收录 / reject 驳回，均保留审计轨迹，rejected 不硬删守红线；dryRun 预演）；存储扩展 { verified, pending, rejected, audit }（向后兼容）；HTTP 端点 GET /upload/pending + POST /upload/govern（404 未知 id）；CLI scripts/govern-uploads.mjs（list / promote / reject，--dry-run / --note / --by）。
+- 验收达成：pending 可查可治理（HTTP 契约 + 函数级双测）；操作带审计日志；upload 原 22 项保持全绿 + 新增 15 项治理断言；40 测试文件全绿；ranking-audit PASS。
 
 ### S6 对话体验打磨（chat-first）
 - 目标：首页对话优先形态（输入框 + 情境 chips + 顶部常去 / 收藏 / 附近）+ 多轮追问（换一家 / 再便宜点）走 /agent。

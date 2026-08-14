@@ -45,3 +45,9 @@
 - 测试：favorite-sync.test.mjs 5 组 + engage 收藏段 JWT 契约 + auth.test.mjs 跨设备用例（两独立进程同账号收藏互通）。
 - 验证：40 子测试全绿；vite build 通过；ranking-audit PASS；已 commit + push。
 - 下一步：S5 pending 上传治理 → S6 对话体验。
+
+## 2026-08-15（S5 pending 上传治理完成）
+- upload.js：listPendingUploads（治理视图脱敏）+ governUpload（promote/reject/dryRun/audit）+ 存储 {verified,pending,rejected,audit} 向后兼容 + UPLOAD_STORE_FILE 惰性读取。
+- HTTP：GET /upload/pending + POST /upload/govern；CLI：scripts/govern-uploads.mjs。
+- 测试：upload.test.mjs +15 治理断言；engage.test.mjs +5 HTTP 契约断言；40 测试文件全绿。
+- 已 commit + push。下一步：S6 对话体验打磨（chat-first）。

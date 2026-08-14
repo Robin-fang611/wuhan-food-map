@@ -21,7 +21,7 @@ import rewardCheckin from './tools/checkin.js';
 import rewardWallet from './tools/wallet.js';
 import rewardClaim from './tools/claim.js';
 import analyticsTrack from './tools/track.js';
-import { handleUpload } from './upload.js';
+import { handleUpload, listPendingUploads, governUpload } from './upload.js';
 import {
   createCaptcha, sendSms, loginWithPhone, getUserByToken, wechatAuthorizeUrl, wechatCallback,
 } from './auth-server.js';
@@ -119,7 +119,7 @@ const server = createServer(async (req, res) => {
     }
   }
 
-  // POST /upload —— 探店采集：用户上传店铺 → 高德校验 → 三分支决策（SPEC §7.4）
+  // POST /upload —— 探店采集：用户上传店铺 → 高德校验 → 三分支决策（SPEC §11 S5）
   if (req.method === 'POST' && url.pathname === '/upload') {
     const input = await readBody(req);
     if (!input || typeof input !== 'object') return send(res, 400, { success: false, error: '请求体非 JSON' });
@@ -128,6 +128,28 @@ const server = createServer(async (req, res) => {
       return send(res, 200, out);
     } catch (err) {
       return send(res, 400, { success: false, error: 'upload 失败', detail: String(err && err.message || err) });
+    }
+  }
+
+  // GET /upload/pending —— 待核验列表（治理视图：脱敏，不含 userId/原始 source）
+  if (req.method === 'GET' && url.pathname === '/upload/pending') {
+    try {
+      const out = await listPendingUploads({ limit: url.searchParams.get('limit') ? Number(url.searchParams.get('limit')) : undefined });
+      return send(res, 200, out);
+    } catch (err) {
+      return send(res, 400, { success: false, error: 'pending 列表失败', detail: String(err && err.message || err) });
+    }
+  }
+
+  // POST /upload/govern —— 治理动作：promote（人工收录）/ reject（驳回），支持 dryRun，记审计日志
+  if (req.method === 'POST' && url.pathname === '/upload/govern') {
+    const input = await readBody(req);
+    if (!input || typeof input !== 'object') return send(res, 400, { success: false, error: '请求体非 JSON' });
+    try {
+      const out = await governUpload(input);
+      return send(res, out.ok ? 200 : 404, out);
+    } catch (err) {
+      return send(res, 400, { success: false, error: 'govern 失败', detail: String(err && err.message || err) });
     }
   }
 

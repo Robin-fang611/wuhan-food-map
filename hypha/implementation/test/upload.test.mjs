@@ -1,7 +1,10 @@
 // 探店采集：decideUpload 三分支 + verifyWithAmap + handleUpload（高德用 mock fetch，无外网）。
 // 运行：node hypha/implementation/test/upload.test.mjs
 import assert from 'node:assert/strict';
-import { decideUpload, verifyWithAmap, handleUpload, nameSimilarity } from '../src/upload.js';
+import { mkdtempSync, readFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { decideUpload, verifyWithAmap, handleUpload, nameSimilarity, listPendingUploads, governUpload } from '../src/upload.js';
 
 let passed = 0;
 function ok(name, cond) { assert.ok(cond, '✗ ' + name); passed++; console.log('  ✓', name); }
@@ -69,3 +72,45 @@ const h3 = await handleUpload({ name: '长子热干面', description: '好吃', 
 ok('handleUpload：高德命中 → verified（带距离）', h3.decision === 'verified' && typeof h3.poi.distanceMeters === 'number');
 
 console.log(`\nupload.test.mjs 全部通过（${passed} 项）`);
+
+
+// —— S5 · pending 上传治理（临时存储文件，真 IO）——
+console.log('S5 · pending 列表 + 治理（promote/reject/dry-run/审计）');
+delete process.env.MYWO_NO_PERSIST;
+const GOV_FILE = join(mkdtempSync(join(tmpdir(), 'mywo-upload-')), 'merchant-uploads.json');
+process.env.UPLOAD_STORE_FILE = GOV_FILE;
+
+const seedP1 = await handleUpload({ name: '张三私房菜', description: '朋友介绍，需要核验', isStall: false }, { amapKey: 'k', fetchImpl: badFetch });
+const seedP2 = await handleUpload({ name: '李四烧烤摊', description: '夜市流动摊位', isStall: false }, { amapKey: 'k', fetchImpl: badFetch });
+const seedV = await handleUpload({ name: '长子热干面', description: '好吃', isStall: false, location: { lng: 114.30, lat: 30.59 } }, { amapKey: 'k', fetchImpl: okFetch });
+ok('seed：两条 pending + 一条 verified', seedP1.decision === 'pending' && seedP2.decision === 'pending' && seedV.decision === 'verified');
+
+const pl = await listPendingUploads();
+ok('list：total=2', pl.ok && pl.total === 2 && pl.count === 2);
+ok('list 治理视图脱敏（无 userId / 无 source 原始字段）', pl.items.every((it) => !('userId' in it) && !('source' in it) && !('user_id' in it)));
+ok('list 条目含 uploadId/name/reason', pl.items[0].uploadId && pl.items[0].name && pl.items[0].reason);
+
+const dry = await governUpload({ uploadId: seedP1.uploadId, action: 'promote', dryRun: true, by: 'test', note: '预演' });
+ok('dry-run promote：不落盘', dry.ok && dry.dryRun === true && dry.would === 'promote');
+ok('dry-run 后 pending 仍为 2', (await listPendingUploads()).total === 2);
+
+const gov1 = await governUpload({ uploadId: seedP1.uploadId, action: 'promote', by: 'test', note: '人工确认收录' });
+ok('promote：成功且 pending 剩 1', gov1.ok && gov1.pendingTotal === 1);
+ok('promote 写审计日志', gov1.audit && gov1.audit.action === 'promote' && gov1.audit.by === 'test');
+const store1 = JSON.parse(readFileSync(GOV_FILE, 'utf8'));
+ok('store：verified +1（带 governance 标记）', store1.verified.length === 2 && store1.verified.some((e) => e.governance && e.governance.action === 'promote' && e.uploadId === seedP1.uploadId));
+ok('store：audit 数组存在', Array.isArray(store1.audit) && store1.audit.length === 1);
+
+const gov2 = await governUpload({ uploadId: seedP2.uploadId, action: 'reject', by: 'test', note: '信息不足驳回' });
+ok('reject：成功且 pending 清空', gov2.ok && gov2.pendingTotal === 0);
+const store2 = JSON.parse(readFileSync(GOV_FILE, 'utf8'));
+ok('store：rejected +1（保留轨迹不硬删）', store2.rejected.length === 1 && store2.rejected[0].uploadId === seedP2.uploadId);
+ok('store：audit 累计 2 条', store2.audit.length === 2);
+
+const unknown = await governUpload({ uploadId: 'u_nonexist', action: 'promote' });
+ok('未知 uploadId → 报错', unknown.ok === false && /未找到/.test(unknown.error));
+ok('重复处理 → 报错（原记录已移出 pending）', (await governUpload({ uploadId: seedP1.uploadId, action: 'reject' })).ok === false);
+
+delete process.env.UPLOAD_STORE_FILE;
+
+
