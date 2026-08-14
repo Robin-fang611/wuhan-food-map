@@ -598,6 +598,23 @@ body {
 .home-entry-chip:active { border-color: var(--seal-red); color: var(--seal-red); transform: scale(.97); }
 .chat-followups { padding-top: 2px; padding-bottom: 6px; }
 
+/* W1.4 渐进式推演骨架 */
+.reveal-steps { padding: 10px 20px 14px; display: flex; flex-direction: column; gap: 8px; }
+.reveal-step { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--ink-2); }
+.reveal-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--line-strong); flex: none; }
+.reveal-pending .reveal-dot { background: var(--seal-red); animation: reveal-pulse 1s ease-in-out infinite; }
+.reveal-loading { font-size: 12px; opacity: .6; }
+.reveal-pending .reveal-title { opacity: .55; }
+.reveal-done .reveal-dot { background: var(--ok-green, #3b6b4a); }
+.reveal-done .reveal-title { color: var(--ink-1); font-weight: 600; }
+.reveal-detail { font-size: 12px; color: var(--ink-2); opacity: .85; margin-left: 2px; }
+@keyframes reveal-pulse { 0%, 100% { opacity: .3; transform: scale(.85); } 50% { opacity: 1; transform: scale(1); } }
+/* 诚实声明（LLM note / 缺口说明） */
+.agent-note { margin: 2px 20px 6px; padding: 8px 12px; border-radius: 8px; background: #fff8e8; border: 1px solid #e8d9a8; color: #7a5b2e; font-size: 13px; line-height: 1.5; }
+/* 主推卡淡入 */
+.chat-main-card { animation: card-fadein .45s ease-out both; }
+@keyframes card-fadein { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
 /* ============================================================
    推理页（沉浸式武汉地标背景 + 居中对话 + 推理时间线）
    ============================================================ */

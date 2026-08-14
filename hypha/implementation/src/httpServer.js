@@ -10,6 +10,8 @@ import { createServer } from 'node:http';
 
 import { runFoodDiscovery } from './orchestrator.js';
 import { agentChat, AgentFallbackError } from './agent-loop.js';
+import { shouldUpgrade, buildUpgradeResult } from './upgrade.js';
+import { parseIntent } from './intent-parser.js';
 import { getProfile, upsertProfile, clearProfile } from './memory-store.js';
 import discoverFilter from './tools/filter.js';
 import discoverRank from './tools/rank.js';
@@ -132,12 +134,40 @@ const server = createServer(async (req, res) => {
     return send(res, 200, { ok: true, tools: Object.keys(TOOLS).length, ids: Object.keys(TOOLS), llmEnabled: LLM_ENABLED, port: PORT });
   }
 
-  // POST /run —— 确定性 FSM
+  // POST /run —— 确定性 FSM（W1.2 双轨：确定性不足时自动升级 LLM 深度分析，失败回落确定性，前端无感）
   if (req.method === 'POST' && url.pathname === '/run') {
     const input = await readBody(req);
     if (!input) return send(res, 400, { success: false, error: '请求体非 JSON' });
     try {
+      const intent = String(input.intent || input.query || '');
+      const params = (input && input.params) ? input.params : parseIntent(input);
       const out = await runFoodDiscovery(input);
+      const needUpgrade = LLM_ENABLED && shouldUpgrade({ intent, summary: out.output && out.output.summary, params });
+      if (out.success && needUpgrade) {
+        // LLM 成本护栏：升级路径限流 10 次/分/IP
+        if (!rateLimit('llm:' + clientIp(req), 60000, 10)) {
+          if (Array.isArray(out.output.summary.degradation)) {
+            out.output.summary.degradation.push('AI 深度分析调用过于频繁，本次为脚本兜底结果');
+          }
+          return send(res, 200, out);
+        }
+        // 升级：LLM 深度分析（25s 超时护栏；失败自动回落确定性结果）
+        let agentResult = null;
+        try {
+          agentResult = await Promise.race([
+            agentChat({ message: intent, sessionId: input.sessionId || 'anon', history: [] }),
+            new Promise((_, reject) => setTimeout(() => reject(new Error('upgrade timeout')), 25000)),
+          ]);
+        } catch { agentResult = null; }
+        if (agentResult && agentResult.success && !agentResult.fallback) {
+          // LLM 成功：返回 LLM 结果 + upgrade 标记 + 确定性兜底
+          return send(res, 200, buildUpgradeResult(agentResult, out));
+        }
+        // LLM 不可用/失败：确定性结果 + 诚实降级说明
+        if (out.output && Array.isArray(out.output.summary.degradation)) {
+          out.output.summary.degradation.push('AI 深度分析暂不可用，以下为脚本兜底结果（实事求是，不硬凑）');
+        }
+      }
       return send(res, out.success ? 200 : 422, out);
     } catch (err) {
       return send(res, 400, { success: false, error: 'run 失败', detail: String(err && err.message || err) });

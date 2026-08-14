@@ -136,7 +136,7 @@ const TOOL_DEFS = [
   },
   {
     name: 'finalize_recommendation',
-    description: '提交最终推荐决策。必须先用 search_merchants 收窄候选。primaryId 为主推，alternativeIds 为 2~3 个备选，reason 解释为何适合用户此刻状态，guidance 给用户的一句话导览。',
+    description: '提交最终推荐决策。必须先用 search_merchants 收窄候选。primaryId 为主推，alternativeIds 为 2~3 个备选，reason 解释为何适合用户此刻状态，guidance 给用户的一句话导览，note 可选（诚实声明：如数据库没有完全符合的店铺时，说明差距与建议）。',
     parameters: {
       type: 'object',
       properties: {
@@ -144,6 +144,7 @@ const TOOL_DEFS = [
         alternativeIds: { type: 'array', items: { type: 'string' }, description: '2~3 个备选商户 id' },
         reason: { type: 'string', description: '一句话理由：为什么这家适合用户此刻的状态/心情/场景' },
         guidance: { type: 'string', description: '给用户的一句话导览语（温暖、口语化）' },
+        note: { type: 'string', description: '可选诚实声明：数据库没有完全符合需求的店铺时，明说差距（如"数据库没有健身餐专门店，这家是最近的清淡选择"）；完全符合时省略' },
       },
       required: ['primaryId', 'alternativeIds', 'reason', 'guidance'],
     },
@@ -161,6 +162,7 @@ const SYSTEM_PROMPT = `你是「蛮有味·美食发现」的决策助手 Agent�
 - 替用户决策，但讲清为什么；最终拍板权在用户。理由必须基于你实际查到的门店事实（detail 返回），不要泛泛而谈。
 - 理解情绪/情境语境：用户说「心情不好想吃点治愈系暖暖的」→ 选温暖、汤羹、评分高、环境舒服的；「带暗恋的人第一次吃饭别太寒酸」→ 选环境好、人均适中、不踩雷的；「累瘫了想吃近的不想走动」→ 选离用户最近、省心的。规则引擎不懂这些，你要把它们翻译成可执行的筛选/排序约束，并去核实候选是否真的符合。
 - 诚实：无匹配就明说，绝不编造商户、坐标、评分或券。
+- **实事求是（最高优先）**：若数据库中没有完全符合用户要求的店铺（如「健身餐/低脂/高蛋白」），必须在 finalize 的 note 字段明说「数据库没有完全符合的」，再给最接近的真实选项并标注差异（如"这家是最近的清淡选择，但不是健身餐专门店"）；宁可少推荐，绝不随便凑一家糊弄用户。
 - 推荐排序只基于信任信号（评分/距离/人均/真实点评），**绝不**因为任何商户付费/分润关系改变排序或入选——这是产品信任内核。
 
 体验纪律（决定用户是否觉得"好用"，务必遵守）：
@@ -418,6 +420,7 @@ export async function agentChat(opts = {}) {
       : '当前暂无可核销商户（签约后卡片自动挂标，不影响排序）',
     degradation: [],
     guidance: committed.guidance || committed.reason || '',
+    note: committed.note || '', // W1.3：LLM 诚实声明（数据缺口/差距说明），前端渲染
     decision: {
       primaryId: decisionMerchants[0].id,
       reason: committed.reason || '',

@@ -6,6 +6,7 @@ import { store } from '../core/store.js';
 import { auth } from '../core/auth.js';
 import { buildAmapUrl } from './detail.js';
 import { buildFollowupChips, shouldShowFollowups } from './chatFollowups.js';
+import { REVEAL_STAGES, buildRevealSteps } from './revealSteps.js';
 import {
   discover as agentDiscover, agentChat,
   getBackend, getMemory, clearMemory,
@@ -349,6 +350,7 @@ export function ReasoningPage(ctx) {
     const output = data.output || { merchants: [], summary: {} };
     const trace = data.trace || null;
     const s = output.summary || {};
+    revealTrace(trace); // 渐进点亮推演骨架（确定性/LLM 统一呈现，无来源标签）
     const params = trace && trace.memoryUsed;
 
     const chips = buildChips(params || s);
@@ -374,10 +376,13 @@ export function ReasoningPage(ctx) {
       convo.appendChild(h('div', { class: 'empty', text: '没有匹配的美食，换个说法试试~' }));
     }
 
+    // W1.4 诚实声明（LLM note / 确定性诚实文案）在推荐区顶部展示
+    if (s.note) {
+      convo.appendChild(h('div', { class: 'agent-note', text: s.note }));
+    }
     if (s.provenance) {
       const hash = String(s.provenance.processHash || '').replace(/^sha256:/, '').slice(0, 10);
-      const driver = s.provenance.driver === 'hypha-react' ? 'LLM ReAct' : '确定性';
-      convo.appendChild(h('div', { class: 'agent-provenance', text: `由蛮有味 Agent 驱动 · ${driver} · 可回放审计 #${hash}` }));
+      convo.appendChild(h('div', { class: 'agent-provenance', text: `蛮有味 Agent 推演 · 可回放审计 #${hash}` }));
     }
 
     // —— S6：多轮追问快捷条（换一家 / 再便宜点 / 换个附近 / 收藏这家）——
@@ -423,11 +428,49 @@ export function ReasoningPage(ctx) {
   }
   renderQuickStart();
 
+  // —— W1.4 渐进式推演骨架：提交后立即展示「分析中」，响应后逐步点亮 ——
+  let revealWrap = null;
+  function renderRevealSkeleton() {
+    if (revealWrap && revealWrap.parentNode) revealWrap.remove();
+    revealWrap = h('div', { class: 'reveal-steps', 'data-reveal': '1' });
+    for (const st of REVEAL_STAGES) {
+      revealWrap.appendChild(h('div', { class: 'reveal-step reveal-pending' }, [
+        h('span', { class: 'reveal-dot' }),
+        h('span', { class: 'reveal-title', text: st.title }),
+        h('span', { class: 'reveal-loading', text: '分析中…' }),
+      ]));
+    }
+    convo.appendChild(revealWrap);
+    scrollToBottom();
+  }
+  function revealTrace(trace) {
+    if (!revealWrap || !revealWrap.parentNode) return;
+    const stages = buildRevealSteps(trace);
+    const els = [...revealWrap.querySelectorAll('.reveal-step')];
+    let i = 0;
+    function tick() {
+      if (i >= els.length) return;
+      const el = els[i];
+      const st = stages[i];
+      el.classList.remove('reveal-pending');
+      el.classList.add('reveal-done');
+      const load = el.querySelector('.reveal-loading');
+      if (load) load.remove();
+      if (st && st.detail) {
+        el.appendChild(h('span', { class: 'reveal-detail', text: st.detail }));
+      }
+      i++;
+      setTimeout(tick, 350); // 逐阶段点亮，让用户感知 Agent 在分析
+    }
+    tick();
+  }
+
   // —— 统一入口 ——
   async function ask(text, resetSeen) {
     text = (text || '').trim();
     if (!text) return;
     addUserBubble(text);
+    renderRevealSkeleton();
     try {
       let data;
       if (getBackend() === 'server') {
