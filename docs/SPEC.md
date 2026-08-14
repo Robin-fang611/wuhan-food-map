@@ -365,6 +365,7 @@ docs/BFF接口契约.md：RewardStore 后端契约（checkin / coupons CRUD / �
 ## 15. 问题反馈清单（2026-08-15 Robin，待统一方案后实施）
 
 > 本节记录 Robin 实测反馈的问题与需求，**待方案 = 未经拍板不实施**；统一方案定稿后回写 §11 并逐项闭环。用户还在持续反馈中。
+> **2026-08-15 方案进度**：Q1/Q2/Q3/Q5 统一实施蓝图已出 → docs/design/dual-track-agent-plan.md（双轨智能体）；Q3 细化 → docs/design/product-restructure-design.md（界面重构）；Q4 双方案 → docs/design/vision-adapter-design.md（视觉适配，方案 A 已落地：scripts/vision-desc.mjs 实测可用）。待 Robin 确认后实施。
 
 | # | 问题 / 需求 | 现状（实查） | 用户预期 | 初步方案方向（待确认） |
 |---|------------|-------------|----------|------------------------|
