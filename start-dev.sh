@@ -10,21 +10,22 @@ VITE="$ROOT/h5/node_modules/vite/bin/vite.js"
 echo "==> 构建 h5 (dist)"
 ( cd "$ROOT/h5" && "$NODE" "$VITE" build >/tmp/myw-build.log 2>&1 ) && echo "    build OK" || { echo "    build 失败,看 /tmp/myw-build.log"; exit 1; }
 
-start() {  # name port cmd...
-  local name="$1" port="$2"; shift 2
+start() {  # name port workdir cmd...
+  local name="$1" port="$2" workdir="$3"; shift 3
   if lsof -iTCP:"$port" -sTCP:LISTEN -P -n >/dev/null 2>&1; then
     echo "==> $name 已在 :$port 监听,跳过"
   else
     echo "==> 启动 $name :$port"
-    "$@" >"/tmp/myw-$name.log" 2>&1 &
-    echo "    pid $!"
+    ( cd "$workdir" && "$@" >"/tmp/myw-$name.log" 2>&1 & )
+    echo "    started (log /tmp/myw-$name.log)"
   fi
 }
 
-start preview 5180 "$NODE" "$VITE" preview --port 5180 --host 127.0.0.1
+# preview 必须在 h5/ 下运行（vite preview 默认找 cwd/dist）
+start preview 5180 "$ROOT/h5" "$NODE" "$VITE" preview --port 5180 --host 127.0.0.1
 # 后端默认接真实武汉数据集（wuhan 数据源：590 真实商户，两类分区）。
 # 仅想跑演示合成数据时可临时：MYWO_DATASOURCE=sample bash start-dev.sh
-start backend 8799 env MYWO_PORT=8799 MYWO_DATASOURCE=wuhan "$NODE" --env-file="$ROOT/.env" "$ROOT/hypha/implementation/src/httpServer.js"
+start backend 8799 "$ROOT" env MYWO_PORT=8799 MYWO_DATASOURCE=wuhan "$NODE" --env-file="$ROOT/.env" "$ROOT/hypha/implementation/src/httpServer.js"
 
 sleep 2
 echo "==> 健康检查:"
