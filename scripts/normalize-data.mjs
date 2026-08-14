@@ -411,11 +411,49 @@ function injectVerifiedBrands(merchants) {
   return added;
 }
 
+// —— 重名治理（V4.4 · S2，2026-08-15 已授权）——
+// 与前端 all-merchants.js 去重口径一致（去全部空白 + 小写）：
+//  - 真重复（归一化地址与坐标全同）→ 保留首条、丢弃其余（原被前端静默吞掉，现显式治理）；
+//  - 同名不同址（疑似分店/不同铺面）→ 改名保留（追加地址/片区），避免真实店铺被吞。
+// 纯函数，供 scripts/normalize-data.test.mjs 断言回归。
+export function resolveDuplicateNames(list) {
+  const key = (n) => (n || '').toString().replace(/\s+/g, '').toLowerCase();
+  const groups = new Map();
+  for (const m of list) {
+    const k = key(m.name);
+    if (!groups.has(k)) groups.set(k, []);
+    groups.get(k).push(m);
+  }
+  const merged = [];   // 真重复：{ keep, dropped[] }
+  const renamed = [];  // 分店改名：{ id, from, to }
+  const out = [];
+  for (const rows of groups.values()) {
+    if (rows.length === 1) { out.push(rows[0]); continue; }
+    const first = rows[0];
+    const sameAddr = rows.every((m) => key(m.address) === key(first.address));
+    const sameCoord = rows.every((m) => String(m.lng) === String(first.lng) && String(m.lat) === String(first.lat));
+    if (sameAddr && sameCoord) {
+      merged.push({ keep: first.id, dropped: rows.slice(1).map((m) => m.id) });
+      out.push(first);
+    } else {
+      out.push(first);
+      for (const m of rows.slice(1)) {
+        const dist = (m.address && m.address.trim()) || m.zone || '#' + m.id;
+        m.name = m.name + '（' + dist + '）';
+        renamed.push({ id: m.id, from: m.name.replace('（' + dist + '）', ''), to: m.name });
+        out.push(m);
+      }
+    }
+  }
+  return { merchants: out, merged, renamed };
+}
+
 function main() {
   const enrichment = loadEnrichment();
   const merchants = [...WUHAN, ...CAMPUS].map((x, i) => buildMerchant(x, i, enrichment));
   const verified = injectVerifiedBrands(merchants);
   merchants.push(...verified);
+  const { merchants: deduped, merged, renamed } = resolveDuplicateNames(merchants);
   const places = PLAY.map(buildPlace);
 
   mkdirSync(dirname(out('merchants.js')), { recursive: true });
@@ -426,8 +464,8 @@ function main() {
     `// ${note}\n`;
 
   writeFileSync(out('merchants.js'),
-    header('merchants', '统一商户表，schema 见产品方案 §5') +
-    `export const merchants = ${JSON.stringify(merchants, null, 0)};\n` +
+    header('merchants', '统一商户表，schema 见产品方案 §5 · 含重名治理（V4.4 S2）') +
+    `export const merchants = ${JSON.stringify(deduped, null, 0)};\n` +
     `export const MERCHANTS_GENERATED_AT = '${new Date().toISOString().slice(0, 10)}';\n`);
 
   writeFileSync(out('places.js'),
@@ -439,13 +477,14 @@ function main() {
   const fromFiveGrain = [...WUHAN].filter((x) => x.category === '五谷杂粮').length;
   const fromNanhu = [...WUHAN, ...CAMPUS].filter((x) => x.category === '南湖推荐').length;
   console.log('=== 归一化完成 ===');
-  console.log('merchants:', merchants.length, '(wuhan', WUHAN.length, '+ campus', CAMPUS.length, '+ web-verified', verified.length, ')');
+  console.log('merchants:', deduped.length, '(wuhan', WUHAN.length, '+ campus', CAMPUS.length, '+ web-verified', verified.length, ')');
+  console.log('重名治理: 真重复合并', merged.length, '组（丢弃', merged.reduce((a, g) => a + g.dropped.length, 0), '条）; 分店改名保留', renamed.length, '条');
   console.log('places:', places.length);
   console.log('伪分类已消解: 五谷杂粮', fromFiveGrain, '→ 经 cuisine 重归类; 南湖推荐(跨源)', fromNanhu, '→ 小吃宵夜/明细');
-  console.log('分类分布:', JSON.stringify(stats(merchants, 'category'), null, 0));
-  console.log('zone 分布:', JSON.stringify(stats(merchants, 'zone'), null, 0));
-  console.log('rating 分布:', JSON.stringify(stats(merchants, 'rating'), null, 0));
-  console.log('有 mealTime 条目:', merchants.filter((m) => m.mealTime.length).length);
+  console.log('分类分布:', JSON.stringify(stats(deduped, 'category'), null, 0));
+  console.log('zone 分布:', JSON.stringify(stats(deduped, 'zone'), null, 0));
+  console.log('rating 分布:', JSON.stringify(stats(deduped, 'rating'), null, 0));
+  console.log('有 mealTime 条目:', deduped.filter((m) => m.mealTime.length).length);
   console.log('输出文件: h5/src/data/merchants.js, h5/src/data/places.js');
 }
 

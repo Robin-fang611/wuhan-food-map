@@ -2,7 +2,7 @@
 // 约束：纯函数、无 DOM；ui/detail.js 含 h()/DOM，这里不 import，仅抽取其 buildAmapUrl 纯函数逻辑。
 import { CAMPUS_COORDS, WUHAN_CENTER, distKm, parsePrice, filterMerchants, listCategories, ratingRank } from '../../../../wuhan-food-map/h5/src/core/query.js';
 import { rankMustEat, rankValue, rankLateNight, rankNew } from '../../../../wuhan-food-map/h5/src/core/ranking.js';
-import { merchants } from '../../../../wuhan-food-map/h5/src/data/merchants.js';
+import { allMerchants } from '../../../../wuhan-food-map/h5/src/data/all-merchants.js';
 import { LocalAuthProvider } from '../../../../wuhan-food-map/h5/src/core/auth.js';
 import { store } from '../../../../wuhan-food-map/h5/src/core/store.js';
 import { LocalAnalytics, EVENTS } from '../../../../wuhan-food-map/h5/src/core/analytics.js';
@@ -20,8 +20,10 @@ if (typeof globalThis.localStorage === 'undefined' || globalThis.localStorage ==
   globalThis.localStorage = memStorage;
 }
 
-// 商户全量（用于详情按 id 查找；filter/rank/geo 的入参由调用方传 merchants 数组）
-export const ALL_MERCHANTS = merchants;
+// 商户全量（用于详情按 id 查找；filter/rank/geo 的入参由调用方传 merchants 数组）。
+// V4.4 S2（2026-08-15）：统一口径 = allMerchants（merchants 567 + robin-99 87 + web-stalls 206 = 860），
+// 与前端 5 视图同源，Agent 返回 id 天然 ⊂ 前端集合。
+export const ALL_MERCHANTS = allMerchants;
 
 export {
   CAMPUS_COORDS, WUHAN_CENTER, distKm, parsePrice, filterMerchants, listCategories, ratingRank,

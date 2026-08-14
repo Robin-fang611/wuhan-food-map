@@ -1,6 +1,6 @@
 # 蛮有味 · 反广告排序审计（Ranking Audit — Zero Sponsored Weight）
 
-> 自动生成：`node scripts/ranking-audit.mjs` · 生成时间：2026-08-15 00:06:22（北京时间）
+> 自动生成：`node scripts/ranking-audit.mjs` · 生成时间：2026-08-15 00:10:08（北京时间）
 > 结论：**PASS —— 推荐/排序零商业加权**
 
 ## 1. 审计范围

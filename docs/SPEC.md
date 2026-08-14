@@ -180,20 +180,22 @@ flowchart LR
 id, name, zone, category, cuisine, mealTime[], avgPrice(string), avgPriceNum(number), rating, signatureDishes, recommendDishes[], taste, tasteTags[], environment, environmentRating, serviceRating, ratingNum, hours, tel, occasions[], tags[], waitTime, reviewSummary, imageEmoji, address, lng, lat, distanceKm, has_coupon, coupon_summary, source, dataConfidence('verified'|'estimated'|'partial'), needsEnrichment(bool), enrichedAt, editorReason
 
 ### 5.2 置信度分级（诚实标注，不编造）
-| 等级 | 含义 | 当前数量（2026-08-13 实测） |
+| 等级 | 含义 | 当前数量（2026-08-15 S2 统一口径实测） |
 |------|------|------------------------------|
 | verified | 真实核验（实地 / 高德 / 联网核验） | 41 |
 | partial | 部分核验 | 1 |
-| estimated | 按品类算法推导，待探店升级 | 583 |
+| estimated | 按品类算法推导，待探店升级 | 525 |
+| undefined | robin-99 / web-stalls 未标注（诚实不编造，前端按 estimated 展示） | 293 |
 
 ### 5.3 数据源抽象
 - FoodDataSource 基类 + 注册表；sample（默认 7 条合成）+ wuhan（opt-in，ALL_MERCHANTS）。
 - 切换：setDefaultDataSource(createDataSource('wuhan')) 或 env MYWO_DATASOURCE=wuhan。
 
-### 5.4 数据治理规则（V4.4，2026-08-15 已授权）
-- 现状口径：merchants.js=625（后端事实源）；all-merchants.js=857（前端，含 robin-99 87 + web-stalls 206，坐标全 null 未伪造）；后端内 **61 组重名被合并去重吞掉**（数据质量隐患）。
-- 治理目标（S2）：后端摄入 robin-99 + web-stalls → 双端同口径 857；61 组重名清零。
-- 红线：不得伪造外源坐标、不得引入密钥 / PII。详见 docs/datasource-reconcile.md。
+### 5.4 数据治理规则（V4.4，2026-08-15 已授权 · S2 已完成）
+- **统一后口径（2026-08-15 实测）**：merchants.js=567（原始表，58 组真重复合并 + 3 组分店改名保留，重名 0）；双端（前端 allMerchants = 后端运行时 ALL_MERCHANTS）同口径 **860**（merchants 567 + robin-99 87 + web-stalls 206，坐标全 null 未伪造）。
+- 治理动作：① normalize-data.mjs 新增 resolveDuplicateNames（与前端去重口径一致）——真重复（同址同坐标）合并留首条，同名不同址（分店）改名保留（重庆辣子鱼家常菜（恩施街29户25号）/ 阿德鱼湾（二七北路28附16）/ 湖滨客舍（黄鹂路78号…））；② 后端 runtime.js ALL_MERCHANTS 切换为 allMerchants（Agent 返回 id 天然 ⊂ 前端集合）。
+- 守卫：scripts/reconcile-datasource.test.mjs 锁定新基线（860/860/567/重名 0），漂移即告警。
+- 红线：未伪造外源坐标（违规 0）、未引入密钥 / PII。详见 docs/datasource-reconcile.md。
 
 ---
 
@@ -238,7 +240,7 @@ docs/BFF接口契约.md：RewardStore 后端契约（checkin / coupons CRUD / �
 
 ## 8. 质量门禁与验收（通用）
 
-- **纯逻辑改动**：在 h5/test/ 或 hypha/implementation/test/、hypha/integration/ 增 / 改 *.test.mjs，运行 node 须全绿（当前 22 套：h5 13 + hypha 9，见 status-2026-08-15.md 实跑数）。
+- **纯逻辑改动**：在 h5/test/ 或 hypha/implementation/test/、hypha/integration/、scripts/ 增 / 改 *.test.mjs，运行 node 须全绿（当前 25 文件 29 子测试：h5 13 + hypha 8 + 集成 1 + scripts 3，见 status-2026-08-15.md 实跑数）。
 - **所有 JS**：node --check 语法校验全过。
 - **UI / 页面改动**：起静态服务后 curl 校验返回 200；DOM 用 h() 构建、无 innerHTML。
 - **红线扫描**：grep 明文 key / phone / token / user_id 关键词，命中 0。
@@ -272,7 +274,7 @@ docs/BFF接口契约.md：RewardStore 后端契约（checkin / coupons CRUD / �
 | **V1 LLM 基座** | 真跑 /agent：自然语言 → ReAct → 真实推荐 | DEEPSEEK_API_KEY 实跑产出 output.food-recommendation，累计真实成本 / 延迟达标 | ✅ 代码 + 真跑（4/4 真模型，fallback=false；盲评 ~4.0/5 已修复） |
 | **V2 信任内核** | 反广告排序 + 真实性徽章 + 探店工具 | ranking-audit PASS；UI 因子可视化上线 | ✅ 全交付 |
 | **V3 增长 + 账号 / 券** | 签到 / 玩法得券 / 券包 / 核销 / 增长看板（前端原型） | 13 套 h5 测试全绿；前端闭环可跑 | ✅（原型） |
-| **V4 BFF 后端（收窄）** | 账号真后端（✅ 已实施）+ 数据统一（S2 已授权）+ 券 / 核销 / 支付延后 | 账号跨设备生效（S3/S4）；857↔625 统一（S2）；支付分润独立可插拔模块后续接入 | 🟡 实施中 |
+| **V4 BFF 后端（收窄）** | 账号真后端（✅ 已实施）+ 数据统一（✅ S2 完成：双端 860）+ 券 / 核销 / 支付延后 | 账号跨设备生效（S3/S4）；双端同口径（S2 已完成）；支付分润独立可插拔模块后续接入 | 🟡 实施中 |
 | **V5 规模化 / 出海** | 数据驱动榜 + 小程序壳 + 付费推荐位（后置） | — | ⛔ 未启动 |
 
 ---
@@ -284,11 +286,10 @@ docs/BFF接口契约.md：RewardStore 后端契约（checkin / coupons CRUD / �
 ### S1 文档重构（✅ 2026-08-15 本轮完成）
 - SPEC v2.0 重构（本文）+ 文档索引更新 + 决策记录入册（D-20260815-01/02）+ 控制塔同步 + status-2026-08-15.md 快照。
 
-### S2 数据统一治理 V4.4【✅ 已授权 2026-08-15】
-- 目标：后端 wuhan 数据源摄入 robin-99 + web-stalls → 后端 = 前端 = 857，Agent 返回 id 仍 ⊂ 前端集合，零破坏。
-- 前置：先治理 61 组后端重名（去重 / 修正店名），避免合并后计数漂移。
-- 验收：node scripts/reconcile-datasource.mjs 双端同口径 857；61 组重名清零；全量单测全绿；Agent 返回 id ⊂ 前端集合。
-- 红线：不得伪造外源坐标、不得引入密钥 / PII。依据 docs/datasource-reconcile.md。
+### S2 数据统一治理 V4.4（✅ 2026-08-15 完成）
+- **结果**：merchants.js 567（58 组真重复合并 + 3 组分店改名保留，重名 0）；后端运行时 ALL_MERCHANTS 切 allMerchants → **双端同口径 860**；reconcile unified=true；ranking-audit PASS；29 子测试全绿；vite build 通过。
+- 验收达成：reconcile 双端同口径（860 = 860）；重名 0；Agent 返回 id 天然 ⊂ 前端集合（同源）；红线零违规。
+- 改动：scripts/normalize-data.mjs（resolveDuplicateNames 治理）+ 重新生成 merchants.js；hypha runtime.js / datasource wuhan.js；scripts/reconcile-datasource.mjs（统一后守卫）+ 基线测试；新增 scripts/normalize-data.test.mjs。
 
 ### S3 账号持久化
 - 目标：auth-server 内存 Map → 文件持久化（gitignored），重启不丢账号 / 会话 / 验证码语义。
@@ -336,7 +337,7 @@ docs/BFF接口契约.md：RewardStore 后端契约（checkin / coupons CRUD / �
 |---|------|------|--------------|
 | R1 | 账号后端内存存储 | 🔴 | 内存 Map，重启清空 → **S3 文件持久化治理中**；生产最终换 Redis/DB（接口已隔离） |
 | R2 | 核销后台仅本地 | 🔴 | 跨用户 / 跨商家无法核销；需 V4.1 BFF 全局查码 + 服务端幂等（等商家载体，R4） |
-| R3 | 数据完整度 | 🔴 | 583 estimated 待探店升级（collect-visit.mjs 就绪，待实地采集）；S2 后口径 857 一致但缺字段仍在 |
+| R3 | 数据完整度 | 🔴 | 525 estimated 待探店升级（collect-visit.mjs 就绪，待实地采集）；S2 后双端 860 同口径，但缺字段（评分/推荐语）仍在 |
 | R4 | 0 商户绑券 | 🟠 | 合作发券闭环无真实商家载体；CPS 签约网络 = 单位经济唯一命门 |
 | R5 | 校区覆盖薄 | 🟠 | 首义 + 南湖 147/590（24.9%），「就近」价值被全城稀释 |
 | R6 | Key 下发浏览器 | 🟠 | 静态部署固有，依赖高德域名白名单 + 安全密钥；彻底解决待 V4 代理 |

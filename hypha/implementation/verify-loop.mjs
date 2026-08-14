@@ -97,11 +97,11 @@ async function main() {
     try {
       const o = JSON.parse(runW.body);
       const sum = (o.output || {}).summary || {};
-      wuhanOk = sum.dataSource === 'wuhan-590' && typeof sum.total_matched === 'number' && sum.total_matched > 0;
+      wuhanOk = sum.dataSource === 'wuhan' && typeof sum.total_matched === 'number' && sum.total_matched > 0;
       wuhanDetail = `dataSource=${sum.dataSource} total=${sum.total_matched}`;
     } catch { wuhanDetail = 'run 响应非 JSON'; }
   } else { wuhanDetail = `http ${runW.status} ${runW.error || ''}`; }
-  record('端到端 /run(wuhan) 真实 590 数据合法契约', wuhanOk, wuhanDetail);
+  record('端到端 /run(wuhan) 统一 860 数据合法契约（V4.4 S2）', wuhanOk, wuhanDetail);
 
   // 2d. /agent（LLM 路径；无 Key 时自动降级 /run，仍返回合法契约 + fallback=true）
   const ag = await httpReq('POST', '127.0.0.1', 8799, '/agent', { message: '心情不好想吃点治愈系暖暖的', sessionId: 'verify' }, 60000);

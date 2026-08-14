@@ -25,3 +25,10 @@
 - 决策：D-20260815-01 GitHub 推送授权（审阅后直接 push）；D-20260815-02 V4.4 数据统一授权 + 下一步顺序 S2→S6。
 - 验证：25 测试文件全绿；ranking-audit PASS；reconcile 857/625（61 重名待治）；唯一既有缺陷 = scripts/build-robin-99.mjs 截断（产物已存在，不阻塞）。
 - 下一步：S2 数据统一（重名治理 + 摄入 robin-99/web-stalls → 857）→ S3 账号持久化 → S4 收藏同步 → S5 上传治理 → S6 对话体验。
+
+## 2026-08-15（S2 数据统一 V4.4 完成）
+- 重名治理：normalize-data.mjs 新增 resolveDuplicateNames（纯函数 + 4 项单测）——58 组真重复合并留首条、3 组分店改名保留（重庆辣子鱼家常菜（恩施街29户25号）/ 阿德鱼湾（二七北路28附16）/ 湖滨客舍（黄鹂路78号…））；merchants.js 625 → 567，重名 0。
+- 后端统一：runtime.js ALL_MERCHANTS = allMerchants（merchants + robin-99 + web-stalls）；wuhan 数据源 name → 'wuhan'；datasource.test.mjs 断言 860。
+- 守卫：reconcile-datasource.mjs 重写为统一后守卫（前端 allMerchants vs 后端运行时 + 原始表质量），基线测试 860/860/567/0；新增 normalize-data.test.mjs。
+- 验证：29 子测试全绿；ranking-audit PASS；reconcile unified=true（伪造坐标 0）；vite build 通过；已 commit + push。
+- 下一步：S3 账号持久化（auth-server 内存 → gitignored 文件）→ S4 收藏同步 → S5 上传治理 → S6 对话体验。

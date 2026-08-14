@@ -40,9 +40,9 @@ ok('南湖+夜宵+便宜 命中性价比优先（s004 ≤ s003）', cheapest && 
 console.log('Datasource · 切到 wuhan 验证「数据后灌」接入点');
 setDefaultDataSource(createDataSource('wuhan'));
 const w = getDataSource();
-ok("wuhan 数据源 name = 'wuhan-590'", w.name === 'wuhan-590');
+ok("wuhan 数据源 name = 'wuhan'", w.name === 'wuhan');
 const wall = await w.listMerchants();
-ok('wuhan 数据集约含 590 家', wall.length >= 500);
+ok('wuhan 数据集已统一为 860 家（V4.4 S2 口径，与前端 allMerchants 同源）', wall.length === 860);
 const wr = await runFoodDiscovery({ intent: '首义必吃' });
 ok('wuhan 上 runFoodDiscovery 同样成功', wr.success === true);
 ok('wuhan 结果量明显大于 sample', wr.output.summary.total_matched > all.length);
