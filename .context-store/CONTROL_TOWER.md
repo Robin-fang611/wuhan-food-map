@@ -6,8 +6,8 @@
 **蛮有味（Manyouwei）**——面向武汉（校园先行）的 AI 智能体美食发现产品。非技术创始人 Robin。当前阶段：V1–V3 已全交付（LLM 基座真跑✅ / 信任内核✅ / 账号券闭环✅原型），V4 实施中（账号子系统✅ / 数据统一已授权待实施），SPEC v2.0 已重构（智能体产品标准）。
 
 ## 当前焦点
-- **2026-08-15**：SPEC v2.0 已重构；**S2 数据统一 V4.4 已完成并推送**（merchants.js 567：58 组合并 + 3 分店改名保留，重名 0；后端 ALL_MERCHANTS 切 allMerchants，双端同口径 860；reconcile unified=true；29 子测试全绿）。
-- **下一步清单（按序推进，见 SPEC §11）**：**S3 账号持久化（auth-server 内存 Map → gitignored 文件，重启不丢账号/会话）** → S4 收藏跨设备同步（user.favorite 后端化，JWT 解析防越权）→ S5 pending 上传治理 → S6 对话体验打磨（chat-first）。
+- **2026-08-15**：SPEC v2.0 已重构；**S2 数据统一 V4.4 ✅**（双端同口径 860）；**S3 账号持久化 ✅**（data/auth-users.json gitignored 原子写，重启旧 JWT 仍有效；补齐后端账号单测 auth.test.mjs 5 组）；34 子测试全绿。
+- **下一步清单（按序推进，见 SPEC §11）**：**S4 收藏跨设备同步（user.favorite 后端化，JWT 解析用户防越权，前端 LocalStore 兜底）** → S5 pending 上传治理 → S6 对话体验打磨（chat-first）。
 - **守门智能体工作流（2026-08-15 更新）**：实现 → 测试全绿 → node --check → 红线扫描 → **审阅 diff** → 更新 status 文档 → **直接 commit + push GitHub**（已授权）。
 - 已结：V1 真跑（.env 有 DEEPSEEK_API_KEY，4/4 真模型）；V2/V3 全交付；§7.4 探店采集三分支真跑验收；§7.4.1 账号体系（13/13 单测）；push 授权；LLM 选型。
 

@@ -32,3 +32,9 @@
 - 守卫：reconcile-datasource.mjs 重写为统一后守卫（前端 allMerchants vs 后端运行时 + 原始表质量），基线测试 860/860/567/0；新增 normalize-data.test.mjs。
 - 验证：29 子测试全绿；ranking-audit PASS；reconcile unified=true（伪造坐标 0）；vite build 通过；已 commit + push。
 - 下一步：S3 账号持久化（auth-server 内存 → gitignored 文件）→ S4 收藏同步 → S5 上传治理 → S6 对话体验。
+
+## 2026-08-15（S3 账号持久化完成）
+- auth-server：users/phoneIndex/unionIndex 落盘 data/auth-users.json（gitignored、原子写 tmp+rename、失败降级内存运行）；验证码/频控保持内存态（短时效安全语义）。
+- 补齐后端账号单测（此前「13/13 进程内单测」从未入库）：hypha/implementation/test/auth.test.mjs 5 组（图形码一次性/短信频控/登录 JWT+脱敏/持久化文件/**子进程模拟重启：旧 JWT 仍有效 + 同号重登同账号**）。
+- 验证：34 子测试全绿；node --check 通过；无运行态数据入库；已 commit + push。
+- 下一步：S4 收藏跨设备同步（user.favorite 后端化）→ S5 上传治理 → S6 对话体验。

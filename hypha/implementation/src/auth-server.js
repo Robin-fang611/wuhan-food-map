@@ -9,11 +9,21 @@
 //      · 生产环境(NODE_ENV=production) 且未配置真实短信网关 → /auth/sms/send 返回「短信服务未配置」。
 //      · 未配微信 AppID/AppSecret → /auth/wechat/url 与 /auth/wechat/callback 返回「未配置」。
 //      · 未配 AUTH_JWT_SECRET → 登录/校验直接报错（不签发空密钥 token）。
-//  - 存储为内存 Map（原型，非持久；重启即清空）。后续可平滑替换为 Redis/DB，接口不变。
+//  - 存储（S3 · 2026-08-15 起）：账号（users / phoneIndex / unionIndex）文件持久化到
+//    data/auth-users.json（gitignored，原子写：tmp + rename），重启不丢账号、旧 JWT 仍有效；
+//    验证码 / 频控为内存态（短时效安全语义，重启清空属正确行为）。
+//    生产环境建议替换为 Redis/DB（接口不变），文件持久化为本地原型形态。
 //
 // 频控 / 一次性 / 常量时间比较 等防刷手段均落在服务端（前端倒计时只是 UX，不可绕过）。
 
 import { randomBytes, randomUUID, createHmac, timingSafeEqual } from 'node:crypto';
+import { existsSync, readFileSync, writeFileSync, renameSync, mkdirSync } from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const DATA_DIR = process.env.AUTH_DATA_DIR || path.resolve(__dirname, '..', 'data');
+const USERS_FILE = path.join(DATA_DIR, 'auth-users.json');
 
 const JWT_SECRET = process.env.AUTH_JWT_SECRET || '';
 const IS_PROD = process.env.NODE_ENV === 'production';
@@ -30,6 +40,46 @@ const smsLimit = new Map();   // phone -> number[]（最近发送时间戳）
 const users = new Map();      // id -> user
 const phoneIndex = new Map(); // phone -> id
 const unionIndex = new Map(); // unionid -> id
+
+// —— 账号持久化（S3）：users / phoneIndex / unionIndex 落盘，验证码与频控保持内存态 ——
+function persistAccounts() {
+  try {
+    mkdirSync(DATA_DIR, { recursive: true });
+    const payload = {
+      version: 1,
+      savedAt: new Date().toISOString(),
+      users: [...users.values()],
+      phoneIndex: Object.fromEntries(phoneIndex),
+      unionIndex: Object.fromEntries(unionIndex),
+    };
+    const tmp = USERS_FILE + '.tmp';
+    writeFileSync(tmp, JSON.stringify(payload), 'utf8');
+    renameSync(tmp, USERS_FILE); // 原子替换，避免写一半损坏
+  } catch (err) {
+    // 磁盘失败不阻断登录流程（原型语义）；生产由 Redis/DB 接管
+    // eslint-disable-next-line no-console
+    console.warn('[auth] 账号持久化失败（继续内存运行）:', String(err && err.message || err));
+  }
+}
+
+function loadAccounts() {
+  try {
+    if (!existsSync(USERS_FILE)) return;
+    const raw = JSON.parse(readFileSync(USERS_FILE, 'utf8'));
+    if (!raw || !Array.isArray(raw.users)) return;
+    for (const u of raw.users) {
+      if (!u || !u.id) continue;
+      users.set(u.id, u);
+      if (u.phone) phoneIndex.set(u.phone, u.id);
+      if (u.wechat && u.wechat.unionid) unionIndex.set(u.wechat.unionid, u.id);
+    }
+  } catch (err) {
+    // 文件缺失/损坏：静默降级为空账号（原型语义，不阻断启动）
+    // eslint-disable-next-line no-console
+    console.warn('[auth] 账号文件加载失败（以空账号启动）:', String(err && err.message || err));
+  }
+}
+loadAccounts();
 
 const CAPTCHA_TTL = 5 * 60 * 1000;
 const SMS_TTL = 10 * 60 * 1000;
@@ -194,6 +244,7 @@ function findOrCreateUserByPhone(phone) {
   };
   users.set(id, user);
   phoneIndex.set(phone, id);
+  persistAccounts();
   return user;
 }
 function issueJwt(user, scene) {
@@ -274,6 +325,7 @@ export async function wechatCallback(code, state) {
     };
     users.set(id, user);
     unionIndex.set(unionid, id);
+    persistAccounts();
   }
   const token = issueJwt(user, 'wechat');
   const redirect = `${FRONTEND_ORIGIN}/?cb=wechat&token=${encodeURIComponent(token)}&state=${encodeURIComponent(state || '')}`;

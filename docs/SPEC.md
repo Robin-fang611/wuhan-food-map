@@ -161,7 +161,7 @@ flowchart LR
 ### 4.2 组件职责
 - **orchestrator.js**：确定性 FSM 编排（/run）。
 - **agent-loop.js**：ReAct 循环（/agent）——收自然语言 → DeepSeek tool_calling → 调 facade 工具 → finalize_recommendation（1 主推 + 2~3 备选 + 理由 + 导览）；模型输出不可信 → resolveDecision 校验 → redlineCheck → 装配契约。
-- **auth-server.js**：图形验证码（自绘 SVG，一次性、5 分钟、常量时间比对）+ 短信验证码（频控 1 分钟 1 次 / 1 小时 ≤5 / 24 小时 ≤10；6 位、10 分钟、一次性）+ JWT（HMAC-SHA256 内联签发，零依赖，30 天）+ 微信网页授权。**存储为内存 Map（S3 改为文件持久化）**。
+- **auth-server.js**：图形验证码（自绘 SVG，一次性、5 分钟、常量时间比对）+ 短信验证码（频控 1 分钟 1 次 / 1 小时 ≤5 / 24 小时 ≤10；6 位、10 分钟、一次性）+ JWT（HMAC-SHA256 内联签发，零依赖，30 天）+ 微信网页授权。**存储（S3 起）：账号文件持久化（data/auth-users.json，gitignored、原子写 tmp+rename），重启不丢账号、旧 JWT 仍有效；验证码 / 频控为内存态（短时效安全语义）；生产可平滑换 Redis/DB（接口不变）**。
 - **upload.js**：探店采集三分支（高德搜到→verified；摊类描述→verified_stall；其余→pending）+ 相关性闸门（店名相似度 ≥0.5 且定位 3km 内）。
 - **datasource/**：FoodDataSource 抽象 + 注册表（sample 默认 / wuhan opt-in）。
 - **explain.js / provenance.js**：逐店理由 + 因子权重 + 溯源（processHash / fsm / prompts / trace.steps 可回放）。
@@ -291,9 +291,9 @@ docs/BFF接口契约.md：RewardStore 后端契约（checkin / coupons CRUD / �
 - 验收达成：reconcile 双端同口径（860 = 860）；重名 0；Agent 返回 id 天然 ⊂ 前端集合（同源）；红线零违规。
 - 改动：scripts/normalize-data.mjs（resolveDuplicateNames 治理）+ 重新生成 merchants.js；hypha runtime.js / datasource wuhan.js；scripts/reconcile-datasource.mjs（统一后守卫）+ 基线测试；新增 scripts/normalize-data.test.mjs。
 
-### S3 账号持久化
-- 目标：auth-server 内存 Map → 文件持久化（gitignored），重启不丢账号 / 会话 / 验证码语义。
-- 验收：重启后旧 token 仍有效；13/13 账号单测保持全绿 + 新增持久化单测；数据文件 gitignored。
+### S3 账号持久化（✅ 2026-08-15 完成）
+- **结果**：auth-server 账号（users / phoneIndex / unionIndex）文件持久化到 data/auth-users.json（gitignored、原子写 tmp+rename、失败降级不阻断登录）；验证码 / 频控保持内存态（短时效安全语义）。
+- 验收达成：**重启后旧 JWT 仍有效（子进程模拟真实验证）**；同号重登命中同一账号（phoneIndex 已落盘）；**新增 hypha/implementation/test/auth.test.mjs（5 组：图形码/短信/登录/持久化/重启）**，补齐此前缺失的后端账号单测；34 子测试全绿；数据文件 gitignored。
 
 ### S4 收藏跨设备同步
 - 目标：user.favorite 工具后端化（按 JWT 解析用户，服务端忽略客户端传入 userId 防越权）；前端收藏读写走 BFF（LocalStore 兜底）。
@@ -335,7 +335,7 @@ docs/BFF接口契约.md：RewardStore 后端契约（checkin / coupons CRUD / �
 
 | # | 风险 | 等级 | 说明 / 缓解 |
 |---|------|------|--------------|
-| R1 | 账号后端内存存储 | 🔴 | 内存 Map，重启清空 → **S3 文件持久化治理中**；生产最终换 Redis/DB（接口已隔离） |
+| R1 | 账号存储为本地文件原型 | 🟠 | **S3 已落地**：data/auth-users.json 文件持久化（gitignored，重启不丢）；生产多实例 / 高并发建议换 Redis/DB（接口已隔离，改动小） |
 | R2 | 核销后台仅本地 | 🔴 | 跨用户 / 跨商家无法核销；需 V4.1 BFF 全局查码 + 服务端幂等（等商家载体，R4） |
 | R3 | 数据完整度 | 🔴 | 525 estimated 待探店升级（collect-visit.mjs 就绪，待实地采集）；S2 后双端 860 同口径，但缺字段（评分/推荐语）仍在 |
 | R4 | 0 商户绑券 | 🟠 | 合作发券闭环无真实商家载体；CPS 签约网络 = 单位经济唯一命门 |
