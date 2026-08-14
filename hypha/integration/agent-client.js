@@ -11,7 +11,11 @@
 
 const LOCAL_AGENT = 'http://127.0.0.1:8799';
 const SERVER_AGENT = 'http://127.0.0.1:8799';
-let BACKEND = 'server'; // Phase 5 默认走 LLM 大脑；后端无 Key 时自动降级，体验无感。
+// 默认 'local'（2026-08-15 Robin 拍板：方案 B——确定性脚本模拟推理为主）：
+//  - local：走 /run 确定性 FSM（关键词→数据库检索→推荐），秒回、零成本、零网络依赖，
+//    返回完整推理时间线（intake→filter→geo→rank→decide→why）可审计可复现；
+//  - server：走 /agent LLM 大脑（DeepSeek ReAct），增强情境理解；网络/密钥稳定后可 setBackend('server') 启用。
+let BACKEND = 'local';
 const FETCH_TIMEOUT_MS = 45000; // /agent 多轮 ReAct 可能耗时较长
 
 export function setBackend(b) { BACKEND = b === 'server' ? 'server' : 'local'; }

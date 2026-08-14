@@ -4,6 +4,7 @@
 import discoverFilter from './tools/filter.js';
 import discoverRank from './tools/rank.js';
 import discoverGeo from './tools/geo.js';
+import { searchMerchants } from '../../../../wuhan-food-map/h5/src/core/query.js';
 import { parsePrice, ratingRank } from './runtime.js';
 import { explainRecommendation } from './explain.js';
 import { getDataSource } from './datasource/index.js';
@@ -40,7 +41,7 @@ function buildDegradation(total, rated, withReason, missingCoords, couponCount) 
 export async function runDiscovery(params, dataSource) {
   const {
     zone = '武汉全城', mealTime = [], category = null, maxPrice = null,
-    sort = null, board = null, limit = 20, query = '',
+    sort = null, board = null, limit = 20, query = '', keyword = '',
   } = params;
 
   // 数据来自数据源（默认 sample），不在框架内硬编码具体数据集。
@@ -49,7 +50,30 @@ export async function runDiscovery(params, dataSource) {
 
   let merchants;
   let ranked_by;
+  let keywordMiss = false;
+  let missingCoords = 0;
 
+  // —— 关键词优先检索（S6.1）：店名包含 > 模糊（店名/招牌/口味/理由）> 回落通用推荐 ——
+  const kw = String(keyword || '').trim();
+  if (kw) {
+    const k = kw.toLowerCase();
+    let hits = all.filter((m) => String(m.name || '').toLowerCase().includes(k));
+    if (!hits.length) hits = searchMerchants(all, k);
+    if (hits.length) {
+      merchants = hits;
+      ranked_by = 'keyword';
+      if (zone === '财大南湖周边') {
+        const g = await discoverGeo({ merchants, fromZone: zone });
+        merchants = g.output.merchants; // 就近优先（关键词命中多家分店/同名店时）
+      } else {
+        merchants = sortBy(merchants, 'rating'); // 评分优先（同店多分店时口碑在前）
+      }
+    } else {
+      keywordMiss = true; // 未命中：回落结构化通用推荐，并显式降级说明
+    }
+  }
+
+  if (!kw || keywordMiss) {
   if (board) {
     // 先按结构化条件收窄，再在子集上排榜（榜内自带评级/场景过滤，更贴合校区范围）。
     const f = await discoverFilter({ merchants: all, zone, categories: category ? [category] : [], mealTime, maxPrice });
@@ -63,7 +87,6 @@ export async function runDiscovery(params, dataSource) {
   }
 
   // 就近距离计算（仅对财大南湖周边有意义）；标注缺坐标，不编造距离。
-  let missingCoords = 0;
   if (zone === '财大南湖周边') {
     const g = await discoverGeo({ merchants, fromZone: zone });
     merchants = g.output.merchants; // 已附注 distanceKm，并按距离升序
@@ -77,11 +100,16 @@ export async function runDiscovery(params, dataSource) {
   } else if (!board) {
     merchants = sortBy(merchants, sort || 'rating');
   }
+  } // 结束 keywordMiss 回落分支（keyword 命中时已直接赋值 merchants，跳过结构化筛选）
 
   // 多轮追问：排除已展示过的商户（「换一家」），仅在本轮候选集内剔除，不污染数据源。
   if (Array.isArray(params.exclude) && params.exclude.length) {
     merchants = merchants.filter((m) => !params.exclude.includes(m.id));
   }
+
+  // 关键词未命中：显式降级说明（不假装找到，守诚实红线）。
+  if (keywordMiss && !kw) keywordMiss = false;
+  
 
   const limited = (limit && limit > 0) ? merchants.slice(0, limit) : merchants;
 
@@ -90,13 +118,21 @@ export async function runDiscovery(params, dataSource) {
   const withReason = limited.filter((m) => m.reason).length;
   const couponCount = limited.filter((m) => m.has_coupon).length;
 
+  const degradation = buildDegradation(total, rated, withReason, missingCoords, couponCount);
+  if (keywordMiss && kw) {
+    degradation.unshift(`未找到含「${kw}」的店铺，以下为附近人气推荐`);
+  }
+  if (kw && !keywordMiss) {
+    degradation.unshift(`已按关键词「${kw}」检索（店名优先）`);
+  }
+
   const summary = {
-    query,
+    query: kw || query,
     total_matched: total,
     ranked_by,
     nearest: pickNearest(limited),
     coupon_hint: couponCount > 0 ? `其中 ${couponCount} 家可领券` : '当前数据暂无在售券，领券玩法待 BFF 接入',
-    degradation: buildDegradation(total, rated, withReason, missingCoords, couponCount),
+    degradation,
   };
 
   // —— 逐店可解释：为每位候选生成推荐理由 + 因子（确定性，不污染全局数据源对象）——

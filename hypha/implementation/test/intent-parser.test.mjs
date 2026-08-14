@@ -66,3 +66,13 @@ ok('完成条件：category=湖北菜 & maxPrice=100', finish.category === '湖�
 
 console.log(`\nALL INTENT-PARSER TESTS PASSED (${passed} assertions)`);
 process.exit(0);
+
+
+// —— S6.1 · 关键词/店名检索提取 ——
+console.log('Intent-Parser · 关键词检索提取');
+ok('纯店名「老樊城」→ keyword=老樊城', parseIntent({ intent: '老樊城' }).keyword === '老樊城');
+ok('「蔡林记热干面」→ keyword 提取（分类命中不阻塞检索）', parseIntent({ intent: '蔡林记热干面' }).keyword === '蔡林记热干面');
+ok('语气前缀剥除：「帮我找一家东北饺子馆」→ keyword=东北饺子馆', parseIntent({ intent: '帮我找一家东北饺子馆' }).keyword === '东北饺子馆');
+ok('结构化意图不提取 keyword（南湖附近便宜的宵夜）', parseIntent({ intent: '南湖附近便宜的宵夜' }).keyword === '');
+ok('结构化意图不提取 keyword（带朋友吃湖北菜人均不过百）', parseIntent({ intent: '带朋友吃湖北菜人均不过百' }).keyword === '');
+ok('显式传入 keyword 优先于推导', parseIntent({ intent: '随便', keyword: '老通城' }).keyword === '老通城');

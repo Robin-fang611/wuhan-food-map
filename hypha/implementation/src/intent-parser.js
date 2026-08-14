@@ -223,5 +223,29 @@ export function parseIntent(input = {}) {
   if (!taste) taste = extractTaste(t);
 
   const limit = input.limit != null ? Number(input.limit) : 20;
-  return { zone, mealTime: [...mealTime], category, maxPrice, sort, board, limit, mood, taste, query: intent };
+
+  // —— keyword（S6.1 · 店名/关键词检索）：未命中任何结构化信号时，把输入当作「搜索词」——
+  // 结构化信号存在（时段/分类/价格/排序/榜单）时不做关键词提取，避免干扰正常意图解析；
+  // 纯关键词输入（如「老樊城」「蔡林记」）→ keyword=原文（剥常见语气前缀，提升店名命中率）。
+  const KW_PREFIX = ['帮我', '推荐', '我想', '想吃', '来点', '来一份', '给我', '有没有', '哪里有', '找一下', '找家', '找'];
+  let keyword = input.keyword != null ? String(input.keyword) : '';
+  // 结构化信号 = 时段/价格/排序/榜单/片区词（分类命中不算信号——「蔡林记热干面」命中分类词
+  // 「热干面」时仍应同时按店名关键词检索，店名匹配优先于分类筛选）。
+  const hasSignal = mealTime.size > 0 || maxPrice != null || sort != null || board != null
+    || t.includes('南湖') || t.includes('财大') || t.includes('首义') || t.includes('附近') || t.includes('周边');
+  if (!keyword && !hasSignal && intent.trim()) {
+    let raw = intent.trim();
+    let changed = true;
+    while (changed) {
+      changed = false;
+      for (const p of KW_PREFIX) {
+        if (raw.startsWith(p)) { raw = raw.slice(p.length); changed = true; break; }
+      }
+      if (/^(一家|一个|一下|来|吃)/.test(raw)) { raw = raw.slice(2); changed = true; }
+    }
+    raw = raw.replace(/[，。！？,.!?的]+$/g, '').trim();
+    if (raw.length >= 2) keyword = raw;
+  }
+
+  return { zone, mealTime: [...mealTime], category, maxPrice, sort, board, limit, mood, taste, query: intent, keyword };
 }

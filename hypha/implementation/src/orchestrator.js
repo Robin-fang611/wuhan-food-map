@@ -57,15 +57,16 @@ function buildTrace(params, summary, dsName) {
   const z = params.zone || '武汉全城';
   const cat = params.category ? `「${params.category}」` : '任意品类';
   const mt = (Array.isArray(params.mealTime) && params.mealTime.length) ? params.mealTime.join('/') : '不限时段';
+  const kw = params.keyword ? String(params.keyword).trim() : '';
   steps.push({
     kind: 'intake',
-    title: '理解你的意图',
-    detail: `片区：${z} · 品类：${cat} · 时段：${mt}${typeof params.maxPrice === 'number' ? ` · 人均≤${params.maxPrice}` : ''}`,
+    title: kw ? `理解你的意图（关键词检索：「${kw}」）` : '理解你的意图',
+    detail: `片区：${z} · 品类：${cat} · 时段：${mt}${typeof params.maxPrice === 'number' ? ` · 人均≤${params.maxPrice}` : ''}${kw ? ` · 搜索词：${kw}` : ''}`,
   });
   steps.push({
     kind: 'filter',
-    title: '从数据集筛选候选',
-    detail: `在「${dsName}」中按上述条件命中 ${summary.total_matched} 家（排序口径：${RANKED_BY_LABEL[summary.ranked_by] || summary.ranked_by || '推荐度'}）`,
+    title: kw ? `按关键词「${kw}」检索数据库` : '从数据集筛选候选',
+    detail: `在「${dsName}」中${kw ? `按店名/招牌/口味包含「${kw}」` : '按上述条件'}命中 ${summary.total_matched} 家（排序口径：${RANKED_BY_LABEL[summary.ranked_by] || summary.ranked_by || '推荐度'}）`,
   });
   if (z === '财大南湖周边') {
     steps.push({
