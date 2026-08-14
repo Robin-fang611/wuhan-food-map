@@ -21,13 +21,14 @@ const AUTH_FILE = join(DATA_DIR, 'auth-users.json');
 const AUTH_MODULE = fileURLToPath(new URL('../src/auth-server.js', import.meta.url));
 
 // —— 子进程助手：全新进程 = 全新模块 = 模拟「重启」 ——
-function runChild(script) {
+function runChild(script, extraEnv = {}) {
   const out = execFileSync(process.execPath, ['--input-type=module', '-e', script], {
     env: {
       ...process.env,
       AUTH_DATA_DIR: DATA_DIR,
       AUTH_JWT_SECRET: process.env.AUTH_JWT_SECRET,
       AUTH_DEV_EXPOSE_CAPTCHA: '1',
+      ...extraEnv,
     },
     encoding: 'utf8',
   });
@@ -92,12 +93,43 @@ test('手机登录：JWT + 脱敏 + 一次性码 + /me', async () => {
   assert.equal(auth.getUserByToken('bad.token.here'), null);
 });
 
-test('持久化：账号写入 data/auth-users.json（gitignored 目录）', () => {
+test('持久化：账号写入 data/auth-users.json（gitignored 目录，索引哈希化）', () => {
   assert.equal(existsSync(AUTH_FILE), true);
   const raw = JSON.parse(readFileSync(AUTH_FILE, 'utf8'));
   assert.ok(Array.isArray(raw.users));
   assert.ok(raw.users.length >= 1);
-  assert.ok(raw.phoneIndex['13800000002']);
+  // W5.3：phoneIndex 键为 sha256 哈希（可查询不可逆），不再明文手机号
+  const keys = Object.keys(raw.phoneIndex || {});
+  assert.ok(keys.length >= 1);
+  assert.ok(keys.every((k) => /^[0-9a-f]{32}$/.test(k)), 'phoneIndex 键应为哈希');
+});
+
+test('W5.3 加密模式：AUTH_DATA_KEY 下手机号密文落盘，重启后仍可登录（子进程）', () => {
+  const KEY = 'a'.repeat(64);
+  const encDir = mkdtempSync(join(tmpdir(), 'mywo-auth-enc-'));
+  // 子进程 A：加密模式创建账号
+  const a = runChild(`
+    import { createCaptcha, sendSms, loginWithPhone } from '${AUTH_MODULE}';
+    const cap = createCaptcha();
+    const sms = await sendSms({ phone: '13800000041', captchaToken: cap.token, captchaInput: cap._devText });
+    const login = loginWithPhone({ phone: '13800000041', smsCode: sms.devCode });
+    if (!login.ok) throw new Error(JSON.stringify(login));
+    console.log(JSON.stringify({ id: login.user.id }));
+  `, { AUTH_DATA_DIR: encDir, AUTH_DATA_KEY: KEY });
+  // 磁盘检查：无明文手机号、phone 字段 enc: 前缀
+  const raw = JSON.parse(readFileSync(join(encDir, 'auth-users.json'), 'utf8'));
+  const blob = JSON.stringify(raw);
+  assert.equal(blob.includes('13800000041'), false, '文件不得含明文手机号');
+  assert.ok(raw.users.some((u) => String(u.phone || '').startsWith('enc:')), 'phone 应为 enc: 密文');
+  // 子进程 B：加密模式重启 → 同号登录命中同一账号
+  const b = runChild(`
+    import { createCaptcha, sendSms, loginWithPhone } from '${AUTH_MODULE}';
+    const cap = createCaptcha();
+    const sms = await sendSms({ phone: '13800000041', captchaToken: cap.token, captchaInput: cap._devText });
+    const login = loginWithPhone({ phone: '13800000041', smsCode: sms.devCode });
+    console.log(JSON.stringify({ id: login.user.id }));
+  `, { AUTH_DATA_DIR: encDir, AUTH_DATA_KEY: KEY });
+  assert.equal(b.id, a.id, '加密模式重启后同号登录命中同一账号');
 });
 
 test('重启后旧 JWT 仍有效 + 同号重登返回同一账号（子进程模拟）', () => {

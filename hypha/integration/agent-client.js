@@ -78,45 +78,56 @@ export async function clearMemory(sessionId = 'anon') {
   return res.json();
 }
 
-// reward.checkin：经 Agent 治理的本人签到得券（Engage 状态）。
-export async function checkin(userId) {
+// 本地会话 JWT（W5：写操作服务端从 JWT 解析本人；未登录则不带凭证 → 后端拒绝并引导登录）
+function sessionAuthHeader() {
+  try {
+    const raw = (typeof localStorage !== 'undefined') ? localStorage.getItem('myw:auth:session') : null;
+    if (!raw) return {};
+    const u = JSON.parse(raw);
+    if (u && u.token && String(u.token).split('.').length === 3) return { Authorization: 'Bearer ' + u.token };
+  } catch { /* ignore */ }
+  return {};
+}
+
+// reward.checkin：经 Agent 治理的本人签到得券（Engage 状态，JWT 鉴权）。
+export async function checkin() {
   const res = await fetch(`${base()}/tools/reward.checkin`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ userId }),
+    headers: { 'Content-Type': 'application/json', ...sessionAuthHeader() },
+    body: JSON.stringify({}),
   });
   if (!res.ok) throw new Error(`agent checkin ${res.status}`);
   return res.json();
 }
 
-// user.favorite：经 Agent 治理的本人收藏/取消（Engage 状态，幂等）。
-export async function favorite({ merchantId, action = 'add', userId } = {}) {
+// user.favorite：经 Agent 治理的本人收藏/取消（Engage 状态，幂等，JWT 鉴权）。
+export async function favorite({ merchantId, action = 'add' } = {}) {
   const res = await fetch(`${base()}/tools/user.favorite`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ merchantId, action, userId }),
+    headers: { 'Content-Type': 'application/json', ...sessionAuthHeader() },
+    body: JSON.stringify({ merchantId, action }),
   });
   if (!res.ok) throw new Error(`agent favorite ${res.status}`);
   return res.json();
 }
 
-// reward.claim：经 Agent 治理的本人领商家券（Engage 状态，每商家每用户限 1，幂等）。
-export async function claim({ userId, merchantId, merchantName, summary } = {}) {
+// reward.claim：经 Agent 治理的本人领商家券（Engage 状态，每商家每用户限 1，幂等，JWT 鉴权）。
+export async function claim({ merchantId, merchantName, summary } = {}) {
   const res = await fetch(`${base()}/tools/reward.claim`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ userId, merchantId, merchantName, summary }),
+    headers: { 'Content-Type': 'application/json', ...sessionAuthHeader() },
+    body: JSON.stringify({ merchantId, merchantName, summary }),
   });
   if (!res.ok) throw new Error(`agent claim ${res.status}`);
   return res.json();
 }
 
-// reward.view-wallet：经 Agent 治理的查看本人券包（仅本人，无 PII 回显）。
-export async function viewWallet({ userId } = {}) {
+// reward.view-wallet：经 Agent 治理的查看本人券包（仅本人，无 PII 回显，JWT 鉴权）。
+export async function viewWallet() {
   const res = await fetch(`${base()}/tools/reward.view-wallet`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ userId }),
+    headers: { 'Content-Type': 'application/json', ...sessionAuthHeader() },
+    body: JSON.stringify({}),
   });
   if (!res.ok) throw new Error(`agent viewWallet ${res.status}`);
   return res.json();

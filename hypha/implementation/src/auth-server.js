@@ -16,7 +16,7 @@
 //
 // 频控 / 一次性 / 常量时间比较 等防刷手段均落在服务端（前端倒计时只是 UX，不可绕过）。
 
-import { randomBytes, randomUUID, createHmac, timingSafeEqual } from 'node:crypto';
+import { randomBytes, randomUUID, createHmac, createHash, createCipheriv, createDecipheriv, timingSafeEqual } from 'node:crypto';
 import { existsSync, readFileSync, writeFileSync, renameSync, mkdirSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -24,6 +24,35 @@ import { fileURLToPath } from 'node:url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DATA_DIR = process.env.AUTH_DATA_DIR || path.resolve(__dirname, '..', 'data');
 const USERS_FILE = path.join(DATA_DIR, 'auth-users.json');
+
+// —— W5.3 敏感字段落盘加密（AES-256-GCM）：手机号密文存储 + 哈希索引 ——
+// AUTH_DATA_KEY：64 位 hex（32 字节）；未配置时明文落盘并告警（开发模式；生产必须配置）。
+const DATA_KEY = process.env.AUTH_DATA_KEY || '';
+const KEY_BUF = /^[0-9a-f]{64}$/i.test(DATA_KEY) ? Buffer.from(DATA_KEY, 'hex') : null;
+if (!KEY_BUF && process.env.NODE_ENV === 'production') {
+  // eslint-disable-next-line no-console
+  console.warn('[auth] 生产环境缺少 AUTH_DATA_KEY（64 位 hex）——敏感字段将以明文落盘，请立即配置');
+}
+// 可查询不可逆索引（手机号/unionid → sha256 前 32 hex）
+function hashId(v) { return createHash('sha256').update(String(v)).digest('hex').slice(0, 32); }
+function encField(v) {
+  if (!v || !KEY_BUF) return v;
+  const iv = randomBytes(12);
+  const cipher = createCipheriv('aes-256-gcm', KEY_BUF, iv);
+  const enc = Buffer.concat([cipher.update(String(v), 'utf8'), cipher.final()]);
+  const tag = cipher.getAuthTag();
+  return 'enc:' + iv.toString('hex') + ':' + tag.toString('hex') + ':' + enc.toString('hex');
+}
+function decField(v) {
+  if (!v || !String(v).startsWith('enc:')) return v; // 旧明文兼容
+  if (!KEY_BUF) return null;
+  try {
+    const [ivHex, tagHex, dataHex] = String(v).slice(4).split(':');
+    const decipher = createDecipheriv('aes-256-gcm', KEY_BUF, Buffer.from(ivHex, 'hex'));
+    decipher.setAuthTag(Buffer.from(tagHex, 'hex'));
+    return Buffer.concat([decipher.update(Buffer.from(dataHex, 'hex')), decipher.final()]).toString('utf8');
+  } catch { return null; }
+}
 
 const JWT_SECRET = process.env.AUTH_JWT_SECRET || '';
 const IS_PROD = process.env.NODE_ENV === 'production';
@@ -46,11 +75,11 @@ function persistAccounts() {
   try {
     mkdirSync(DATA_DIR, { recursive: true });
     const payload = {
-      version: 1,
+      version: 2, // W5.3：敏感字段加密（enc: 前缀）+ 索引哈希化
       savedAt: new Date().toISOString(),
-      users: [...users.values()],
-      phoneIndex: Object.fromEntries(phoneIndex),
-      unionIndex: Object.fromEntries(unionIndex),
+      users: [...users.values()].map((u) => ({ ...u, phone: encField(u.phone || '') || null })),
+      phoneIndex: Object.fromEntries([...phoneIndex].map(([k, v]) => [hashId(k), v])),
+      unionIndex: Object.fromEntries([...unionIndex].map(([k, v]) => [hashId(k), v])),
     };
     const tmp = USERS_FILE + '.tmp';
     writeFileSync(tmp, JSON.stringify(payload), 'utf8');
@@ -69,9 +98,10 @@ function loadAccounts() {
     if (!raw || !Array.isArray(raw.users)) return;
     for (const u of raw.users) {
       if (!u || !u.id) continue;
-      users.set(u.id, u);
-      if (u.phone) phoneIndex.set(u.phone, u.id);
-      if (u.wechat && u.wechat.unionid) unionIndex.set(u.wechat.unionid, u.id);
+      const plain = { ...u, phone: decField(u.phone) };
+      users.set(u.id, plain);
+      if (plain.phone) phoneIndex.set(hashId(plain.phone), u.id);
+      if (u.wechat && u.wechat.unionid) unionIndex.set(hashId(u.wechat.unionid), u.id);
     }
   } catch (err) {
     // 文件缺失/损坏：静默降级为空账号（原型语义，不阻断启动）
@@ -232,7 +262,7 @@ function publicUser(u) {
   return { id: u.id, nickname: u.nickname, phoneMasked: u.phoneMasked || (u.phone ? maskPhone(u.phone) : '') };
 }
 function findOrCreateUserByPhone(phone) {
-  const ex = phoneIndex.get(phone);
+  const ex = phoneIndex.get(hashId(phone));
   if (ex) return users.get(ex);
   const id = 'u_' + randomUUID().slice(0, 8);
   const user = {
@@ -243,7 +273,7 @@ function findOrCreateUserByPhone(phone) {
     created_at: Date.now(),
   };
   users.set(id, user);
-  phoneIndex.set(phone, id);
+  phoneIndex.set(hashId(phone), id);
   persistAccounts();
   return user;
 }
@@ -311,7 +341,7 @@ export async function wechatCallback(code, state) {
   if (!data || data.errcode) return { ok: false, error: '微信授权失败：' + ((data && data.errmsg) || '未知错误') };
 
   const unionid = data.unionid || data.openid;
-  let id = unionIndex.get(unionid);
+  let id = unionIndex.get(hashId(unionid));
   let user = id ? users.get(id) : null;
   if (!user) {
     id = 'u_' + randomUUID().slice(0, 8);
@@ -324,7 +354,7 @@ export async function wechatCallback(code, state) {
       created_at: Date.now(),
     };
     users.set(id, user);
-    unionIndex.set(unionid, id);
+    unionIndex.set(hashId(unionid), id);
     persistAccounts();
   }
   const token = issueJwt(user, 'wechat');

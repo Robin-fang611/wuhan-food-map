@@ -1,5 +1,7 @@
 // reward.checkin —— 薄绑 plays/checkin.js:checkinPlugin.participate + couponIssuer 发券（同日幂等）
+// W5（2026-08-15）：JWT 鉴权——服务端从 token 解析本人，忽略客户端 userId（防越权）。
 import { checkinPlugin } from '../runtime.js';
+import { resolveUserId } from './_identity.js';
 
 function projectCoupon(c) {
   // 不回显 user_id（守 data.export-pii 红线）；保留与券票展示相关的非 PII 字段。
@@ -17,8 +19,9 @@ function projectCoupon(c) {
 }
 
 export default async function rewardCheckin(input = {}) {
-  const { userId } = input;
-  if (!userId) return { success: false, error: '缺少 userId' };
+  const id = resolveUserId(input);
+  if (!id.ok) return { success: false, error: id.error, code: 'UNAUTHORIZED' };
+  const userId = id.uid;
   const gate = await checkinPlugin.canParticipate(userId);
   if (!gate.allowed) {
     // 同日已签：幂等返回当前状态 + 已得券（不发新券）。

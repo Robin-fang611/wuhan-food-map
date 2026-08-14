@@ -44,6 +44,38 @@ const TOOLS = {
 const PORT = process.env.MYWO_PORT ? Number(process.env.MYWO_PORT) : 8799;
 const LLM_ENABLED = !!process.env.DEEPSEEK_API_KEY;
 
+// —— W5.2 安全防护（2026-08-15）：CORS 白名单 / 全局限流 / 治理鉴权 / 请求体上限 ——
+const ALLOWED_ORIGINS = new Set(
+  (process.env.ALLOWED_ORIGINS
+    || 'http://127.0.0.1:5180,http://localhost:5180,http://127.0.0.1:5173,http://localhost:5173')
+    .split(',').map((s) => s.trim()).filter(Boolean)
+);
+const ADMIN_TOKEN = process.env.ADMIN_TOKEN || '';           // 治理接口（/upload/govern 等）管理令牌
+const RATE_LIMIT_DISABLED = process.env.RATE_LIMIT === 'off'; // 测试环境可关
+const MAX_BODY_BYTES = 1024 * 1024;                           // 请求体上限 1MB
+
+// 全局限流（内存滑动窗口，按 IP）：敏感接口（auth/upload/agent/run）更严，防注册刷号与 LLM 成本滥用。
+const hitWindow = new Map(); // key -> number[]
+function rateLimit(key, windowMs, max) {
+  if (RATE_LIMIT_DISABLED) return true;
+  const now = Date.now();
+  const arr = (hitWindow.get(key) || []).filter((t) => now - t < windowMs);
+  if (arr.length >= max) { hitWindow.set(key, arr); return false; }
+  arr.push(now);
+  hitWindow.set(key, arr);
+  return true;
+}
+function clientIp(req) {
+  const fwd = (req.headers['x-forwarded-for'] || '').split(',')[0].trim();
+  return fwd || req.socket.remoteAddress || 'unknown';
+}
+function adminOk(req) {
+  if (!ADMIN_TOKEN) return false;
+  const authz = req.headers['authorization'] || '';
+  const bearer = authz.startsWith('Bearer ') ? authz.slice(7).trim() : '';
+  return (bearer && bearer === ADMIN_TOKEN) || (req.headers['x-admin-token'] || '') === ADMIN_TOKEN;
+}
+
 function send(res, status, obj) {
   const body = JSON.stringify(obj);
   res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8' });
@@ -53,8 +85,15 @@ function send(res, status, obj) {
 function readBody(req) {
   return new Promise((resolve) => {
     const chunks = [];
-    req.on('data', (c) => chunks.push(c));
+    let size = 0;
+    let tooBig = false;
+    req.on('data', (c) => {
+      size += c.length;
+      if (size > MAX_BODY_BYTES) { tooBig = true; req.destroy(); return; }
+      chunks.push(c);
+    });
     req.on('end', () => {
+      if (tooBig) return resolve(null);
       const raw = Buffer.concat(chunks).toString('utf8');
       try { resolve(raw.trim() ? JSON.parse(raw) : {}); }
       catch { resolve(null); }
@@ -64,11 +103,27 @@ function readBody(req) {
 }
 
 const server = createServer(async (req, res) => {
-  // CORS（供本地前端跨进程调用）
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  // W5.2 CORS 白名单：非白名单 Origin 一律 403（生产前端域名经 ALLOWED_ORIGINS 配置）
+  const origin = req.headers.origin || '';
+  if (origin && !ALLOWED_ORIGINS.has(origin)) {
+    return send(res, 403, { success: false, error: '来源不被允许' });
+  }
+  if (origin) res.setHeader('Access-Control-Allow-Origin', origin);
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Admin-Token');
   res.setHeader('Access-Control-Allow-Methods', 'POST, GET, OPTIONS, DELETE');
   if (req.method === 'OPTIONS') return send(res, 204, {});
+
+  // W5.2 请求体上限预检（流式超限在 readBody 内兜底）
+  const contentLen = Number(req.headers['content-length'] || 0);
+  if (contentLen > MAX_BODY_BYTES) return send(res, 413, { success: false, error: '请求体过大' });
+
+  // W5.2 全局限流（敏感接口更严：auth/upload/agent/run）
+  const url0 = new URL(req.url, `http://localhost:${PORT}`);
+  const sensitive = url0.pathname.startsWith('/auth') || url0.pathname.startsWith('/upload')
+    || url0.pathname === '/agent' || url0.pathname === '/run';
+  if (!rateLimit(clientIp(req), 60000, sensitive ? 30 : 120)) {
+    return send(res, 429, { success: false, error: '请求过于频繁，请稍后再试' });
+  }
 
   const url = new URL(req.url, `http://localhost:${PORT}`);
 
@@ -89,8 +144,11 @@ const server = createServer(async (req, res) => {
     }
   }
 
-  // POST /agent —— LLM 大脑（带降级熔断）
+  // POST /agent —— LLM 大脑（带降级熔断；LLM 成本护栏：10 次/分/IP）
   if (req.method === 'POST' && url.pathname === '/agent') {
+    if (!rateLimit('llm:' + clientIp(req), 60000, 10)) {
+      return send(res, 429, { success: false, error: 'AI 调用过于频繁，请稍后再试' });
+    }
     const input = await readBody(req);
     if (!input || typeof input !== 'object') return send(res, 400, { success: false, error: '请求体非 JSON' });
     try {
@@ -131,8 +189,9 @@ const server = createServer(async (req, res) => {
     }
   }
 
-  // GET /upload/pending —— 待核验列表（治理视图：脱敏，不含 userId/原始 source）
+  // GET /upload/pending —— 待核验列表（治理视图：脱敏，不含 userId/原始 source；需 ADMIN_TOKEN）
   if (req.method === 'GET' && url.pathname === '/upload/pending') {
+    if (!adminOk(req)) return send(res, 401, { success: false, error: '未授权（治理接口需管理员令牌）' });
     try {
       const out = await listPendingUploads({ limit: url.searchParams.get('limit') ? Number(url.searchParams.get('limit')) : undefined });
       return send(res, 200, out);
@@ -141,8 +200,9 @@ const server = createServer(async (req, res) => {
     }
   }
 
-  // POST /upload/govern —— 治理动作：promote（人工收录）/ reject（驳回），支持 dryRun，记审计日志
+  // POST /upload/govern —— 治理动作：promote（人工收录）/ reject（驳回），支持 dryRun，记审计日志（需 ADMIN_TOKEN）
   if (req.method === 'POST' && url.pathname === '/upload/govern') {
+    if (!adminOk(req)) return send(res, 401, { success: false, error: '未授权（治理接口需管理员令牌）' });
     const input = await readBody(req);
     if (!input || typeof input !== 'object') return send(res, 400, { success: false, error: '请求体非 JSON' });
     try {

@@ -1,5 +1,7 @@
 // reward.view-wallet —— 薄绑 core/store.js:getCoupons（仅本人）
+// W5（2026-08-15）：JWT 鉴权——服务端从 token 解析本人，忽略客户端 userId（防越权）。
 import { store } from '../runtime.js';
+import { resolveUserId } from './_identity.js';
 
 function projectCoupon(c) {
   return {
@@ -17,8 +19,9 @@ function projectCoupon(c) {
 }
 
 export default async function rewardWallet(input = {}) {
-  const { userId } = input;
-  if (!userId) return { success: false, error: '缺少 userId' };
+  const id = resolveUserId(input);
+  if (!id.ok) return { success: false, error: id.error, code: 'UNAUTHORIZED' };
+  const userId = id.uid;
   const coupons = await store.getCoupons(userId);
   // 不回显 userId（守 data.export-pii 红线）：券列表本身不含 user_id（projectCoupon 已剥离）。
   return {

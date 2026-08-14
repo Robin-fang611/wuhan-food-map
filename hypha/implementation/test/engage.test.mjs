@@ -13,10 +13,12 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 process.env.MYWO_PORT = '8797';
-// S4：favorite 按 JWT 鉴权 —— 测试环境注入密钥 / 图形码开发态 / 账号落临时目录
+// S4/S5：测试环境注入密钥 / 图形码开发态 / 账号落临时目录；W5：关限流 + 治理令牌
 process.env.AUTH_JWT_SECRET = 'engage-test-secret';
 process.env.AUTH_DEV_EXPOSE_CAPTCHA = '1';
 process.env.AUTH_DATA_DIR = mkdtempSync(join(tmpdir(), 'mywo-engage-'));
+process.env.RATE_LIMIT = 'off';
+process.env.ADMIN_TOKEN = 'engage-admin-token';
 const { server } = await import('../src/httpServer.js');
 const authApi = await import('../src/auth-server.js');
 const { getAnalytics } = await import('../src/runtime.js');
@@ -81,30 +83,36 @@ ok('remove → success & favorited=false', fa2.success && fa2.output.favorited =
 const fa3 = await callTool('user.favorite', { merchantId: MID, action: 'remove' }, TOKEN_A);
 ok('remove 重复不报错（幂等）', fa3.success && fa3.output.favorited === false);
 
-// —— 2. checkin 同日幂等 ——
+// —— 2. checkin 同日幂等（W5：JWT 鉴权）——
 console.log('Engage · reward.checkin');
-const ck1 = await callTool('reward.checkin', { userId: UID });
+const ck0 = await callTool('reward.checkin', {});
+ok('无 token → 拒绝（请先登录）', ck0.success === false && ck0.code === 'UNAUTHORIZED');
+const ck1 = await callTool('reward.checkin', {}, TOKEN_A);
 ok('首次签到 idempotent≠true', ck1.success && ck1.output.idempotent !== true);
-const ck2 = await callTool('reward.checkin', { userId: UID });
+const ck2 = await callTool('reward.checkin', {}, TOKEN_A);
 ok('同日重复签到 idempotent===true', ck2.success && ck2.output.idempotent === true);
 
-// —— 3. claim 每商家每用户限 1 + 无 PII ——
+// —— 3. claim 每商家每用户限 1 + 无 PII（W5：JWT 鉴权）——
 console.log('Engage · reward.claim');
-const cl1 = await callTool('reward.claim', { userId: UID, merchantId: MID });
+const cl1 = await callTool('reward.claim', { merchantId: MID }, TOKEN_A);
 ok('首次领券 idempotent≠true', cl1.success && cl1.output.idempotent !== true);
 ok('首次领券发 1 张', Array.isArray(cl1.output.coupons) && cl1.output.coupons.length === 1);
 ok('券投射无 user_id', cl1.output.coupons.every((c) => !('user_id' in c)));
-const cl2 = await callTool('reward.claim', { userId: UID, merchantId: MID });
+const cl2 = await callTool('reward.claim', { merchantId: MID }, TOKEN_A);
 ok('重复领券 idempotent===true', cl2.success && cl2.output.idempotent === true);
 ok('重复领券不发新券', Array.isArray(cl2.output.coupons) && cl2.output.coupons.length === 1);
+const clIntrude = await callTool('reward.claim', { merchantId: MID, userId: 'victim-user' }, TOKEN_A);
+ok('客户端传 userId 被忽略（服务端从 JWT 解析本人，越权无效）', clIntrude.success && clIntrude.output.idempotent === true);
 
-// —— 4. view-wallet 仅本人 + 无 PII 回显 ——
+// —— 4. view-wallet 仅本人 + 无 PII 回显（W5：JWT 鉴权）——
 console.log('Engage · reward.view-wallet');
-const w = await callTool('reward.view-wallet', { userId: UID });
+const w = await callTool('reward.view-wallet', {}, TOKEN_A);
 ok('viewWallet success', w.success);
 ok('viewWallet 无 userId 回显', !('userId' in (w.output || {})));
 ok('viewWallet count≥1（含已领券）', w.output.count >= 1);
 ok('viewWallet 券无 user_id', w.output.coupons.every((c) => !('user_id' in c)));
+const wIntrude = await callTool('reward.view-wallet', { userId: 'victim-user' }, TOKEN_A);
+ok('客户端传 userId 查他人券包被忽略（仍为本人数据）', wIntrude.success && !('userId' in (wIntrude.output || {})));
 
 // —— 5. Track：analytics.track 入库剥离 PII ——
 console.log('Track · analytics.track');
@@ -137,22 +145,31 @@ const up = await fetch(`${BASE}/upload`, {
   body: JSON.stringify({ name: 'HTTP待核验店', description: '契约测试', isStall: false }),
 }).then((r) => r.json());
 ok('POST /upload → pending（无 Key 降级）', up.decision === 'pending' && !!up.uploadId);
-const pend = await fetch(`${BASE}/upload/pending`).then((r) => r.json());
-ok('GET /upload/pending → 含该条且脱敏', pend.ok && pend.total >= 1 && pend.items.some((i) => i.uploadId === up.uploadId && !('userId' in i)));
+const ADMIN_HDR = { 'Content-Type': 'application/json', 'X-Admin-Token': 'engage-admin-token' };
+const pendNoAuth = await fetch(`${BASE}/upload/pending`).then((r) => r.json());
+ok('治理接口无令牌 → 401', pendNoAuth.success === false && String(pendNoAuth.error || '').includes('管理员'));
+const pend = await fetch(`${BASE}/upload/pending`, { headers: ADMIN_HDR }).then((r) => r.json());
+ok('GET /upload/pending（带令牌）→ 含该条且脱敏', pend.ok && pend.total >= 1 && pend.items.some((i) => i.uploadId === up.uploadId && !('userId' in i)));
 const gov = await fetch(`${BASE}/upload/govern`, {
   method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
+  headers: ADMIN_HDR,
   body: JSON.stringify({ uploadId: up.uploadId, action: 'reject', by: 'engage-test', note: '契约测试驳回' }),
 }).then((r) => r.json());
 ok('POST /upload/govern reject → ok + 审计', gov.ok && gov.action === 'reject' && gov.audit && gov.audit.action === 'reject');
-const pend2 = await fetch(`${BASE}/upload/pending`).then((r) => r.json());
+const pend2 = await fetch(`${BASE}/upload/pending`, { headers: ADMIN_HDR }).then((r) => r.json());
 ok('govern 后 pending 清空', pend2.total === 0);
 const govBad = await fetch(`${BASE}/upload/govern`, {
   method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
+  headers: ADMIN_HDR,
   body: JSON.stringify({ uploadId: 'u_nope', action: 'promote' }),
 }).then((r) => r.json());
 ok('未知 uploadId → 404 + 错误体', govBad.ok === false && /未找到/.test(govBad.error));
+const badOrigin = await fetch(`${BASE}/health`, {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json', Origin: 'https://evil.example.com' },
+  body: '{}',
+}).then((r) => r.json()).catch((e) => ({ fetchError: String(e) }));
+ok('非白名单 Origin → 403', badOrigin.success === false && badOrigin.error.includes('来源'));
 delete process.env.UPLOAD_STORE_FILE;
 
 console.log(`\nALL ENGAGE/Track/Redline TESTS PASSED (${passed} assertions)`);
