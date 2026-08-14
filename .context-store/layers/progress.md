@@ -19,3 +19,9 @@
 - 初始化 `.context-store/` 共享上下文库（project-context-orchestrator），回填控制塔 + 5 层 + 本交接摘要，支持跨对话接棒。
 - 卡点：`git push` 待 Robin 授权；LLM 选型待拍板（多供应商可插拔 vs DeepSeek 付费档实测）。
 - 下一步：等 Robin 拍板 push 与 LLM 落地路线；之后可做多供应商 LLM 客户端或多数据源口径统一。
+
+## 2026-08-15（SPEC v2.0 重构 + 三项拍板 + 循环开发启动）
+- 完成【S1 文档重构】：SPEC v2.0 智能体产品标准（新增用户场景 / 智能体行为规范 / 指标章节）；README / CONTROL_TOWER / decisions / open-threads / handoff 同步；status-2026-08-15.md 快照。
+- 决策：D-20260815-01 GitHub 推送授权（审阅后直接 push）；D-20260815-02 V4.4 数据统一授权 + 下一步顺序 S2→S6。
+- 验证：25 测试文件全绿；ranking-audit PASS；reconcile 857/625（61 重名待治）；唯一既有缺陷 = scripts/build-robin-99.mjs 截断（产物已存在，不阻塞）。
+- 下一步：S2 数据统一（重名治理 + 摄入 robin-99/web-stalls → 857）→ S3 账号持久化 → S4 收藏同步 → S5 上传治理 → S6 对话体验。

@@ -1,8 +1,8 @@
 # 蛮有味 · 美食发现 Agent —— 产品技术规格（SPEC）
 
 > **本文定位**：项目**唯一事实来源（Single Source of Truth）**。所有代码、规划、验收、对外沟通均以本文为准。
-> 旧文档（手册时代规划、早期产品方案、迭代计划等）已归档至 `docs/archive/`，不再作为执行依据（见 §10）。
-> **版本**：v1.0（2026-08-13 起生效）· **作者**：Robin + AI · **维护**：守门智能体按本文件 §7 推进。
+> **版本**：v2.0（2026-08-15 起生效）· **作者**：Robin + AI · **维护**：守门智能体按本文 §11 推进。
+> **v2.0 重构说明**：按智能体产品标准重排结构——新增「用户与场景」「智能体行为规范」「指标与成功标准」章节；保留全部既定事实与决策（v1.0 内容未丢失）。2026-08-15 Robin 三项拍板已入册：V4.4 数据统一授权、下一步顺序 S2→S6、GitHub 推送授权（见 §12）。
 
 ---
 
@@ -10,44 +10,135 @@
 
 | 文档 | 角色 | 状态 |
 |------|------|------|
-| **`docs/SPEC.md`（本文件）** | 唯一事实来源：定位 / 架构 / 里程碑 / 验收 / 风险 / 下一步 | 现行 |
-| `docs/README.md` | 文档索引（指向本文件与保留文档） | 现行 |
-| `docs/status-2026-08-13.md` | 实查状态快照（代码核查，非 roadmap 勾选） | 现行（点状记录，随 §4 更新） |
-| `docs/BFF接口契约.md` | V4 后端 Route Handlers 契约（后端落地唯一依据） | 现行 |
-| `docs/高德Key安全接入.md` | 高德 Key 安全红线与代理方案 | 现行 |
-| `docs/ranking-audit.md` | 反广告排序审计（可重跑，PASS 结论） | 现行（自动生成） |
-| `docs/datasource-reconcile.md` | 数据源口径核对（857 vs 625，可重跑） | 现行（自动生成） |
-| `docs/collect-visit-guide.md` | 探店采集：用户上传店铺 + 高德校验入库流程 | 现行（见 §7.4） |
-| `hypha/*.md`（ARCHITECTURE / PRODUCT-VISION / MONETIZATION-MODEL / ITERATION-LOG） | 智能体技术规格与演进日志 | 现行（Agent 专属，补充本文件） |
+| **docs/SPEC.md（本文件）** | 唯一事实来源：定位 / 架构 / 里程碑 / 验收 / 风险 / 下一步 | 现行（v2.0） |
+| docs/README.md | 文档索引（指向本文件与保留文档） | 现行 |
+| docs/status-2026-08-15.md | 实查状态快照（源码核查，非 roadmap 勾选） | 现行（点状记录，随 §11 更新） |
+| docs/BFF接口契约.md | RewardStore 后端契约（BFF 落地唯一依据，V4.1 延后项） | 现行 |
+| docs/高德Key安全接入.md | 高德 Key 安全红线与后端代理方案 | 现行 |
+| docs/ranking-audit.md | 反广告排序审计（可重跑，PASS 结论） | 现行（自动生成） |
+| docs/datasource-reconcile.md | 数据源口径核对（857 vs 625，可重跑） | 现行（自动生成） |
+| docs/collect-visit-guide.md | 探店采集：用户上传店铺 + 高德校验入库流程 | 现行（见 §11 S5） |
+| hypha/*.md（PRODUCT-VISION / PRODUCT-REQUIREMENTS / MONETIZATION-MODEL / ARCHITECTURE / ITERATION-LOG） | 智能体技术规格与演进日志 | 现行（Agent 专属，补充本文件） |
+| .context-store/（CONTROL_TOWER + layers/ + handoffs/） | 会话接棒上下文库（控制塔导航，细节在 layers/） | 现行 |
 
 ---
 
-## 1. 一句话定位与边界
+## 1. 产品定位与价值主张
 
+### 1.1 一句话定位
 - **产品**：蛮有味（Manyouwei）—— 武汉 & 财大周边的 **AI 美食发现 Agent**。
 - **一句话**：「今天吃啥？问蛮有味。」—— 你说一句偏好（心情 / 预算 / 和谁吃 / 片区），它用真探过的店给你**一个主推 + 2~3 备选，每家都带为什么**。
-- **Job（核心场景）**：日常「今天吃啥」快决策——**高频、低介入、校园先行**。
-- **价值主张**：辅助决策，**不是替代决策**——把人「照亮 / 收窄」，让人更快更敢做决定；最终拍板权在用户。
-- **信任内核（不可动摇）**：**推荐排序不出卖**——排序与入选只由信任信号（评分 / 距离 / 人均 / 真实点评 / 场景）与用户意图决定，**绝不**因任何商户付费或分润关系改变。可验证（见 §5）。
-- **当前形态**：纯前端 H5（Vite 原生 JS，零运行时依赖）+ 自有 Node 后端（:8799）跑 LLM；账号 / 发放 / 核销为前端原型（localStorage），**未接真后端**（见 §4）。
+
+### 1.2 Job to be Done
+> 当一个大学生站在饭点、又累又饿又选择疲劳时，**快速、放心地决定「今天吃啥」**——不踩雷、不超预算、适配当下场景（一个人 / 约会 / 宿舍聚餐）。
+
+- **高频、低客单、强情境**的决策，不是「找一家好馆子」的信息检索。
+- 辅助决策 ≠ 替代决策：产品给主推 + 理由，**最终拍板权永远在用户**。
+- 价值主张：把人「照亮 / 收窄」，让人更快更敢做决定。
+
+### 1.3 与平台的差异
+不做又一个大众点评 / 小红书 / 美团。核心差异点：
+1. **替你决策**（1 主推 + 理由，而非长列表）；
+2. **可解释**（每张卡写明「为什么推荐这家」，推理时间线可展开）；
+3. **反广告且可验证**（排序不出卖，可静态审计）；
+4. **越用越懂你**（口味档案记忆，本地 + 后端化）。
+
+### 1.4 信任内核（不可动摇）
+- **推荐排序不出卖**：排序与入选只由信任信号（评分 / 距离 / 人均 / 真实点评 / 场景）与用户意图决定，**绝不**因任何商户付费或分润关系改变。可验证（见 §3.7、§8）。
+- 这不是「绝不商业化」，是「商业化不污染排序」。
+
+### 1.5 当前形态
+纯前端 H5（Vite 原生 JS，零运行时依赖）+ 自有 Node 后端（:8799）跑 LLM；账号体系（图形码 + 短信 + JWT + 微信）已接真后端；券 / 核销为前端原型（localStorage），BFF 化延后（见 §11 后置项）。
 
 ---
 
-## 2. 已锁定决策（未经 Robin 重新拍板不得更改）
+## 2. 用户与场景
 
-1. **LLM 为地基（最高优先级）**：产品以「智能体 + 大模型（DeepSeek）」为基座，不是「先证价值再谈 AI」。规则引擎（intent-parser 关键词 / 正则）只是当前在跑的**降级态 / 价值探针**，退居兜底 / 熔断层。
-2. **正常后端形态**：客户端 → 自有 Node 后端（:8799 类）→ DeepSeek API。**Key 仅存服务端 env，前端永不直接持 Key**（解决密钥暴露与项目红线冲突）。不走「客户端直连 + BYOK」—— BYOK 摩擦大且构建注入 Key 违反红线。
-3. **反广告 = 排序不出卖（信任内核，锁定）**：Agent 推荐排名永不被出价 / 赞助 / 分润影响，且可验证。这不是「绝不商业化」，是「商业化不污染排序」。
-4. **变现 = 纯 CPS / 到店核销分润（单一线）**：用户订阅已砍掉（校园付费意愿低且非信任必需）；透明赞助位暂不接（后备，非主轴）。成本覆盖完全由 CPS 承担 → 商户签约网络 + 核销转化体验是单位经济唯一命门。
-5. **框架先行、数据后灌**：当前数据层是抽象层，默认 `sample`（7 条合成数据，非真实），`wuhan` 数据源 opt-in 接 `ALL_MERCHANTS`（`setDefaultDataSource(createDataSource('wuhan'))` 或 `MYWO_DATASOURCE=wuhan`）。先搭框架再灌数据。
-6. **成本可控（已证）**：DeepSeek 极便宜 + 规则引擎兜底 50–70% 简单 query → 校园月推理约 ¥100–300。「成本包不住」是**收入端**问题非成本端——瓶颈是增长 / adoption，不是 AI 贵。
-7. **安全红线（绝不越界）**：高德 Key / 微信 AppSecret / JWT 密钥不入库、不进前端包、不 `git push`、不部署公网、不改密钥环境变量、不删数据、不碰付费 / 对外发布。
+### 2.1 目标用户
+- **主用户（Primary）**：财大南湖周边学生（大一、大二为主）与周边食客——高频、预算敏感、社交场景丰富。
+- **扩展用户**：武汉全城（先窄后宽，数据密度高、冷启动便宜）。
+- **战场**：校园 Local 生活（窄而深，跑通后再扩全市）。
+
+### 2.2 核心场景与用户故事
+
+| # | 场景 | 用户故事 | 对应 Agent 能力 |
+|---|------|----------|----------------|
+| U1 | 日常单人（高频） | 「今天累瘫了想吃近的，不想走动」 | 情境意图 → 就近筛选 → 主推 + 理由 |
+| U2 | 宿舍聚餐 | 「4 个人晚上聚餐，人均别超 60」 | 预算 + 场景 + 容量约束 → 推荐 |
+| U3 | 约会 | 「带暗恋的人第一次吃饭，别太寒酸」 | 情绪 / 场合语境 → 场景合适推荐 |
+| U4 | 夜宵 | 「财大南湖周边便宜的宵夜」 | 时段 + 价格约束 → 宵夜榜单 |
+| U5 | 情绪进食 | 「心情不好想吃点治愈系暖暖的」 | 无字段可映射的模糊语境 → LLM 翻译成筛选约束 |
+| U6 | 到店行动 | 「这家怎么去？有券吗？」 | 导航 / 领券 / 核销一键衔接 |
+
+> **已证（Phase 5 盲评）**：情境 / 情绪意图子集（15 条）LLM「懂我」胜率 100% vs 规则 13%；决策完成率 LLM 100% vs 规则 13% —— **LLM 楔子定量成立**（H1 未被证伪），架构赌注坐实。
 
 ---
 
-## 3. 产品架构
+## 3. 智能体行为规范（Agent Behavior Specification）
 
-### 3.1 总体拓扑
+> 本章定义 Agent 的产品行为——用户可感知的对话回路、工具使用规则、记忆模型、输出契约、降级策略。引擎实现见 hypha/implementation/src/。
+
+### 3.1 对话回路（产品层 6 态闭环）
+
+```mermaid
+flowchart LR
+  A[① 入口<br>输入框+情境chips] --> B[② 厘清<br>模糊语境→结构化]
+  B --> C[③ 发现<br>调10工具 filter→rank]
+  C --> D[④ 推荐<br>1主推+理由+备选]
+  D --> E[⑤ 行动<br>导航/领券/核销]
+  E --> F[⑥ 记忆<br>写回偏好档案]
+  F -. 记忆回流 .-> A
+```
+
+- **Intake 就是主页**：首页形态 = 对话优先（B 形态，Robin 拍板）——输入框 +「今天想吃啥？」+ 情境快捷 chips（心情不好 / 想省钱 / 带人吃饭 / 不知道吃啥）；顶部一条确定性入口（常去 / 收藏 / 附近）缓解冷启动空屏。
+- 多轮追问必须支持：换一家 / 再便宜点 / 换个附近（短期会话记忆累积意图）。
+
+### 3.2 引擎层 FSM（orchestrator.js 确定性实现，供 /run）
+6 状态：Intake → Parse → Discover → Reason → Finalize → Completed。每条运行产出 processHash 可回放审计。
+
+### 3.3 工具使用规则（10 领域工具）
+
+| # | 工具 id | 副作用 | 职责 | 权限 |
+|---|---------|--------|------|------|
+| 1 | discover.filter | read | 按 zone/category/mealTime/maxPrice/keyword 筛选 | 匿名可调 |
+| 2 | discover.rank | read | 榜单（必吃 / 性价比 / 宵夜 / 新店），limit 截断 | 匿名可调 |
+| 3 | discover.detail | read | 商户详情 + 距离 + 理由 + 推荐菜 | 匿名可调 |
+| 4 | discover.geo | read | 距离计算与就近排序（CAMPUS_COORDS，不伪造坐标） | 匿名可调 |
+| 5 | discover.navigate | read | 公开 uri.amap.com 导航 URL（无 Key；缺坐标返回 null） | 匿名可调 |
+| 6 | user.favorite | write | 收藏 / 取消收藏（幂等；按 JWT 用户隔离，S4 后端化） | 本人 |
+| 7 | reward.checkin | write | 签到得券（同日幂等） | 本人 |
+| 8 | reward.view-wallet | read | 本人券包（已得 / 已核销 / 已过期） | 仅本人 |
+| 9 | reward.claim | write | 领券（每商家每用户限 1 张，幂等） | 本人 |
+| 10 | analytics.track | read | 埋点（sanitize 递归剥离 PII） | 匿名 |
+
+- **调用纪律**：模型经 facade 调工具，只拿投影候选集，不直接触原始数据；模型输出不可信 → resolveDecision 校验商户 id 存在性，幻觉 id 丢弃 → 红线校验 redlineCheck → 装配 output.food-recommendation。
+- **体验纪律（2026-08-13 盲评修复后固化进提示词）**：距离一致明示 / 必给可执行出口（导航·领券·核销）/ 禁绝对化用词 / 禁凑无关项。
+
+### 3.4 记忆模型
+- **短期（会话内）**：本次对话意图累积，支持多轮追问。
+- **长期（口味档案）**：辣度 / 预算带 / 忌口 / 常去 zone / 收藏，存自有后端 /memory/:sessionId（后端化、去标识化），不落前端包。
+- **隐私红线**：口味档案是「行为推导」不是「身份」，**不采集姓名 / 学号 / 手机号**（PII 红线）；用户可一键清除。
+
+### 3.5 决策输出契约（推荐态）
+- **不是 10 家列表**，是：「**1 个主推 + 一句话理由（为什么适合你此刻状态）+ 2~3 个备选 + 一键导航 / 领券 / 核销**」。
+- 主推**必须可解释**（factors + scoreBreakdown 权重拆解）+ **承认不知道**（无匹配时明说、不编造）——信任来自可解释 + 诚实。
+- 排序永不被出价影响；CPS 仅在用户选定后于渲染层后挂（见 §3.7）。
+
+### 3.6 降级与熔断
+- LLM 不可用 / 超时 / 5xx / 红线触发 → AgentFallbackError → 自动回退确定性 /run，出参契约不变（fallback=true / degradation:'llm->rule'），**前端无感**。
+- 双脑可切换：前端 setBackend('server' | 'local') 零改动切 LLM 大脑 / 本地规则大脑；两者都走 :8799，仅端点不同（/agent vs /run）。
+
+### 3.7 信任内核技术落地（反广告防火墙）
+- CPS 商户签约集合（cps.js）**只决定卡片是否挂「可核销优惠」展示标**，**绝不被** discovery-engine / intent-parser / filter / rank / orchestrator 导入；排序从不读取该集合；不影响入选或位置。
+- 系统提示明确「排序只基于信任信号，绝不因付费 / 分润改变」。
+- 审计脚本 scripts/ranking-audit.mjs 可重跑，结论 PASS（零商业加权命中，2026-08-13）。
+- 声明：**蛮有味的推荐排序不出卖（zero sponsored weight）**。营收（CPS 分润）与排序正交，仅在结果生成后以展示标呈现，且默认无真实签约商户（诚实留空，待真实签约后填 env）。
+
+---
+
+## 4. 系统架构
+
+### 4.1 总体拓扑
 ```
 浏览器 H5 (Vite 原生 JS, 零依赖)
    ├─ 首页意图栏 (home.js) ──goReasoning──▶ 推理页 (reasoning.js)
@@ -57,166 +148,215 @@
    │                           ├─ POST /run   确定性 FSM (Intake→Discover→Completed)
    │                           │                → output.food-recommendation (0 token)
    │                           ├─ POST /agent  LLM 大脑 (DeepSeek ReAct tool_calling)
-   │                           │                LLM 不可用 → 自动降级 /run (R1 熔断, 前端无感)
+   │                           │                LLM 不可用 → 自动降级 /run (前端无感)
    │                           ├─ POST /tools/:id  单工具调用 (10 领域工具 adapter)
    │                           ├─ /memory/:sid     后端化口味档案 (去标识化偏好)
+   │                           ├─ POST /upload     探店采集 (高德校验三分支)
+   │                           ├─ /auth/*          账号体系 (图形码+短信+JWT+微信)
    │                           └─ DeepSeek API (Key 仅服务端 env)
    │
    └─ 数据访问：RewardStore 抽象 (LocalStore 默认 / BffStore 预留 v1.5)
 ```
-- **双脑可切换**：前端 `setBackend('server' | 'local')` 零改动切 LLM 大脑 / 本地规则大脑；两者都走 :8799，仅端点不同（`/agent` vs `/run`）。**Agent 对话需 :8799 后端**；无 Key 时 `/agent` 自动降级 `/run`，体验无感。其余 H5 模块（列表 / 详情 / 券包 / 核销本地原型）不依赖后端也能跑。
 
-### 3.2 智能体运行时（Path B 后端核心）
-- **FSM（6 状态）**：`Intake → Parse → Discover → Reason → Finalize → Completed`（`orchestrator.js` 确定性实现，供 `/run`）。
-- **10 领域工具**（domain.yaml 对齐，httpServer 工具表）：`discover.filter / rank / detail / geo / navigate` + `user.favorite` + `reward.checkin / view-wallet / claim` + `analytics.track`。模型经 **facade** 调工具，只拿投影候选集，不直接触原始数据。
-- **ReAct 循环**（`agent-loop.js`）：收自然语言 → DeepSeek tool_calling → 调 facade 工具 → `finalize_recommendation` 提交决策（1 主推 + 2~3 备选 + 理由 + 导览）。模型输出不可信 → `resolveDecision` 校验商户 id 存在性，幻觉 id 丢弃 → 红线校验 `redlineCheck` → 装配 `output.food-recommendation`（与 `/run` 同契约）。
-- **数据源抽象**（`datasource/`）：`FoodDataSource` 基类 + 注册表；`sample`（默认 7 条合成）+ `wuhan`（opt-in，`ALL_MERCHANTS`）。5 套单测证明可插拔。
-- **可验证性**：`provenance.js` 记录 `processHash / fsm / prompts`；`explain.js` 为每条推荐附确定性因子 / 评分拆解 / 置信度；推理轨迹 `trace.steps` 可回放审计。
+### 4.2 组件职责
+- **orchestrator.js**：确定性 FSM 编排（/run）。
+- **agent-loop.js**：ReAct 循环（/agent）——收自然语言 → DeepSeek tool_calling → 调 facade 工具 → finalize_recommendation（1 主推 + 2~3 备选 + 理由 + 导览）；模型输出不可信 → resolveDecision 校验 → redlineCheck → 装配契约。
+- **auth-server.js**：图形验证码（自绘 SVG，一次性、5 分钟、常量时间比对）+ 短信验证码（频控 1 分钟 1 次 / 1 小时 ≤5 / 24 小时 ≤10；6 位、10 分钟、一次性）+ JWT（HMAC-SHA256 内联签发，零依赖，30 天）+ 微信网页授权。**存储为内存 Map（S3 改为文件持久化）**。
+- **upload.js**：探店采集三分支（高德搜到→verified；摊类描述→verified_stall；其余→pending）+ 相关性闸门（店名相似度 ≥0.5 且定位 3km 内）。
+- **datasource/**：FoodDataSource 抽象 + 注册表（sample 默认 / wuhan opt-in）。
+- **explain.js / provenance.js**：逐店理由 + 因子权重 + 溯源（processHash / fsm / prompts / trace.steps 可回放）。
 
-### 3.3 反广告防火墙（信任内核技术落地）
-- CPS 商户签约集合（`cps.js`）**只决定卡片是否挂「可核销优惠」展示标**，**绝不被** discovery-engine / intent-parser / filter / rank / orchestrator 导入；排序从不读取该集合；不影响入选或位置。
-- 系统提示明确「排序只基于信任信号，绝不因付费 / 分润改变」（`agent-loop.js`）。
-- 审计脚本 `scripts/ranking-audit.mjs` 可重跑，结论 PASS（零商业加权命中）。
-
-### 3.4 前端（h5）
+### 4.3 前端（h5）工程约束
 - 主流程：列表 → 详情 → 领券 → 券包 / 收藏 → 到店核销 CPS，全通且有测试。
-- 信任内核 UI：因子权重可视化、真实性徽章、反广告审计、探店采集工具，均真实实现。
-- 工程约束：引擎 / 纯逻辑在 `core/`、`plays/`；UI 在 `ui/` 且**必须用 `dom.js` 的 `h()` 构建 DOM，禁止 `innerHTML` 拼动态内容**；视觉只用 `styles/tokens.css` 变量（蛮有味色板）。
+- 信任内核 UI：因子权重可视化、真实性徽章（verified 绿 / partial 金 / estimated 灰）、反广告审计、探店采集工具，均真实实现。
+- 工程约束：引擎 / 纯逻辑在 core/、plays/；UI 在 ui/ 且**必须用 dom.js 的 h() 构建 DOM，禁止 innerHTML 拼动态内容**；视觉只用 styles/tokens.css 变量（蛮有味色板）。
 
 ---
 
-## 4. 当前状态实查（2026-08-13，基于源码核查）
+## 5. 数据规范
 
-> 完整版见 `status-2026-08-13.md`。结论：代码地基已完整，**21 套单测全绿（h5 13 + hypha 8）**，V1–V3 代码级任务已全部真实落地并测试通过。**V4 后端形态已拍板（耦合单进程，范围收窄为账号 + 数据）**；V1 真跑验收待 Robin 提供 `DEEPSEEK_API_KEY`（将存服务端 env，不进仓库 / 前端）；券 / 核销 / 支付分润延后。工作区改动已于 2026-08-13 推送（commit 259e9bf / 327499a），本轮文档清理 + 新增契约测试将于 2026-08-13 提交。
+### 5.1 商户数据契约（runtime.projectMerchant 投射）
+字段（缺省显式 null，不编造）：
+id, name, zone, category, cuisine, mealTime[], avgPrice(string), avgPriceNum(number), rating, signatureDishes, recommendDishes[], taste, tasteTags[], environment, environmentRating, serviceRating, ratingNum, hours, tel, occasions[], tags[], waitTime, reviewSummary, imageEmoji, address, lng, lat, distanceKm, has_coupon, coupon_summary, source, dataConfidence('verified'|'estimated'|'partial'), needsEnrichment(bool), enrichedAt, editorReason
 
-| 层 | 状态 | 说明 |
-|----|------|------|
-| 数据层 | ✅ | `merchants.js`=625（后端事实源）；`all-merchants.js`=857（含 robin-99 87 + web-stalls 206，坐标全 null 未伪造）；置信度 41 verified + 1 partial + 583 estimated；**61 组重名被合并吞掉**（待治理，Robin 已授权 2026-08-13） |
-| 算法层 | ✅ | 确定性 `/run`（0 token）+ LLM `/agent` 骨架（:8799）；`explain.js` 逐店理由 + 推理时间线 |
-| 前端 h5 | ✅ 核心闭环 | 列表 / 详情 / 领券 / 券包 / 收藏 / 核销 CPS 全通；信任内核 UI 全实现；增长看板 + 文案占位 |
-| 本地 Agent 运行时 | ✅ 代码 / ⛔ 真跑 | 10 工具 + 数据源抽象 + DeepSeek 客户端（真实 fetch + tool_calling）+ ReAct + 降级熔断；**真跑需 env `DEEPSEEK_API_KEY`** |
+### 5.2 置信度分级（诚实标注，不编造）
+| 等级 | 含义 | 当前数量（2026-08-13 实测） |
+|------|------|------------------------------|
+| verified | 真实核验（实地 / 高德 / 联网核验） | 41 |
+| partial | 部分核验 | 1 |
+| estimated | 按品类算法推导，待探店升级 | 583 |
 
-### 路线图完成度
-| 版本 | 状态 | 关键说明 |
-|------|------|----------|
-| V1 LLM 基座 | 代码✅ / 真跑⛔ | `deepseek.js` + `/agent` 已写好；真跑验收需 `DEEPSEEK_API_KEY`（沙箱无 Key） |
-| V2 信任内核 | ✅ 全交付 | V2.1–2.4 落地 + 测试 |
-| V3 增长 + 账号 / 券 | ✅ 全交付 | V3.1–3.4 落地 + 测试（账号 / 券 / 核销为**前端原型**） |
-| V4 BFF 后端 | 🟡 形态/范围已定 | 形态=耦合单进程（形态一）；**当下范围=账号 + 数据**（已授权治理）；券 / 核销延后（未谈商家）；支付分润隔离为独立项目，跑通后像积木拼上 |
-| V5 规模化 / 出海 | ⛔ 未启动 | 依赖 V4 |
+### 5.3 数据源抽象
+- FoodDataSource 基类 + 注册表；sample（默认 7 条合成）+ wuhan（opt-in，ALL_MERCHANTS）。
+- 切换：setDefaultDataSource(createDataSource('wuhan')) 或 env MYWO_DATASOURCE=wuhan。
 
----
-
-## 5. 信任内核（反广告）验证结论
-
-- `scripts/ranking-audit.mjs` 扫描全部排序 / 筛选 / 推荐源码路径：商业加权术语命中 **0** → **PASS**。
-- 防火墙正向控制三处已就位：CPS 物理隔离（`cps.js`）、核验只增信不增权重（`explain.js`）、LLM 提示约束（`agent-loop.js`）。
-- 声明：**蛮有味的推荐排序不出卖（zero sponsored weight）**。营收（CPS 分润）与排序正交，仅在结果生成后以展示标呈现，且默认无真实签约商户（诚实留空，待 Robin 真实签约后填 env）。
+### 5.4 数据治理规则（V4.4，2026-08-15 已授权）
+- 现状口径：merchants.js=625（后端事实源）；all-merchants.js=857（前端，含 robin-99 87 + web-stalls 206，坐标全 null 未伪造）；后端内 **61 组重名被合并去重吞掉**（数据质量隐患）。
+- 治理目标（S2）：后端摄入 robin-99 + web-stalls → 双端同口径 857；61 组重名清零。
+- 红线：不得伪造外源坐标、不得引入密钥 / PII。详见 docs/datasource-reconcile.md。
 
 ---
 
-## 6. 里程碑路线图（诚实状态 + 验收门禁）
+## 6. 接口契约
+
+### 6.1 后端 API 总表（:8799，hypha/implementation/src/httpServer.js）
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| POST | /health | 探针（10 工具 + 模式 + llmEnabled） |
+| POST | /run | 确定性推荐（0 token，¥0；入参 intent/limit/zone/maxPrice/sort/board） |
+| POST | /agent | LLM 推荐（需 DEEPSEEK_API_KEY；失败自动降级 /run，出参契约不变） |
+| POST | /tools/:id | 单工具调用（10 个领域工具 adapter） |
+| GET/POST/DELETE | /memory/:sessionId | 口味档案读写 / 清除 |
+| POST | /upload | 探店采集（高德校验三分支：verified / verified_stall / pending） |
+| POST | /auth/captcha | 图形验证码（{token, svg}，token 不含答案） |
+| POST | /auth/sms/send | 短信验证码（先过图形验证 + 频控；未配 provider 如实报错） |
+| POST | /auth/login | 短信码换 JWT（{ok, token, user{id, nickname, phoneMasked}}，完整手机号永不下发） |
+| GET | /auth/wechat/url | 微信授权页 URL（AppSecret 仅服务端） |
+| GET | /auth/wechat/callback | code→openid→JWT→302 回前端落地页（带 token+state） |
+| GET | /auth/me | 凭 token 取当前用户 |
+
+### 6.2 认证与安全
+- JWT（HMAC-SHA256 内联签发，30 天）；**完整手机号永不下发前端**（隐私最小化）。
+- 安全红线落地：未配置 provider 时如实报错、不假装成功——生产未配短信网关 → 「短信服务未配置」；未配微信 AppID/Secret → 「未配置」；未配 AUTH_JWT_SECRET → 不签发 token。
+- 密钥（AMAP_SERVER_KEY / AUTH_JWT_SECRET / DEEPSEEK_API_KEY / 微信 AppSecret / 短信密钥）仅 env，不进前端不进仓库（.env 已 gitignore）。
+
+### 6.3 BFF 契约（延后项）
+docs/BFF接口契约.md：RewardStore 后端契约（checkin / coupons CRUD / 鉴权防越权 / 幂等防刷）。前端 store.bff.js 的 BffStore 已实现，后端路由待 V4.1（延后，见 §11 后置）。
+
+---
+
+## 7. 安全与红线（绝不越界）
+
+1. 密钥不入库、不进前端包、不 git push 明文、不部署公网、不改密钥环境变量、不删数据、不碰付费 / 对外发布。
+2. 高德 Key / 微信 AppSecret / JWT 密钥只存服务端 env。
+3. 输出禁含 PII（user_id/token/phone 关键词）、假坐标、伪造券、暴露密钥；字段名避 phone/token/user_id（用 tel）。
+4. 数据不编造：verified vs estimated 必须标注；缺字段显式缺省。
+5. 渲染防 XSS：所有 DOM 经 h()，无 innerHTML。
+6. **推送授权（2026-08-15 Robin 明确，覆盖旧「不 push」红线）**：每次代码文件更新经审阅通过后，可直接 git commit + push 至 GitHub（origin master）。审阅门禁见 §8。
+
+---
+
+## 8. 质量门禁与验收（通用）
+
+- **纯逻辑改动**：在 h5/test/ 或 hypha/implementation/test/、hypha/integration/ 增 / 改 *.test.mjs，运行 node 须全绿（当前 22 套：h5 13 + hypha 9，见 status-2026-08-15.md 实跑数）。
+- **所有 JS**：node --check 语法校验全过。
+- **UI / 页面改动**：起静态服务后 curl 校验返回 200；DOM 用 h() 构建、无 innerHTML。
+- **红线扫描**：grep 明文 key / phone / token / user_id 关键词，命中 0。
+- **可重跑审计**：node scripts/ranking-audit.mjs（反广告 PASS）、node scripts/reconcile-datasource.mjs（数据口径对齐）。
+- **审阅 + 推送流程（2026-08-15 起）**：每次代码文件更新 → 对照本节逐条确认 → 更新 status 文档 → git commit + push（Robin 已授权）。
+
+---
+
+## 9. 指标与成功标准
+
+### 9.1 北极星指标
+**情境意图类目决策完成率**（选一家并导航 / 核销）。判定线（Phase 2 定义，已实测通过）：
+1. 情境意图子集盲评「它懂我」胜率 ≥ 65%（实测 LLM 100% ✅）；
+2. 该子集决策完成率 LLM 版比规则版高 ≥ 15pp（实测情境子集 100% vs 13% ✅）。
+
+### 9.2 护栏指标（不可破）
+- 红线事件 = 0（编造坐标 / 伪造券 / PII 泄露 / Key 暴露）。
+- 推荐逻辑代码对付费字段导入 = 0（可静态审计，ranking-audit PASS）。
+- LLM 成本可控：≈2 分钱 / 次；校园月推理 ≈¥100–300；总运营 ≈¥500–1000/月。
+
+### 9.3 增长指标（运营期看）
+- 7 日复访率、情境意图类目复访率；
+- CPS 转化单量：≈250 单/月 @¥2（或 30 商户 × 8 单/月，核销率 ~5%）即覆盖运营成本——**商户签约网络 + 核销转化体验是单位经济唯一命门**。
+
+---
+
+## 10. 里程碑路线图（诚实状态 + 验收门禁）
 
 | 版本 | 目标 | 验收门禁（Done 定义） | 状态 |
 |------|------|----------------------|------|
-| **V1 LLM 基座** | 真跑 `/agent`：自然语言 → ReAct → 真实推荐 | 设 `DEEPSEEK_API_KEY` 后 `/agent` 实跑产出 `output.food-recommendation`，累计真实成本 / 延迟达标 | 代码✅ / 真跑⛔ |
-| **V2 信任内核** | 反广告排序 + 真实性徽章 + 探店工具 | `ranking-audit` PASS；UI 因子可视化上线 | ✅ |
-| **V3 增长 + 账号 / 券** | 签到 / 玩法得券 / 券包 / 核销 / 增长看板（前端原型） | 10 套 h5 测试全绿；前端闭环可跑 | ✅（原型） |
-| **V4 BFF 后端（收窄）** | 账号真后端 + 数据源统一（当下）；券 / 核销 / 支付分润延后 | 账号跨设备生效；857↔625 统一口径；支付分润作为独立可插拔模块后续接入 | 🟡 形态/范围已定，待实施 |
+| **V1 LLM 基座** | 真跑 /agent：自然语言 → ReAct → 真实推荐 | DEEPSEEK_API_KEY 实跑产出 output.food-recommendation，累计真实成本 / 延迟达标 | ✅ 代码 + 真跑（4/4 真模型，fallback=false；盲评 ~4.0/5 已修复） |
+| **V2 信任内核** | 反广告排序 + 真实性徽章 + 探店工具 | ranking-audit PASS；UI 因子可视化上线 | ✅ 全交付 |
+| **V3 增长 + 账号 / 券** | 签到 / 玩法得券 / 券包 / 核销 / 增长看板（前端原型） | 13 套 h5 测试全绿；前端闭环可跑 | ✅（原型） |
+| **V4 BFF 后端（收窄）** | 账号真后端（✅ 已实施）+ 数据统一（S2 已授权）+ 券 / 核销 / 支付延后 | 账号跨设备生效（S3/S4）；857↔625 统一（S2）；支付分润独立可插拔模块后续接入 | 🟡 实施中 |
 | **V5 规模化 / 出海** | 数据驱动榜 + 小程序壳 + 付费推荐位（后置） | — | ⛔ 未启动 |
 
 ---
 
-## 7. 下一步开发清单（按优先级）
+## 11. 下一步开发清单（按优先级，守门智能体按序推进）
 
-> 守门智能体按本表从上到下推进；标注「待 Robin」的需决策 / 授权后动工，不擅自越线。
+> 2026-08-15 Robin 拍板顺序：S2 → S3 → S4 → S5 → S6。每步完成 = 验收全过 + 审阅 + 推送 GitHub。
 
-### 7.1 V1 真跑验收【待 Key · 当前可先做无 Key 验证】
-- **现在可做（无需 Key）✅ 已验证（2026-08-13）**：起 `:8799` 后端，验证 `/health`（10 工具）、`/run`（确定性，0 token，返回真实商户）、`/agent`（设 `MYWO_AGENT_MOCK=1` 离线演示模式，返回真实商户）端到端连通；ReAct + 工具 facade + 红线校验均通过。另加 `hypha/integration/agent-client.test.mjs`（15 断言）锁定前端↔后端响应契约。
-- **待 Key**：在跑后端的环境设 `DEEPSEEK_API_KEY`（可经 `DEEPSEEK_BASE_URL` 指向本地网关 / 直连官方），实跑 `/agent` 累计真实成本 / 延迟，满足 V1 Done 定义。
-- 前端联动 ✅ 已验证（2026-08-13）：`reasoning.js` 已接 `agent-client.js`（`discover`/`agentChat`/`setBackend`），`home.js` 意图栏经 `goReasoning` 跳转推理页调用；`vite build` 确认跨目录 import 编译通过（47 模块）。注：实际接入口是 `reasoning.js` 而非 `home.js` 直接 import（架构不变，仅调用点差异）。
+### S1 文档重构（✅ 2026-08-15 本轮完成）
+- SPEC v2.0 重构（本文）+ 文档索引更新 + 决策记录入册（D-20260815-01/02）+ 控制塔同步 + status-2026-08-15.md 快照。
 
-### 7.2 V4 后端落地【已拍板 · 2026-08-13】
-- **形态（已定）**：选**形态一（耦合单进程）**——在现有 `:8799` 后端上复用 `BffStore` / `BffAuthProvider` 接口扩写，一个 Node 进程全包（账号 + 数据 + Agent）。不另起服务。
-- **当下范围（已定）**：只做**账号 + 数据**。`券` / `核销` 延后——当前还没谈商家，无真实载体（风险 R4）。`支付 / 分润` 延后——本身复杂，Robin 将**隔离为独立项目**，跑通后像积木一样拼上来（CPS 展示标已物理隔离，拼装成本低）。
-- **本地联调（已授权）**：允许在开发 / 沙箱环境（非公网）启动 `:8799` 做真跑与联调；不部署公网。
-- 落地依据：`docs/BFF接口契约.md`（Route Handlers 唯一契约）。
-
-### 7.3 数据统一治理 V4.4【待授权 · 数据修改】
-- 方向 A（推荐）：后端 `wuhan` 数据源摄入 `robin-99` + `web-stalls`，使后端 = 前端 = 857，Agent 返回 id 已 ⊂ 前端集合，零破坏。
+### S2 数据统一治理 V4.4【✅ 已授权 2026-08-15】
+- 目标：后端 wuhan 数据源摄入 robin-99 + web-stalls → 后端 = 前端 = 857，Agent 返回 id 仍 ⊂ 前端集合，零破坏。
 - 前置：先治理 61 组后端重名（去重 / 修正店名），避免合并后计数漂移。
-- 红线：不得伪造外源坐标、不得引入密钥 / PII。详见 `datasource-reconcile.md`。
+- 验收：node scripts/reconcile-datasource.mjs 双端同口径 857；61 组重名清零；全量单测全绿；Agent 返回 id ⊂ 前端集合。
+- 红线：不得伪造外源坐标、不得引入密钥 / PII。依据 docs/datasource-reconcile.md。
 
-### 7.4 探店采集（用户上传 + 高德校验）【已实施 · 2026-08-13】
-- **新形态（Robin 2026-08-13）**：前端新增「上传店铺」功能——用户填店铺（名称 / 地址或定位 / 描述 / 分类），提交后**后端调高德 API 自动校验**：
-  - 高德搜到该店（POI 匹配）→ 入**正式数据库**；
-  - 高德没搜到 → 看上传人描述：**流动摊 / 路边摊**类（描述明确）→ 也直接入正式库（坐标取上传定位，不伪造）；
-  - 既搜不到、又非摊类 → 存为**待核验**数据并打标注，**不删除**，留待人工判断。
-- **依赖**：后端调高德需服务端 `高德 Key`（Robin 2026-08-13 提供新的 Web 服务 Key，已验证可用、未降级，置于服务端 `.env` 的 `AMAP_SERVER_KEY`，不进前端 / 仓库）。若暂缺 Key，校验降级为「全部进待核验」。
-- **数据落点**：当下方进程 `:8799` 的 `merchant-uploads.json`（gitignored，verified / pending 分离数组），与 `ALL_MERCHANTS` 解耦；待核验与正式分离存储。
-- **价值**：把「探店采集」从「Robin 实地 + 脚本」变成「用户众包 + 智能体校验」，直接补 R3 数据完整度。
-- **实施要点 / 验收**：
-  - 后端 `hypha/implementation/src/upload.js` + `httpServer.js` 的 `POST /upload`；前端 `h5/src/ui/uploadShop.js`（上传表单/结果态视图 + main 路由 + `app.css` 样式）。**入口位置（Robin 2026-08-13 决策）：放在地图页右下浮动按钮（`.map-fab`，`map.js` 内），不在首页——避免抢占首页主流量；首页 `home.js` 已移除该入口。**
-  - **相关性闸门（防误判，2026-08-13 修复）**：高德 `place/text` 模糊返回不简单等同「找到该店」。`verifyWithAmap` 须通过 ①店名相似度 ≥ 0.5（归一化 + bigram Jaccard + 包含判定）②若用户给了定位则 POI 须在其 3km 内，二者皆过才判定 `verified`；否则返回 null，逻辑自然落到 `verified_stall` / `pending`。
-  - **真跑三分支验收（真实 Key）**：①长子热干面→`verified`(10m)；②南湖后门流动煎饼摊·isStall→`verified_stall`；③zzz虚构店铺测试123·非摊→`pending`。均符合三分支契约。
-  - 设计先行：`docs/design/shop-upload-design.md` + `shop-upload-mockup.html`（子代理产出，已对齐契约）。
-  - 测试：`hypha/implementation/test/upload.test.mjs`（22 项）、`hypha/integration/agent-client.test.mjs`（含 `/upload` 路由契约，18 项）全绿。
+### S3 账号持久化
+- 目标：auth-server 内存 Map → 文件持久化（gitignored），重启不丢账号 / 会话 / 验证码语义。
+- 验收：重启后旧 token 仍有效；13/13 账号单测保持全绿 + 新增持久化单测；数据文件 gitignored。
 
-### 7.4.1 账号登录体系（手机验证码 + 图形验证码 + 微信）【已实施 · 2026-08-13】
-- **目标（Robin 决策）**：做「小程序式」登录——图形验证码（人机验证）+ 短信验证码（安全验证）+ 微信网页授权并行；密钥只在服务端，前端零密钥、零 innerHTML。
-- **后端（Path B，`:8799`，零外部依赖）**：`hypha/implementation/src/auth-server.js` + `httpServer.js` 路由：
-  - 图形验证码（人机验证）：服务端自绘 SVG（字母+数字，去除易混字符），一次性、5 分钟过期、常量时间比对；`POST /auth/captcha` 返回 `{token, svg}`（token 不含答案）。
-  - 短信验证码（安全验证）：`POST /auth/sms/send` 须先过图形验证，再走服务端频控（1 分钟 1 次 / 1 小时 ≤5 / 24 小时 ≤10）；6 位安全随机码、10 分钟过期、一次性失效、常量时间比对；返回 `{ok, devCode?}`。
-  - 登录：`POST /auth/login` 用短信码换 JWT（HMAC-SHA256 内联签发，零依赖，30 天）；返回 `{ok, token, user{id, nickname, phoneMasked}}`（**完整手机号永不下发前端**，隐私最小化）。
-  - 微信：`GET /auth/wechat/url`（拼授权页，AppSecret 仅服务端）+ `GET /auth/wechat/callback`（code→openid/unionid→JWT→302 回前端落地页带 token+state）；`GET /auth/me` 凭 token 取用户。
-  - **安全红线落地**：未配置 provider 时如实报错、不假装成功——生产环境（`NODE_ENV=production`）未配真实短信网关 → `/auth/sms/send` 报「短信服务未配置」；未配微信 AppID/AppSecret → 微信接口报「未配置」；未配 `AUTH_JWT_SECRET` → 不签发 token。JWT 密钥 / 微信 AppSecret / 短信密钥仅 env、不进前端不进仓库（`.env` 已 gitignore，`AUTH_JWT_SECRET` 为本地随机）。
-  - 存储为内存 Map（原型，重启清空；后续可平滑换 Redis/DB，接口不变）。
-- **前端（h5）**：`h5/src/api/auth-client.js`（封装 6 端点 + token 本地存取 + `apiBase` 可配）+ `h5/src/ui/login.js`（`LoginView`：手机+图形+短信+提交 状态机 + 微信按钮，全 `h()` 构建无 innerHTML）+ `h5/src/ui/account.js`（用 `LoginView` 替换原本地原型登录）+ `h5/src/core/auth.js`（`applyRemoteSession` 把后端会话写入本地存储，favorites/wallet 按 id 隔离零改动）+ `h5/src/main.js`（微信 callback 落地消费 token）+ `h5/src/config.js`（`VITE_API_BASE`）+ `h5/src/styles/app.css`（登录样式，全引用 tokens）。
-- **真跑验收（进程内单测 13/13 全绿 + 负路径 HTTP 200/400/401 实测）**：图形→短信(ok+devCode)→登录(ok+JWT+脱敏手机号)→`/me`(ok)；错误图形码→400「图形验证码错误」；无短信码登录→400「验证码不存在或已使用」；重复用码→400「已使用」；非法 token→`/me` 401；微信未配置→400「未配置」。
-- 设计先行：`docs/design/account-auth-design.md` + `account-auth-mockup.html`（子代理产出，已对齐契约）。
+### S4 收藏跨设备同步
+- 目标：user.favorite 工具后端化（按 JWT 解析用户，服务端忽略客户端传入 userId 防越权）；前端收藏读写走 BFF（LocalStore 兜底）。
+- 验收：设备 A 收藏 → 设备 B 登录同账号可见；未登录回落本地；越权读写被拒；全量单测全绿。
 
-### 7.5 增长实验【文件已删 · 2026-08-13】
-- Robin 决定删除增长框架 / 文案占位文件（`v3.4-growth-plan.md` / `v3.4-copywriting.md`），增长实验暂缓；待后续单独规划（试点校区 / 域名 / 节奏另议）。
+### S5 pending 上传治理
+- 目标：/upload/pending 查询端点 + 治理工具（列表 / 批量操作 dry-run）+ 待核验数据可人工处理。
+- 验收：pending 列表可查可治理；操作带审计日志；upload 22 项单测保持全绿 + 新增治理单测。
+
+### S6 对话体验打磨（chat-first）
+- 目标：首页对话优先形态（输入框 + 情境 chips + 顶部常去 / 收藏 / 附近）+ 多轮追问（换一家 / 再便宜点）走 /agent。
+- 验收：首页意图栏 → 推理页 → 多轮追问链路可用；h5 单测全绿；vite build 通过。
+
+### 后置（不阻塞，另行规划）
+- 短信网关生产化（SMS_PROVIDER=tencent + TENCENT_SMS_SECRET_ID/KEY）与微信凭据配置（WECHAT_APPID/SECRET/REDIRECT_URI）。
+- V4.1 券 / 核销 BFF 化（等真实商家载体，风险 R4）；V4.2 商户入驻签约；V4.3 分润对账（支付分润隔离为独立项目，跑通后拼装）。
+- 增长实验（KOL / 社群 / 地推，2026-08-13 起暂缓，待单独规划试点校区 / 域名 / 节奏）。
+- 微信小程序壳（h5 验证价值信号后启动）；V5 多城数据框架 + 出海拓扑 + 排行榜演进 + 手册互嵌。
 
 ---
 
-## 8. 风险与待办（严格口径）
+## 12. 已锁定决策记录
 
-| # | 风险 | 等级 | 说明 / 建议 |
+| id | 日期 | 决策 | 状态 |
+|----|------|------|------|
+| D-20260810-01 | 08-10 | LLM 为产品地基（锁定 Path B：自有 Node 后端 :8799 跑 DeepSeek tool_calling）；规则引擎退为兜底 / 熔断 | 锁定 |
+| D-20260810-02 | 08-10 | 反广告 = 排序不出卖（信任内核，可验证）+ 变现 = 纯 CPS / 到店核销分润（单一线）；订阅已砍 | 锁定 |
+| D-20260810-03 | 08-10 | 框架先行、数据后灌（数据源可插拔：sample 默认 / wuhan opt-in） | 锁定 |
+| D-20260811-01 | 08-11 | 数据层补全：确定性派生 + 40 家真实核验注入；重生成 merchants.js=625（583 estimated + 41 verified + 1 partial） | 已执行 |
+| D-20260811-02 | 08-11 | 算法层透明化：逐店理由 explain.js + 推理时间线 + 因子权重 | 已执行 |
+| D-20260812-01 | 08-12 | 生产优先国内 LLM（DeepSeek / 智谱付费档）；海外模型走后端出海节点；免费档仅开发联调 | 锁定 |
+| D-20260813-01 | 08-13 | LLM 选型落地：主攻 DeepSeek 付费档（V4 Flash）走 Path B；可插拔接口保留、第二家延后；授权真跑测试 | 已执行 |
+| D-20260815-01 | 08-15 | **GitHub 推送授权**：每次代码文件更新经审阅通过后直接 commit + push 至 origin master（覆盖旧「不 push」红线） | 生效 |
+| D-20260815-02 | 08-15 | **V4.4 数据统一授权**：允许修改数据与构建脚本（重名治理 + 摄入 robin-99/web-stalls → 857）；下一步顺序 S2→S6 | 生效 |
+
+---
+
+## 13. 风险登记（严格口径）
+
+| # | 风险 | 等级 | 说明 / 缓解 |
 |---|------|------|--------------|
-| R1 | 账号体系为前端原型 | 🔴 | `LocalAuthProvider`，无微信 OAuth / Argon2 / 云端同步，不跨设备。对外不可称「已上线账号系统」 |
-| R2 | 核销后台仅本地 | 🔴 | 按码查依赖扫描本地券桶，跨用户 / 跨商家无法核销。需 V4 BFF 全局查码 + 服务端幂等 |
-| R3 | 数据完整度 | 🔴 | 评分缺失 67%、推荐语缺失 73%，直接削弱榜单与详情体验（详见历史实测指标版） |
-| R4 | 0 商户绑券 | 🟠 | 合作发券闭环无真实商家载体，当前券全为引擎发放 |
-| R5 | 校区覆盖薄 | 🟠 | 首义 + 南湖仅 147/590（24.9%），「就近」价值被全城稀释 |
+| R1 | 账号后端内存存储 | 🔴 | 内存 Map，重启清空 → **S3 文件持久化治理中**；生产最终换 Redis/DB（接口已隔离） |
+| R2 | 核销后台仅本地 | 🔴 | 跨用户 / 跨商家无法核销；需 V4.1 BFF 全局查码 + 服务端幂等（等商家载体，R4） |
+| R3 | 数据完整度 | 🔴 | 583 estimated 待探店升级（collect-visit.mjs 就绪，待实地采集）；S2 后口径 857 一致但缺字段仍在 |
+| R4 | 0 商户绑券 | 🟠 | 合作发券闭环无真实商家载体；CPS 签约网络 = 单位经济唯一命门 |
+| R5 | 校区覆盖薄 | 🟠 | 首义 + 南湖 147/590（24.9%），「就近」价值被全城稀释 |
 | R6 | Key 下发浏览器 | 🟠 | 静态部署固有，依赖高德域名白名单 + 安全密钥；彻底解决待 V4 代理 |
-| R7 | V4 后端范围收窄 | 🟠 | 形态已定（耦合单进程）；当下只做账号 + 数据，券 / 核销 / 支付延后；真闭环进度取决于独立支付项目何时拼上 |
-| R8 | 工作区改动待提交 | 🟢 | 已审查；2026-08-13 提交（含新增契约测试 + 文档清理） |
-| R9 | 高德 Key 历史残留 | ⚪ | Robin 决定不重置（免费 Key，暴露无碍）；git 历史清理（不可逆）亦不做 |
+| R7 | V4 后端范围收窄 | 🟠 | 券 / 核销 / 支付延后；真闭环进度取决于独立支付项目何时拼上 |
+| R8 | 短信网关未生产化 | 🟠 | SMS_PROVIDER=console 仅开发 / 演示；生产须 tencent + 密钥，否则如实报「未配置」（见 §11 后置） |
+| R9 | 微信登录未配置 | 🟠 | WECHAT_APPID/SECRET/REDIRECT_URI 为占位；配置即启用（见 §11 后置） |
+| R10 | 高德 Key 历史残留 | ⚪ | Robin 决定不重置（免费 Key，暴露无碍）；git 历史清理（不可逆）亦不做 |
 
 ---
 
-## 9. 验收与质量门禁（通用）
+## 14. 文档体系整理说明（v2.0）
 
-- **纯逻辑改动**：在 `h5/test/` 或 `hypha/implementation/test/` 增 / 改 `*.test.mjs`，运行 node 须全绿。
-- **所有 JS**：`node --check` 语法校验全过。
-- **UI / 页面改动**：起静态服务后 `curl` 校验返回 200；DOM 用 `h()` 构建、无 `innerHTML`。
-- **红线（绝不越界）**：不 `git push` / 不部署 / 不改密钥 env / 不删数据；涉及付费、对外发布、不可逆操作先停。密钥不入库不进前端包。
-- **可重跑审计**：`node scripts/ranking-audit.mjs`（反广告）、`node scripts/reconcile-datasource.mjs`（数据口径）须 PASS / 对齐。
+**保留（现行，见 §0 表）**：SPEC.md（本文 v2.0）、README.md、status-2026-08-15.md、BFF接口契约.md、高德Key安全接入.md、ranking-audit.md、datasource-reconcile.md、collect-visit-guide.md。
 
----
+**hypha/ 目录（Agent 专属补充）**：PRODUCT-VISION.md（战略层 SOF）、PRODUCT-REQUIREMENTS.md（PRD，双钻 + JTBD）、MONETIZATION-MODEL.md（纯 CPS + 防火墙）、ARCHITECTURE.md（L0–L4 + 10 步路线图 + Path A/B 真相）、ITERATION-LOG.md（工程迭代事实）、manyouwei-food-discovery.domain.yaml（执行层契约：10 工具 + FSM + 红线策略）。
 
-## 10. 文档体系整理说明（本次清理）
+**.context-store/（会话接棒）**：CONTROL_TOWER.md（控制塔导航）+ layers/（decisions / roadmap / api-contracts / open-threads / progress / iteration-log）+ handoffs/。每阶段结论写回对应 layers/ 与控制塔。
 
-**保留（现行，见 §0 表）**：SPEC.md、README.md、status-2026-08-13.md、BFF接口契约.md、高德Key安全接入.md、ranking-audit.md、datasource-reconcile.md、collect-visit-guide.md。
-
-**已归档至 `docs/archive/`（过时噪音，非执行依据）**：
-- 手册时代规划（pre-2026-08-09 产品转向前）：`产品方向总纲.md`、`架构方案-两产品一套后台.md`、`增长与社群运营计划.md`、`手册体验改版计划.md`、`手册重构实施计划.md`、`重构执行规范.md`、`新智能体交接-第6轮续做.md`、`迭代计划/`（×5）、`提取/校园生活全攻略.md`。
-- 已被取代的早期产品方案：`美食集散平台产品方案.md`（pre-pivot，M 状态已失准）、`蛮有味·产品文档（实测指标版）.md`（2026-08-08 基线，数据口径与 Agent 转向已过时）。
-- 归档原因：原「两个产品一套后台 / 手册钩子」策略已被锁定的「智能体驱动美食产品」取代；上述文档描述的手册前端打磨、多轮迭代、早期 v0.3 方案均不再指导当前开发。其中奖励引擎 / 优惠券闭环等**仍有效的架构要点已提炼进本文 §3**。
-
-> 归档 = 物理移动到 `docs/archive/`，**非删除**，可随时回退。是否永久删除归档目录，待 Robin 确认。
+**归档**：手册时代规划（pre-2026-08-09）已永久删除（2026-08-13 Robin 授权，git 历史可恢复）。v1.0 SPEC 内容已并入本文，无独立归档。
 
 ---
 
-*本文件为蛮有味项目唯一事实来源，自 2026-08-13 生效。任何与旧文档冲突处，以本文为准。*
+*本文件为蛮有味项目唯一事实来源，v2.0 自 2026-08-15 生效。任何与旧文档冲突处，以本文为准。*
