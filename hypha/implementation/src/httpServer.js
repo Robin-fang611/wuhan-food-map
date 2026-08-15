@@ -197,6 +197,7 @@ const server = createServer(async (req, res) => {
       logLlmCall({ scene: 'agent', ip: clientIp(req), intent: input.message || input.intent, ok: out && out.success && !out.fallback, ms: Date.now() - t0, usage: out && out.usage });
       return send(res, 200, out);
     } catch (err) {
+      logLlmCall({ scene: 'agent', ip: clientIp(req), intent: input.message || input.intent, ok: false, ms: Date.now() - t0 }); // W7：失败也记录
       if (err instanceof AgentFallbackError) {
         // R1：LLM 不可用 / 超时 / 5xx / 红线 → 自动回退确定性运行时（前端无感）。
         try {
