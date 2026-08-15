@@ -270,6 +270,7 @@ export async function agentChat(opts = {}) {
   let lastSearch = null;
   let committed = null;
   let clarification = null;
+  let lastUsage = null; // W7：LLM token 用量（成本日志）
   const steps = [];
   const MAX_STEPS = 8;
 
@@ -277,6 +278,7 @@ export async function agentChat(opts = {}) {
     let resp;
     try {
       resp = await t.call(messages, tools);
+      if (resp && resp.usage) lastUsage = resp.usage; // W7
     } catch (e) {
       // LLM 不可用 / 超时 / 5xx → 抛 fallback，由上层改跑确定性运行时。
       throw new AgentFallbackError(e && e.message || String(e));
@@ -456,6 +458,7 @@ export async function agentChat(opts = {}) {
     success: true,
     output,
     trace: { state: 'Completed', driver: 'hypha-react', steps, memoryUsed },
+    usage: lastUsage, // W7：token 用量（供成本日志）
     fallback: false,
   };
   } catch (e) {

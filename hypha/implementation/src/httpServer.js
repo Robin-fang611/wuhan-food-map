@@ -12,6 +12,7 @@ import { runFoodDiscovery } from './orchestrator.js';
 import { agentChat, AgentFallbackError } from './agent-loop.js';
 import { shouldUpgrade, buildUpgradeResult } from './upgrade.js';
 import { parseIntent } from './intent-parser.js';
+import { logLlmCall, errDetail } from './llm-cost-log.js';
 import { getProfile, upsertProfile, clearProfile } from './memory-store.js';
 import discoverFilter from './tools/filter.js';
 import discoverRank from './tools/rank.js';
@@ -154,14 +155,16 @@ const server = createServer(async (req, res) => {
           }
           return send(res, 200, out);
         }
-        // 升级：LLM 深度分析（25s 超时护栏；失败自动回落确定性结果）
+        // 升级：LLM 深度分析（25s 超时护栏；失败自动回落确定性结果；成本日志 W7）
         let agentResult = null;
+        const t0 = Date.now();
         try {
           agentResult = await Promise.race([
             agentChat({ message: intent, sessionId: input.sessionId || 'anon', history: [] }),
             new Promise((_, reject) => setTimeout(() => reject(new Error('upgrade timeout')), 25000)),
           ]);
         } catch { agentResult = null; }
+        logLlmCall({ scene: 'upgrade', ip: clientIp(req), intent, ok: !!(agentResult && agentResult.success && !agentResult.fallback), ms: Date.now() - t0, usage: agentResult && agentResult.usage });
         if (agentResult && agentResult.success && !agentResult.fallback) {
           // LLM 成功：返回 LLM 结果 + upgrade 标记 + 确定性兜底
           return send(res, 200, buildUpgradeResult(agentResult, out));
@@ -173,23 +176,25 @@ const server = createServer(async (req, res) => {
       }
       return send(res, out.success ? 200 : 422, out);
     } catch (err) {
-      return send(res, 400, { success: false, error: 'run 失败', detail: String(err && err.message || err) });
+      return send(res, 400, { success: false, error: 'run 失败', detail: errDetail(err) });
     }
   }
 
-  // POST /agent —— LLM 大脑（带降级熔断；LLM 成本护栏：10 次/分/IP）
+  // POST /agent —— LLM 大脑（带降级熔断；LLM 成本护栏：10 次/分/IP；成本日志 W7）
   if (req.method === 'POST' && url.pathname === '/agent') {
     if (!rateLimit('llm:' + clientIp(req), 60000, 10)) {
       return send(res, 429, { success: false, error: 'AI 调用过于频繁，请稍后再试' });
     }
     const input = await readBody(req);
     if (!input || typeof input !== 'object') return send(res, 400, { success: false, error: '请求体非 JSON' });
+    const t0 = Date.now();
     try {
       const out = await agentChat({
         message: input.message || input.intent || '',
         sessionId: input.sessionId || 'anon',
         history: Array.isArray(input.history) ? input.history : [],
       });
+      logLlmCall({ scene: 'agent', ip: clientIp(req), intent: input.message || input.intent, ok: out && out.success && !out.fallback, ms: Date.now() - t0, usage: out && out.usage });
       return send(res, 200, out);
     } catch (err) {
       if (err instanceof AgentFallbackError) {
@@ -206,7 +211,7 @@ const server = createServer(async (req, res) => {
           return send(res, 422, { success: false, error: 'agent 降级也失败', detail: String(e2 && e2.message || e2) });
         }
       }
-      return send(res, 400, { success: false, error: 'agent 失败', detail: String(err && err.message || err) });
+      return send(res, 400, { success: false, error: 'agent 失败', detail: errDetail(err) });
     }
   }
 
@@ -218,7 +223,7 @@ const server = createServer(async (req, res) => {
       const out = await handleUpload(input);
       return send(res, 200, out);
     } catch (err) {
-      return send(res, 400, { success: false, error: 'upload 失败', detail: String(err && err.message || err) });
+      return send(res, 400, { success: false, error: 'upload 失败', detail: errDetail(err) });
     }
   }
 
@@ -229,7 +234,7 @@ const server = createServer(async (req, res) => {
       const out = await listPendingUploads({ limit: url.searchParams.get('limit') ? Number(url.searchParams.get('limit')) : undefined });
       return send(res, 200, out);
     } catch (err) {
-      return send(res, 400, { success: false, error: 'pending 列表失败', detail: String(err && err.message || err) });
+      return send(res, 400, { success: false, error: 'pending 列表失败', detail: errDetail(err) });
     }
   }
 
@@ -242,7 +247,7 @@ const server = createServer(async (req, res) => {
       const out = await governUpload(input);
       return send(res, out.ok ? 200 : 404, out);
     } catch (err) {
-      return send(res, 400, { success: false, error: 'govern 失败', detail: String(err && err.message || err) });
+      return send(res, 400, { success: false, error: 'govern 失败', detail: errDetail(err) });
     }
   }
 
@@ -253,7 +258,7 @@ const server = createServer(async (req, res) => {
       const c = createCaptcha();
       return send(res, 200, { token: c.token, svg: c.svg });
     } catch (err) {
-      return send(res, 500, { ok: false, error: '验证码生成失败', detail: String(err && err.message || err) });
+      return send(res, 500, { ok: false, error: '验证码生成失败', detail: errDetail(err) });
     }
   }
   // POST /auth/sms/send —— 发送短信验证码（先过图形验证 + 频控；未配置 provider 如实报错）
@@ -271,7 +276,7 @@ const server = createServer(async (req, res) => {
       const r = loginWithPhone(input);
       return send(res, r.ok ? 200 : 400, r);
     } catch (err) {
-      return send(res, 500, { ok: false, error: '登录服务异常', detail: String(err && err.message || err) });
+      return send(res, 500, { ok: false, error: '登录服务异常', detail: errDetail(err) });
     }
   }
   // GET /auth/wechat/url —— 微信网页授权页 URL（AppSecret 仅服务端）
@@ -363,7 +368,7 @@ const server = createServer(async (req, res) => {
       const out = await handler(input);
       return send(res, 200, out);
     } catch (err) {
-      return send(res, 400, { success: false, error: '调用失败', detail: String(err && err.message || err) });
+      return send(res, 400, { success: false, error: '调用失败', detail: errDetail(err) });
     }
   }
 

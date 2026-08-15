@@ -111,6 +111,7 @@ export function createDeepSeekTransport(opts = {}) {
         name: tc.function && tc.function.name,
         arguments: safeParseArgs(tc.function && tc.function.arguments),
       })),
+      usage: (data && data.usage) || null, // W7：token 用量（成本日志）
     };
   }
 
