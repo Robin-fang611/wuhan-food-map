@@ -8,3 +8,6 @@ node_modules/
 hypha/implementation/.agent-memory/
 # 探店采集运行态数据（用户众包上传，非源码）
 hypha/implementation/data/
+
+# 数据备份（运行态快照，非源码）
+backups/
