@@ -26,7 +26,7 @@ import rewardClaim from './tools/claim.js';
 import analyticsTrack from './tools/track.js';
 import { handleUpload, listPendingUploads, governUpload } from './upload.js';
 import {
-  createCaptcha, sendSms, loginWithPhone, getUserByToken, wechatAuthorizeUrl, wechatCallback,
+  createCaptcha, sendSms, loginWithPhone, loginWithCaptcha, getUserByToken, wechatAuthorizeUrl, wechatCallback,
   revokeToken, updateProfile, deleteAccount,
 } from './auth-server.js';
 import { deleteUserFavorites } from './tools/favorite.js';
@@ -274,7 +274,9 @@ const server = createServer(async (req, res) => {
     const input = await readBody(req);
     if (!input || typeof input !== 'object') return send(res, 400, { ok: false, error: '请求体非 JSON' });
     try {
-      const r = loginWithPhone(input);
+      // 2026-08-15 决策：Demo 默认「手机号 + 图形验证码（人机验证）」登录；传 smsCode 走短信路径（兼容）
+      const useCaptcha = input.captchaToken && !input.smsCode;
+      const r = useCaptcha ? loginWithCaptcha(input) : loginWithPhone(input);
       return send(res, r.ok ? 200 : 400, r);
     } catch (err) {
       return send(res, 500, { ok: false, error: '登录服务异常', detail: errDetail(err) });

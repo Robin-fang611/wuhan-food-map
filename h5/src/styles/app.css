@@ -941,3 +941,6 @@ body {
 .login-wechat-btn:active { filter: brightness(.96); }
 
 .login-agreement { text-align: center; font-size: 11px; margin-top: 14px; }
+
+/* 2026-08-15：免短信直登提示 */
+.login-sms-hint { font-size: 12px; color: var(--ink-2); opacity: .8; padding: 2px 2px 10px; }

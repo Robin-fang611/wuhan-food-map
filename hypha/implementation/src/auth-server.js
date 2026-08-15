@@ -334,12 +334,34 @@ function issueJwt(user, scene) {
 // ——————————————————————————————————————————————
 // 5) 手机登录（验证码交换 JWT）
 // ——————————————————————————————————————————————
-export function loginWithPhone({ phone, smsCode, scene = 'login', agreement } = {}) {
-  if (!PHONE_RE.test(String(phone || ''))) return { ok: false, error: '手机号格式不正确' };
+function requireAgreement(agreement) {
   // W4：注册/登录须同意《用户协议与隐私政策》（版本对齐前端展示）
   if (agreement !== AGREEMENT_VERSION) {
     return { ok: false, error: '请先阅读并同意《用户协议与隐私政策》' };
   }
+  return null;
+}
+
+// 2026-08-15 Robin 决策：Demo 阶段不做短信验证码/微信登录——
+// 登录 = 手机号 + 图形验证码（人机验证，一次性、5 分钟、常量时间比对）。
+// 短信码路径保留（console/生产兼容），前端默认走图形码路径。
+export function loginWithCaptcha({ phone, captchaToken, captchaInput, scene = 'login', agreement } = {}) {
+  if (!PHONE_RE.test(String(phone || ''))) return { ok: false, error: '手机号格式不正确' };
+  const agreeErr = requireAgreement(agreement);
+  if (agreeErr) return agreeErr;
+  // 人机验证：图形验证码（一次性）——替代短信验证码作为 Demo 阶段凭证
+  if (!verifyCaptcha(captchaToken, captchaInput)) {
+    return { ok: false, error: '图形验证码错误' };
+  }
+  const user = findOrCreateUserByPhone(String(phone));
+  const token = issueJwt(user, scene);
+  return { ok: true, token, user: publicUser(user) };
+}
+
+export function loginWithPhone({ phone, smsCode, scene = 'login', agreement } = {}) {
+  if (!PHONE_RE.test(String(phone || ''))) return { ok: false, error: '手机号格式不正确' };
+  const agreeErr = requireAgreement(agreement);
+  if (agreeErr) return agreeErr;
   const rec = smsCodes.get(phone);
   if (!rec || rec.used) return { ok: false, error: '验证码不存在或已使用' };
   if (Date.now() > rec.exp) { smsCodes.delete(phone); return { ok: false, error: '验证码已过期，请重新获取' }; }

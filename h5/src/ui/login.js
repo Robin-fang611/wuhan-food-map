@@ -77,25 +77,23 @@ export function LoginView({ onLoggedIn } = {}) {
       h('span', { class: 'login-label', text: '图形验证（人机验证）' }),
       h('div', { class: 'login-captcha-row' }, [captchaImg, captchaInput, refreshBtn]),
     ]),
-    h('label', { class: 'login-field' }, [
-      h('span', { class: 'login-label', text: '短信验证码' }),
-      h('div', { class: 'login-sms-row' }, [smsInput, smsBtn]),
-    ]),
+    h('div', { class: 'login-sms-hint', text: 'Demo 阶段免短信：图形验证码即人机验证，手机号直接登录' }),
     submitBtn,
   ]);
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     const phone = phoneInput.value.trim();
-    const code = smsInput.value.trim();
+    const cap = captchaInput.value.trim();
     if (!PHONE_RE.test(phone)) { toast('请输入正确的 11 位手机号'); return; }
-    if (!/^\d{6}$/.test(code)) { toast('请输入 6 位短信验证码'); return; }
+    if (!cap) { toast('请先输入图形验证码'); captchaInput.focus(); return; }
+    if (!captchaToken) { toast('请先加载图形验证码'); refreshCaptcha(); return; }
     const agreeEl = root.querySelector('.login-agree-input');
     if (agreeEl && !agreeEl.checked) { toast('请先勾选同意《用户协议与隐私政策》'); return; }
 
     submitBtn.disabled = true;
     submitBtn.textContent = '登录中…';
     try {
-      const r = await authApi.loginWithPhone({ phone, smsCode: code, scene: 'login', agreement: '2026-08-15' });
+      const r = await authApi.loginWithPhone({ phone, captchaToken, captchaInput: cap, scene: 'login', agreement: '2026-08-15' });
       if (!r || !r.ok) { toast(r && r.error || '登录失败'); submitBtn.disabled = false; submitBtn.textContent = '登录 / 注册'; return; }
       auth.applyRemoteSession({ id: r.user.id, nickname: r.user.nickname, phoneMasked: r.user.phoneMasked, token: r.token });
       authApi.setStoredToken(r.token);

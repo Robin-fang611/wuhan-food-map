@@ -227,3 +227,24 @@ test('W4 登出吊销：revokeToken 后旧 token 失效', async () => {
   assert.equal(rv.ok, true);
   assert.equal(auth.getUserByToken(login.token), null, '登出后 token 失效');
 });
+
+// —— 2026-08-15 决策：手机号 + 图形验证码直登（Demo 免短信）——
+test('图形码直登：手机号+图形验证码即登录（免短信）', () => {
+  const cap = auth.createCaptcha();
+  const bad = auth.loginWithCaptcha({ phone: '13800000061', captchaToken: cap.token, captchaInput: 'WRONG', agreement: '2026-08-15' });
+  assert.equal(bad.ok, false);
+  assert.ok(bad.error.includes('图形验证码'));
+  const cap2 = auth.createCaptcha();
+  const okLogin = auth.loginWithCaptcha({ phone: '13800000061', captchaToken: cap2.token, captchaInput: cap2._devText, agreement: '2026-08-15' });
+  assert.equal(okLogin.ok, true);
+  assert.ok(okLogin.token.split('.').length === 3);
+  // 协议未同意 → 拒绝
+  const cap3 = auth.createCaptcha();
+  const noAgree = auth.loginWithCaptcha({ phone: '13800000061', captchaToken: cap3.token, captchaInput: cap3._devText });
+  assert.equal(noAgree.ok, false);
+  assert.ok(noAgree.error.includes('协议'));
+  // 同号再次登录命中同一账号（幂等）
+  const cap4 = auth.createCaptcha();
+  const again = auth.loginWithCaptcha({ phone: '13800000061', captchaToken: cap4.token, captchaInput: cap4._devText, agreement: '2026-08-15' });
+  assert.equal(again.user.id, okLogin.user.id);
+});
