@@ -8,8 +8,7 @@ app = "manyouwei"
 primary_region = "fra"
 
 [build]
-  # 根目录 Dockerfile 或直接跑 node（用 fly 默认 node builder 需显式 build 命令）
-  [build.args]
+  dockerfile = "Dockerfile"
 
 [env]
   NODE_ENV = "production"

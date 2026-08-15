@@ -4,7 +4,7 @@
 import discoverFilter from './tools/filter.js';
 import discoverRank from './tools/rank.js';
 import discoverGeo from './tools/geo.js';
-import { searchMerchants } from '../../../../wuhan-food-map/h5/src/core/query.js';
+import { searchMerchants } from '../../../h5/src/core/query.js';
 import { parsePrice, ratingRank } from './runtime.js';
 import { explainRecommendation } from './explain.js';
 import { getDataSource } from './datasource/index.js';

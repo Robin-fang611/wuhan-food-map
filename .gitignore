@@ -11,3 +11,6 @@ hypha/implementation/data/
 
 # 数据备份（运行态快照，非源码）
 backups/
+
+# 本地部署工具（flyctl 等，不入库）
+.fly/

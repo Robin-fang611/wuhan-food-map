@@ -1,13 +1,13 @@
 // 适配层运行时：内存 localStorage 兜底 + 复用 h5 真实纯函数/数据。
 // 约束：纯函数、无 DOM；ui/detail.js 含 h()/DOM，这里不 import，仅抽取其 buildAmapUrl 纯函数逻辑。
-import { CAMPUS_COORDS, WUHAN_CENTER, distKm, parsePrice, filterMerchants, listCategories, ratingRank } from '../../../../wuhan-food-map/h5/src/core/query.js';
-import { rankMustEat, rankValue, rankLateNight, rankNew } from '../../../../wuhan-food-map/h5/src/core/ranking.js';
-import { allMerchants } from '../../../../wuhan-food-map/h5/src/data/all-merchants.js';
-import { LocalAuthProvider } from '../../../../wuhan-food-map/h5/src/core/auth.js';
-import { store } from '../../../../wuhan-food-map/h5/src/core/store.js';
-import { LocalAnalytics, EVENTS } from '../../../../wuhan-food-map/h5/src/core/analytics.js';
-import { checkinPlugin } from '../../../../wuhan-food-map/h5/src/plays/checkin.js';
-import { claimPlugin } from '../../../../wuhan-food-map/h5/src/plays/claim.js';
+import { CAMPUS_COORDS, WUHAN_CENTER, distKm, parsePrice, filterMerchants, listCategories, ratingRank } from '../../../h5/src/core/query.js';
+import { rankMustEat, rankValue, rankLateNight, rankNew } from '../../../h5/src/core/ranking.js';
+import { allMerchants } from '../../../h5/src/data/all-merchants.js';
+import { LocalAuthProvider } from '../../../h5/src/core/auth.js';
+import { store } from '../../../h5/src/core/store.js';
+import { LocalAnalytics, EVENTS } from '../../../h5/src/core/analytics.js';
+import { checkinPlugin } from '../../../h5/src/plays/checkin.js';
+import { claimPlugin } from '../../../h5/src/plays/claim.js';
 
 // —— localStorage 兜底（W7.2 升级：文件持久化，重启不丢券/签到；内存仅作快速缓存）——
 // 数据文件：data/runtime-store.json（gitignored，原子写 tmp+rename）；键值结构与 LocalStore 一致。

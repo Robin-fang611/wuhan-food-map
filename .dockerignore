@@ -1,0 +1,11 @@
+node_modules
+h5/node_modules
+h5/dist
+.git
+.workbuddy
+.context-store
+docs
+backups
+hypha/implementation/.agent-memory
+hypha/implementation/data
+*.log
