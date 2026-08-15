@@ -14,18 +14,38 @@
 3. 注册**免费**，**不需要信用卡**
 4. 如果页面提示选组织/套餐：选默认 **Hobby / Free** 即可（个人免费档）
 
-### 第 2 步：告诉我「Fly 已注册」
-我会在本机安装 flyctl（macOS 一条命令）并执行：
+### 第 2 步：注册完成后，在你的终端执行以下命令块（约 5 分钟）
+
 ```bash
-curl -L https://fly.io/install.sh | sh   # 安装 CLI
-flyctl auth login                          # 会弹浏览器让你授权（你在电脑上点一下允许）
-flyctl launch --no-deploy                  # 创建 app（我选区域：香港 hkg 或法兰克福 fra）
-# 设置密钥 → flyctl deploy → 健康检查
+# 1) 安装 flyctl
+curl -L https://fly.io/install.sh | sh
+
+# 2) 登录（浏览器弹出后点 Allow）
+~/.fly/bin/flyctl auth login
+
+# 3) 进项目目录并创建 app（香港区域，免备案）
+cd ~/One\ Billion/当前项目/美食地图/wuhan-food-map
+~/.fly/bin/flyctl apps create manyouwei-wuhan --region hkg
+
+# 4) 配置密钥（自动从 .env 读取，不会打印）
+~/.fly/bin/flyctl secrets set \
+  AUTH_JWT_SECRET="$(grep '^AUTH_JWT_SECRET=' .env | cut -d= -f2-)" \
+  AUTH_DATA_KEY="$(grep '^AUTH_DATA_KEY=' .env | cut -d= -f2-)" \
+  DEEPSEEK_API_KEY="$(grep '^DEEPSEEK_API_KEY=' .env | cut -d= -f2-)" \
+  AMAP_SERVER_KEY="$(grep '^AMAP_SERVER_KEY=' .env | cut -d= -f2-)" \
+  ADMIN_TOKEN="$(grep '^ADMIN_TOKEN=' .env | cut -d= -f2-)" \
+  ALLOWED_ORIGINS="https://manyouwei-wuhan.fly.dev" \
+  FRONTEND_ORIGIN="https://manyouwei-wuhan.fly.dev"
+
+# 5) 部署（Fly 远程构建 Dockerfile，本机无需 Docker）
+~/.fly/bin/flyctl deploy
+
+# 6) 健康检查
+curl -s -X POST https://manyouwei-wuhan.fly.dev/health -d '{}' -H 'content-type: application/json'
 ```
 
-> ⚠️ `flyctl auth login` 需要你在**本机浏览器**完成授权（弹窗点 Allow 即可）。
-
----
+> 如果 apps create manyouwei-wuhan 提示名字被占用，换一个（如 manyouwei-wuhan-2026），并把 ALLOWED_ORIGINS 同步改。
+> ⚠️ flyctl auth login 会弹出浏览器授权页，点 Allow 即可。
 
 ## 方案二：Render（备选）
 
