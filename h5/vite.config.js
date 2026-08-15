@@ -16,6 +16,10 @@ export default defineConfig({
   root: '.',
   envPrefix: 'VITE_',
   server: { port: 5180, host: true },
+  // 2026-08-15：生产构建 VITE_API_BASE=/api（同源反代），本地预览也需 /api 可达，
+  // 否则按 h5/.env 构建后本地点对话会 404 误报「连不上后端」。dev/preview 统一代理到 :8799，
+  // 并剥掉 /api 前缀（与 deploy/static-server.cjs 的 req.url.slice(4) 行为一致）。
+  preview: { proxy: { '/api': { target: 'http://127.0.0.1:8799', rewrite: (p) => p.replace(/^\/api/, '') } } },
   build: {
     outDir: 'dist',
     target: 'es2019',
