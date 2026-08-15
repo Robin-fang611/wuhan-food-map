@@ -2,16 +2,27 @@
 // 目标：记录每次 LLM（DeepSeek）调用的 时间/IP/场景/意图/耗时/token 用量 → data/llm-cost.log（JSONL，gitignored）。
 // 用途：上线后核对「LLM 成本护栏」是否生效、校园量级月成本估算（SPEC §9.2）。
 // 安全：不记录密钥、不记录完整意图（前 30 字）、不记录 PII。
-import { appendFileSync, mkdirSync } from 'node:fs';
+import { appendFileSync, mkdirSync, statSync, renameSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const LOG_FILE = process.env.LLM_COST_LOG || path.resolve(__dirname, '..', 'data', 'llm-cost.log');
 
+// 轮转：单文件超过 1MB 时归档为 .1（保留最近一份），防无限增长
+const ROTATE_BYTES = 1024 * 1024;
+function maybeRotate() {
+  try {
+    if (statSync(LOG_FILE).size > ROTATE_BYTES) {
+      renameSync(LOG_FILE, LOG_FILE + '.1');
+    }
+  } catch { /* 不存在/失败忽略 */ }
+}
+
 export function logLlmCall({ scene = 'agent', ip = '', intent = '', ok = false, ms = 0, usage = null } = {}) {
   try {
     mkdirSync(path.dirname(LOG_FILE), { recursive: true });
+    maybeRotate();
     const row = {
       at: new Date().toISOString(),
       scene, // 'agent' | 'upgrade'
