@@ -76,3 +76,8 @@ ok('语气前缀剥除：「帮我找一家东北饺子馆」→ keyword=东北�
 ok('结构化意图不提取 keyword（南湖附近便宜的宵夜）', parseIntent({ intent: '南湖附近便宜的宵夜' }).keyword === '');
 ok('结构化意图不提取 keyword（带朋友吃湖北菜人均不过百）', parseIntent({ intent: '带朋友吃湖北菜人均不过百' }).keyword === '');
 ok('显式传入 keyword 优先于推导', parseIntent({ intent: '随便', keyword: '老通城' }).keyword === '老通城');
+
+// —— W8.2 · 多轮指令词不当作关键词 ——
+console.log('Intent-Parser · 多轮指令词');
+ok('「换一家」不提取 keyword', parseIntent({ intent: '换一家' }).keyword === '');
+ok('「再便宜点」不提取 keyword', parseIntent({ intent: '再便宜点' }).keyword === '');

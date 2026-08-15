@@ -5,7 +5,7 @@ import { h, toast, clear } from './dom.js';
 import { store } from '../core/store.js';
 import { auth } from '../core/auth.js';
 import { buildAmapUrl } from './detail.js';
-import { buildFollowupChips, shouldShowFollowups } from './chatFollowups.js';
+import { buildFollowupChips, shouldShowFollowups, parseFollowup } from './chatFollowups.js';
 import { REVEAL_STAGES, buildRevealSteps } from './revealSteps.js';
 import {
   discover as agentDiscover, agentChat,
@@ -350,6 +350,13 @@ export function ReasoningPage(ctx) {
     const output = data.output || { merchants: [], summary: {} };
     const trace = data.trace || null;
     const s = output.summary || {};
+    // W8.2：回读后端解析参数，维护会话约束（多轮「再便宜点/换个附近」的基础）
+    const tp = trace && trace.params;
+    if (tp && typeof tp === 'object') {
+      for (const k of ['zone', 'mealTime', 'category', 'maxPrice', 'sort', 'board']) {
+        if (tp[k] !== undefined && tp[k] !== null) session[k] = tp[k];
+      }
+    }
     revealTrace(trace); // 渐进点亮推演骨架（确定性/LLM 统一呈现，无来源标签）
     const params = trace && trace.memoryUsed;
 
@@ -492,9 +499,23 @@ export function ReasoningPage(ctx) {
           }
         }
       } else {
-        data = await agentDiscover({ intent: text });
+        // W8.2：多轮指令词 → 会话操作；已展示列表作为 exclude 回传（「换一家」真正排除）
+        const cmd = parseFollowup(text);
+        if (cmd === 'cheaper') {
+          const base = typeof session.maxPrice === 'number' ? session.maxPrice : 60;
+          session.maxPrice = Math.max(10, Math.floor((base * 0.7) / 10) * 10); // 下调 30%，取整到 10
+        } else if (cmd === 'nearby') {
+          session.zone = session.zone === '财大南湖周边' ? '武汉全城' : '财大南湖周边';
+        }
+        const exclude = [...seenIds];
+        if (resetSeen) seenIds = [];
+        const hasParams = Object.values(session).some((v) => v !== null && v !== undefined && v !== '' && !(Array.isArray(v) && !v.length));
+        const payload = { intent: text };
+        if (hasParams || exclude.length) {
+          payload.params = { ...session, ...(exclude.length ? { exclude } : {}) };
+        }
+        data = await agentDiscover(payload);
       }
-      if (resetSeen) seenIds = [];
       if (data && data.success) {
         addAgentReply(data);
         input.placeholder = '还想怎么调？';

@@ -239,7 +239,9 @@ export function parseIntent(input = {}) {
   // 「热干面」时仍应同时按店名关键词检索，店名匹配优先于分类筛选）。
   const hasSignal = mealTime.size > 0 || maxPrice != null || sort != null || board != null
     || t.includes('南湖') || t.includes('财大') || t.includes('首义') || t.includes('附近') || t.includes('周边');
-  if (!keyword && !hasSignal && intent.trim()) {
+  // 多轮指令词（换一家/再便宜点/换个附近）：由前端会话状态承接，不当作关键词检索
+  const TURN_CMDS = ['换一家', '换家', '再便宜点', '便宜点', '换个附近', '换附近', '再来一家'];
+  if (!keyword && !hasSignal && intent.trim() && !TURN_CMDS.some((c) => intent.includes(c))) {
     let raw = intent.trim();
     let changed = true;
     while (changed) {

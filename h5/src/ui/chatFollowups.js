@@ -19,3 +19,16 @@ export function shouldShowFollowups({ needsClarification = false, merchantCount 
   if (needsClarification) return false; // Agent 在反问，先答它，不急着追问
   return merchantCount > 0;
 }
+
+// 多轮指令解析（W8.2 · 2026-08-15）：追问快捷词 → 会话操作。
+//  - 'change'：换一家（排除已展示，由前端传 exclude 给后端）
+//  - 'cheaper'：再便宜点（前端下调 maxPrice 后随 params 回传）
+//  - 'nearby'：换个附近（前端切换 zone 后随 params 回传）
+//  - null：普通意图（走正常解析）
+export function parseFollowup(text) {
+  const t = String(text || '');
+  if (/换一家|换家|再来一家|换别的/.test(t)) return 'change';
+  if (/再便宜|便宜点|更便宜|降点价/.test(t)) return 'cheaper';
+  if (/换个附近|换附近|换个地方|附近换|换片区/.test(t)) return 'nearby';
+  return null;
+}
