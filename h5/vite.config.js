@@ -16,5 +16,22 @@ export default defineConfig({
   root: '.',
   envPrefix: 'VITE_',
   server: { port: 5180, host: true },
-  build: { outDir: 'dist', target: 'es2019' }
+  build: {
+    outDir: 'dist',
+    target: 'es2019',
+    // W8 code-split：把大块数据与重型视图拆包，首屏只加载核心壳
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes('data/merchants') || id.includes('data/all-merchants')
+            || id.includes('data/robin-99') || id.includes('data/web-stalls')
+            || id.includes('data/extras-coords')) return 'data';
+          if (id.includes('ui/map')) return 'map';
+          if (id.includes('ui/reasoning') || id.includes('ui/revealSteps') || id.includes('ui/chatFollowups')) return 'agent';
+          if (id.includes('ui/login') || id.includes('core/auth') || id.includes('api/auth-client')) return 'account';
+          return undefined;
+        },
+      },
+    },
+  }
 });

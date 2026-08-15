@@ -36,9 +36,23 @@ function nearbyPreview() {
     .slice(0, 3);
 }
 
+// W8 新用户引导：首次访问展示 3 步说明（选口味 → 问一次 → 收藏一家）
+function onboardBanner() {
+  try {
+    if (localStorage.getItem('myw:onboarded')) return null;
+    localStorage.setItem('myw:onboarded', '1');
+  } catch { return null; }
+  return h('div', { class: 'onboard-banner' }, [
+    h('div', { class: 'onboard-title', text: '3 步找到今天吃啥' }),
+    h('div', { class: 'onboard-steps', text: '① 点个心情或说一句话 → ② 看 Agent 推演与推荐 → ③ 收藏喜欢的店' }),
+  ]);
+}
+
 export async function Home(ctx) {
   const { goMap, goAccount, goWelfare, goDetail, goReasoning } = ctx;
   const root = h('div', { class: 'home-landing' });
+  const onboard = onboardBanner();
+  if (onboard) root.appendChild(onboard);
 
   // —— 顶部品牌条（极简：品牌 + 我的）——
   root.appendChild(h('div', { class: 'topbar' }, [

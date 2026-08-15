@@ -7,6 +7,7 @@ import { analytics, EVENTS } from './core/analytics.js';
 import { initTongji, trackPage } from './core/tongji.js';
 import { Home } from './ui/home.js';
 import { WelfareView } from './ui/welfare.js';
+import { PrivacyPage } from './ui/privacy.js';
 import { MerchantDetail } from './ui/detail.js';
 import { MapView } from './ui/map.js';
 import { AccountView } from './ui/account.js';
@@ -58,6 +59,7 @@ function renderTabbar() {
 function goDetail(id) { detailId = id; view = 'detail'; render(); }
 function goMap() { view = 'map'; render(); }
 function goWelfare() { view = 'welfare'; render(); }
+function goPrivacy() { view = 'privacy'; render(); }
 function goAccount() { view = 'account'; render(); }
 function goRedeem() { view = 'redeem'; render(); }
 function goGrowth() { view = 'growth'; render(); }
@@ -104,6 +106,8 @@ async function render() {
       goGrowth: () => { view = 'growth'; render(); },
       onChanged: () => render()
     }));
+  } else if (view === 'privacy') {
+    root.appendChild(await PrivacyPage({ onBack: () => { view = 'home'; render(); } }));
   } else if (view === 'redeem') {
     root.appendChild(await RedeemConsole({ onBack: () => { view = 'welfare'; render(); } }));
   } else if (view === 'growth') {
@@ -163,5 +167,11 @@ function consumeWechatCallback() {
   }).catch(() => toast('微信登录失败'));
 }
 
+// W8：#privacy 直达隐私页（登录页协议链接）
+function consumeHashRoute() {
+  if (location.hash === '#privacy') { view = 'privacy'; render(); }
+}
+window.addEventListener('hashchange', consumeHashRoute);
 consumeWechatCallback();
+consumeHashRoute();
 render();
