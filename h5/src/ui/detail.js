@@ -5,6 +5,7 @@
 
 import { h, toast } from './dom.js';
 import { confidenceInfo } from './confidence.js';
+import { explorePanel } from './explorePanel.js';
 import { allMerchants as merchants } from '../data/all-merchants.js';
 import { parsePrice, distKm, CAMPUS_COORDS, WUHAN_CENTER } from '../core/query.js';
 import { auth } from '../core/auth.js';
@@ -163,6 +164,11 @@ export async function MerchantDetail({ id, userId, onBack }) {
       ? h('div', { class: 'detail-confidence-hint', text: '资料待探店核验，欢迎反馈纠错' })
       : null
   ]));
+
+  // 2026-08-15 用户探店众包：estimated/partial 店可提交探店记录（补全数据）
+  if (ci.pending) {
+    info.appendChild(explorePanel({ merchant: m }));
+  }
 
   root.appendChild(info);
 

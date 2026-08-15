@@ -32,12 +32,20 @@ function loadWindowVar(file, varName) {
 }
 
 // 读取真实研究覆盖（enrichment.json，id 键）；缺失则返回空对象，派生逻辑兜底。
+// 2026-08-15：合并「用户探店众包」审核通过数据（enrichment-explore.json，id 键，normalize 时生效）。
 function loadEnrichment() {
+  let base = {};
   try {
-    return JSON.parse(readFileSync(resolve(root, 'assets/foodmap-data/enrichment.json'), 'utf8'));
-  } catch {
-    return {};
-  }
+    base = JSON.parse(readFileSync(resolve(root, 'assets/foodmap-data/enrichment.json'), 'utf8'));
+  } catch { base = {}; }
+  try {
+    const explore = JSON.parse(readFileSync(resolve(root, 'assets/foodmap-data/enrichment-explore.json'), 'utf8'));
+    for (const [id, v] of Object.entries(explore)) {
+      if (!base[id]) base[id] = {};
+      Object.assign(base[id], v);
+    }
+  } catch { /* 无众包数据时忽略 */ }
+  return base;
 }
 
 const WUHAN = loadWindowVar(asset('wuhan.js'), '__WUHAN_DATA__');

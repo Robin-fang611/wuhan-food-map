@@ -25,6 +25,7 @@ import rewardWallet from './tools/wallet.js';
 import rewardClaim from './tools/claim.js';
 import analyticsTrack from './tools/track.js';
 import { handleUpload, listPendingUploads, governUpload } from './upload.js';
+import { submitExplore, listPendingExplores, governExplore } from './explores.js';
 import {
   createCaptcha, sendSms, loginWithPhone, loginWithCaptcha, getUserByToken, wechatAuthorizeUrl, wechatCallback,
   revokeToken, updateProfile, deleteAccount,
@@ -126,7 +127,8 @@ const server = createServer(async (req, res) => {
   // W5.2 全局限流（敏感接口更严：auth/upload/agent/run）
   const url0 = new URL(req.url, `http://localhost:${PORT}`);
   const sensitive = url0.pathname.startsWith('/auth') || url0.pathname.startsWith('/upload')
-    || url0.pathname === '/agent' || url0.pathname === '/run' || url0.pathname === '/log/error';
+    || url0.pathname === '/agent' || url0.pathname === '/run' || url0.pathname === '/log/error'
+    || url0.pathname === '/explore';
   if (!rateLimit(clientIp(req), 60000, sensitive ? 30 : 120)) {
     return send(res, 429, { success: false, error: '请求过于频繁，请稍后再试' });
   }
@@ -225,6 +227,44 @@ const server = createServer(async (req, res) => {
       return send(res, 200, out);
     } catch (err) {
       return send(res, 400, { success: false, error: 'upload 失败', detail: errDetail(err) });
+    }
+  }
+
+  // POST /explore —— 用户探店众包提交（JWT + attest + 限频；2026-08-15）
+  if (req.method === 'POST' && url.pathname === '/explore') {
+    const input = await readBody(req);
+    if (!input || typeof input !== 'object') return send(res, 400, { success: false, error: '请求体非 JSON' });
+    try {
+      const authz = req.headers['authorization'] || '';
+      const token = authz.startsWith('Bearer ') ? authz.slice(7).trim() : (input.token || '');
+      const out = await submitExplore({ ...input, token });
+      return send(res, out.success ? 200 : (out.code === 'UNAUTHORIZED' ? 401 : 400), out);
+    } catch (err) {
+      return send(res, 400, { success: false, error: 'explore 失败', detail: errDetail(err) });
+    }
+  }
+
+  // GET /explore/pending —— 探店记录待审列表（需 ADMIN_TOKEN）
+  if (req.method === 'GET' && url.pathname === '/explore/pending') {
+    if (!adminOk(req)) return send(res, 401, { success: false, error: '未授权（治理接口需管理员令牌）' });
+    try {
+      const out = await listPendingExplores();
+      return send(res, 200, out);
+    } catch (err) {
+      return send(res, 400, { success: false, error: 'pending 列表失败', detail: errDetail(err) });
+    }
+  }
+
+  // POST /explore/govern —— 探店记录审核：promote（合并升级数据）/ reject（驳回）（需 ADMIN_TOKEN）
+  if (req.method === 'POST' && url.pathname === '/explore/govern') {
+    if (!adminOk(req)) return send(res, 401, { success: false, error: '未授权（治理接口需管理员令牌）' });
+    const input = await readBody(req);
+    if (!input || typeof input !== 'object') return send(res, 400, { success: false, error: '请求体非 JSON' });
+    try {
+      const out = await governExplore(input);
+      return send(res, out.ok ? 200 : 404, out);
+    } catch (err) {
+      return send(res, 400, { success: false, error: 'govern 失败', detail: errDetail(err) });
     }
   }
 
