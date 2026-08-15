@@ -30,10 +30,10 @@ function record(name, ok, detail, opts = {}) {
   console.log(`${tag} ${name}${detail ? ' — ' + detail : ''}`);
 }
 
-function httpReq(method, host, port, path, body, timeout = 5000) {
+function httpReq(method, host, port, path, body, timeout = 5000, extraHeaders = {}) {
   return new Promise((resolve) => {
     const data = body ? JSON.stringify(body) : null;
-    const headers = data ? { 'content-type': 'application/json', 'content-length': Buffer.byteLength(data) } : {};
+    const headers = { ...extraHeaders, ...(data ? { 'content-type': 'application/json', 'content-length': Buffer.byteLength(data) } : {}) };
     const req = http.request({ method, host, port, path, headers, timeout }, (res) => {
       let s = '';
       res.on('data', (d) => (s += d));
@@ -116,6 +116,14 @@ async function main() {
     } catch { agentDetail = 'agent 响应非 JSON'; }
   } else { agentDetail = `http ${ag.status} ${ag.error || ''}`; }
   record('/agent LLM 路径产出合法决策契约（含降级）', agentOk, agentDetail);
+
+  // 2e. W5 安全回归：治理接口鉴权 + CORS 白名单 + 写工具 JWT（部署后自动检查）
+  const govNoAuth = await httpReq('GET', '127.0.0.1', 8799, '/upload/pending');
+  record('治理接口无令牌 → 401（W5）', govNoAuth.status === 401, govNoAuth.status === 401 ? 'pending 需 ADMIN_TOKEN' : `status=${govNoAuth.status}`);
+  const badOrigin = await httpReq('POST', '127.0.0.1', 8799, '/health', {}, 5000, { Origin: 'https://evil.example.com' });
+  record('非白名单 Origin → 403（W5）', badOrigin.status === 403, badOrigin.status === 403 ? 'CORS 白名单生效' : `status=${badOrigin.status}`);
+  const writeNoAuth = await httpReq('POST', '127.0.0.1', 8799, '/tools/reward.checkin', {});
+  record('写工具无 JWT → 拒绝（W5）', writeNoAuth.status === 200 && JSON.parse(writeNoAuth.body || '{}').code === 'UNAUTHORIZED', 'checkin 需登录凭证');
 
   // 3. 前端预览(:5180)
   const p8 = await httpReq('GET', '127.0.0.1', 5180, '/');
