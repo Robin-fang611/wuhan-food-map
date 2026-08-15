@@ -175,4 +175,27 @@ function consumeHashRoute() {
 window.addEventListener('hashchange', consumeHashRoute);
 consumeWechatCallback();
 consumeHashRoute();
+initErrorReporting();
 render();
+
+// W7 监控：全局错误/未处理 Promise 拒绝 → 上报后端 /log/error（脱敏，静默失败不影响体验）
+function initErrorReporting() {
+  const apiBase = (globalThis.__MANYOUWEI_CONFIG__ && globalThis.__MANYOUWEI_CONFIG__.apiBase) || 'http://127.0.0.1:8799';
+  const report = (payload) => {
+    try {
+      fetch(apiBase + '/log/error', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      }).catch(() => {});
+    } catch { /* ignore */ }
+  };
+  window.addEventListener('error', (e) => {
+    report({ message: String(e.message || '').slice(0, 300), source: e.filename || '', lineno: e.lineno || 0 });
+  });
+  window.addEventListener('unhandledrejection', (e) => {
+    const r = e && e.reason;
+    const msg = r && r.message ? r.message : String(r || '');
+    report({ message: ('unhandledrejection: ' + msg).slice(0, 300), source: '', lineno: 0 });
+  });
+}

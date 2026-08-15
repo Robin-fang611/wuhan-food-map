@@ -131,7 +131,16 @@ async function main() {
 
   // 4. 6 套单测
   console.log('');
-  const suites = ['test/datasource.test.mjs', 'test/intent-parser.test.mjs', 'test/orchestrator.test.mjs', 'test/engage.test.mjs', 'test/prompts.test.mjs', 'test/agent-loop.test.mjs'];
+  // W8.4：部署门禁覆盖扩充——关键安全/注册/双轨/数据治理测试全部纳入
+  const suites = [
+    'test/datasource.test.mjs', 'test/intent-parser.test.mjs', 'test/orchestrator.test.mjs',
+    'test/engage.test.mjs', 'test/prompts.test.mjs', 'test/agent-loop.test.mjs',
+    'test/auth.test.mjs',          // W4 注册/注销/吊销/加密
+    'test/upload.test.mjs',        // S5 上传治理
+    'test/upgrade.test.mjs',       // W1 双轨升级判定
+    'test/discovery-keyword.test.mjs', // W1 关键词/健身餐实事求是
+    'test/reason.test.mjs',        // V2 可解释
+  ];
   for (const f of suites) {
     const ok = await runSuite(f);
     record(`单测回归 ${f.split('/').pop()}`, ok, ok ? '全绿' : '失败（见上方输出）');

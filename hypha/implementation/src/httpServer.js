@@ -12,7 +12,7 @@ import { runFoodDiscovery } from './orchestrator.js';
 import { agentChat, AgentFallbackError } from './agent-loop.js';
 import { shouldUpgrade, buildUpgradeResult } from './upgrade.js';
 import { parseIntent } from './intent-parser.js';
-import { logLlmCall, errDetail } from './llm-cost-log.js';
+import { logLlmCall, logClientError, errDetail } from './llm-cost-log.js';
 import { getProfile, upsertProfile, clearProfile } from './memory-store.js';
 import discoverFilter from './tools/filter.js';
 import discoverRank from './tools/rank.js';
@@ -126,7 +126,7 @@ const server = createServer(async (req, res) => {
   // W5.2 全局限流（敏感接口更严：auth/upload/agent/run）
   const url0 = new URL(req.url, `http://localhost:${PORT}`);
   const sensitive = url0.pathname.startsWith('/auth') || url0.pathname.startsWith('/upload')
-    || url0.pathname === '/agent' || url0.pathname === '/run';
+    || url0.pathname === '/agent' || url0.pathname === '/run' || url0.pathname === '/log/error';
   if (!rateLimit(clientIp(req), 60000, sensitive ? 30 : 120)) {
     return send(res, 429, { success: false, error: '请求过于频繁，请稍后再试' });
   }
@@ -301,6 +301,14 @@ const server = createServer(async (req, res) => {
     const token = authz.startsWith('Bearer ') ? authz.slice(7) : '';
     const u = getUserByToken(token);
     return send(res, u ? 200 : 401, u ? { ok: true, user: u } : { ok: false, error: '未登录或登录已过期' });
+  }
+
+  // POST /log/error —— 前端错误上报（W7 监控；脱敏：消息/来源/行号，无 PII；限流）
+  if (req.method === 'POST' && url.pathname === '/log/error') {
+    const input = await readBody(req);
+    if (!input || typeof input !== 'object') return send(res, 400, { success: false, error: '请求体非 JSON' });
+    logClientError({ ip: clientIp(req), message: input.message, source: input.source, lineno: input.lineno });
+    return send(res, 200, { ok: true });
   }
 
   // POST /auth/logout —— 登出（吊销当前 JWT，W4 会话管理）

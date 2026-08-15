@@ -41,3 +41,20 @@ export function errDetail(err) {
   if (process.env.NODE_ENV === 'production') return '内部错误';
   return String(err && err.message || err);
 }
+
+// 前端错误上报（W7 监控）：脱敏后写 data/error.log（JSONL，gitignored）
+const ERR_FILE = process.env.ERROR_LOG || path.resolve(__dirname, '..', 'data', 'error.log');
+export function logClientError({ ip = '', message = '', source = '', lineno = 0 } = {}) {
+  try {
+    mkdirSync(path.dirname(ERR_FILE), { recursive: true });
+    maybeRotateFile(ERR_FILE);
+    const row = { at: new Date().toISOString(), ip, msg: String(message).slice(0, 300), src: String(source).slice(0, 120), line: lineno };
+    appendFileSync(ERR_FILE, JSON.stringify(row) + '\n', 'utf8');
+  } catch { /* ignore */ }
+}
+// 通用轮转（供错误日志复用）
+function maybeRotateFile(file) {
+  try {
+    if (statSync(file).size > ROTATE_BYTES) renameSync(file, file + '.1');
+  } catch { /* ignore */ }
+}
