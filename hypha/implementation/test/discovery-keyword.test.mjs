@@ -38,4 +38,13 @@ const r4 = await runFoodDiscovery({ intent: '南湖附近便宜的宵夜' });
 ok('结构化意图 → 命中财大南湖周边', r4.success && r4.output.summary.ranked_by === 'price');
 ok('结构化意图 → 无关键词降级说明', !(r4.output.summary.degradation || []).some((d) => d.includes('关键词')));
 
+// 5) Q1 实事求是核心行为：健身餐 → 口味约束筛选 + 诚实标注（SPEC §15 Q1 回归锁）
+const r5 = await runFoodDiscovery({ intent: '清淡的健身餐' });
+ok('健身餐 → ranked_by=taste（口味约束筛选生效）', r5.success && r5.output.summary.ranked_by === 'taste');
+ok('健身餐 → 每家 tasteTags/文案含「清淡」（不给糊汤粉/包子硬凑）', (r5.output.merchants || []).every((m) =>
+  (Array.isArray(m.tasteTags) && m.tasteTags.some((x) => String(x).includes('清淡')))
+  || String(m.taste || '').includes('清淡')));
+ok('健身餐 → degradation 诚实标注「非专门店」', (r5.output.summary.degradation || []).some((d) => d.includes('非专门店')));
+ok('健身餐 → degradation 提及口味约束「清淡」', (r5.output.summary.degradation || []).some((d) => d.includes('清淡')));
+
 console.log(`\ndiscovery-keyword.test.mjs 全部通过（${passed} 项）`);
