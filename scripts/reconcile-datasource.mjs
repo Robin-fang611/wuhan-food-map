@@ -63,10 +63,13 @@ export function reconcile(frontend, backend, rawBackend = []) {
     confidenceBackend[c] = (confidenceBackend[c] || 0) + 1;
   }
 
-  // 坐标完整性：双端差异项必须坐标为 null（绝不伪造）；统计有无违规
-  const extrasWithFakeCoords = frontendExtras.filter(
-    (m) => m.lng != null || m.lat != null
+  // 坐标完整性（全量口径，S2 统一后双端同源）：外源商户（robin-99/web-stalls，source 非编辑/地推/web-verified）
+  // 必须坐标为 null 或带 geocode 审计标记，否则视为伪造坐标；geocodeCoords = 真实补全数。
+  const EXTERNAL_SOURCES = (s) => s && !['编辑', '地推', 'web-verified'].includes(s);
+  const extrasWithFakeCoords = frontend.filter(
+    (m) => (m.lng != null || m.lat != null) && !m.coordsSource && EXTERNAL_SOURCES(m.source)
   ).length;
+  const geocodeCoords = frontend.filter((m) => m.coordsSource === 'geocode').length;
 
   return {
     frontendCount: frontend.length,
@@ -83,6 +86,7 @@ export function reconcile(frontend, backend, rawBackend = []) {
     confidenceFrontend,
     confidenceBackend,
     extrasWithFakeCoords,
+    geocodeCoords,
     staleDocClaim: 'V4.4 S2（2026-08-15）已统一：双端 860；merchants.js 重名 0（58 组合并 + 3 组分店改名保留）',
   };
 }

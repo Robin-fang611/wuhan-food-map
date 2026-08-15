@@ -9,10 +9,15 @@
 import { merchants } from './merchants.js';
 import { robin99, toMerchantObjects as robinObjs } from './robin-99.mjs';
 import { webStalls, toMerchantObjects as webObjs } from './web-stalls.mjs';
+import { extrasCoords } from './extras-coords.js'; // W3.1 geocode 坐标补全（如不存在请先跑 scripts/geocode-extras.mjs）
 
 function normName(n) {
   return (n || '').toString().replace(/\s+/g, '').toLowerCase();
 }
+
+// W3.1 坐标补全（真实 geocode，非伪造）：robin-99/web-stalls 缺坐标店按店名应用高德解析坐标，
+// 带 coordsSource:'geocode' 审计标记；无标记的外源坐标仍视为违规（见 reconcile）。
+const GEO = (extrasCoords && extrasCoords.nanhu) || {};
 
 const seen = new Set();
 const merged = [];
@@ -20,7 +25,12 @@ for (const m of [...merchants, ...robinObjs(robin99), ...webObjs(webStalls)]) {
   const key = normName(m.name);
   if (!key || seen.has(key)) continue;
   seen.add(key);
-  merged.push(m);
+  const geo = GEO[m.name];
+  if (geo && typeof m.lng !== 'number') {
+    merged.push({ ...m, lng: geo.lng, lat: geo.lat, coordsSource: 'geocode' });
+  } else {
+    merged.push(m);
+  }
 }
 
 export const allMerchants = merged;
