@@ -5,7 +5,8 @@ import { store, DEMO_USER } from './core/store.js';
 import { auth, activeUserId } from './core/auth.js';
 import { analytics, EVENTS } from './core/analytics.js';
 import { initTongji, trackPage } from './core/tongji.js';
-import { Home, Wallet } from './ui/home.js';
+import { Home } from './ui/home.js';
+import { WelfareView } from './ui/welfare.js';
 import { MerchantDetail } from './ui/detail.js';
 import { MapView } from './ui/map.js';
 import { AccountView } from './ui/account.js';
@@ -26,8 +27,37 @@ const cfg = globalThis.__MANYOUWEI_CONFIG__ || {};
 if (cfg.tongjiId) initTongji(cfg.tongjiId);
 analytics.track(EVENTS.APP_OPEN); // 本地 dau() + APP_OPEN 事件；与百度 UV 互补
 
+// —— W2 底部 Tab 框架：今天吃啥 / 附近 / 我的 / 福利 ——
+const TABBAR = [
+  { key: 'home', label: '今天吃啥', icon: '🍜' },
+  { key: 'map', label: '附近', icon: '🗺' },
+  { key: 'account', label: '我的', icon: '🧾' },
+  { key: 'welfare', label: '福利', icon: '🎁' },
+];
+function tabKeyFor(viewName) {
+  if (viewName === 'wallet' || viewName === 'redeem' || viewName === 'growth') return 'welfare';
+  if (viewName === 'upload') return 'map';
+  return viewName;
+}
+function renderTabbar() {
+  const bar = h('nav', { class: 'app-tabbar' }, TABBAR.map((t) => {
+    const active = tabKeyFor(view) === t.key;
+    return h('button', {
+      class: 'app-tab' + (active ? ' is-active' : ''),
+      type: 'button',
+      'aria-label': t.label,
+      onclick: () => { view = t.key; render(); },
+    }, [
+      h('span', { class: 'app-tab-icon', text: t.icon }),
+      h('span', { class: 'app-tab-label', text: t.label }),
+    ]);
+  }));
+  return bar;
+}
+
 function goDetail(id) { detailId = id; view = 'detail'; render(); }
 function goMap() { view = 'map'; render(); }
+function goWelfare() { view = 'welfare'; render(); }
 function goAccount() { view = 'account'; render(); }
 function goRedeem() { view = 'redeem'; render(); }
 function goGrowth() { view = 'growth'; render(); }
@@ -41,33 +71,45 @@ async function render() {
   firstRender = false;
   clear(app);
   const userId = activeUserId(); // 登录后用真实用户 id，未登录回退 DEMO_USER
+  const immersive = view === 'reasoning' || view === 'detail'; // 沉浸式全屏视图不显示底部 Tab
+  const root = h('div', { class: 'view-root' });
+  app.appendChild(root);
   if (view === 'wallet') {
-    app.appendChild(await Wallet({ userId, onBack: () => { view = 'home'; render(); } }));
+    root.appendChild(await Wallet({ userId, onBack: () => { view = 'welfare'; render(); } }));
   } else if (view === 'detail') {
-    app.appendChild(await MerchantDetail({
+    root.appendChild(await MerchantDetail({
       id: detailId,
       userId,
       onBack: () => { view = 'home'; render(); }
     }));
   } else if (view === 'map') {
-    app.appendChild(await MapView({
+    root.appendChild(await MapView({
       goDetail,
       onBack: () => { view = 'home'; render(); },
       goUpload: () => goUpload()
     }));
   } else if (view === 'account') {
-    app.appendChild(await AccountView({
+    root.appendChild(await AccountView({
       onBack: () => { view = 'home'; render(); },
       goDetail,
       goRedeem,
-      goGrowth
+      goGrowth,
+      goWelfare: () => { view = 'welfare'; render(); }
+    }));
+  } else if (view === 'welfare') {
+    root.appendChild(await WelfareView({
+      userId,
+      goWallet: () => { view = 'wallet'; render(); },
+      goRedeem: () => { view = 'redeem'; render(); },
+      goGrowth: () => { view = 'growth'; render(); },
+      onChanged: () => render()
     }));
   } else if (view === 'redeem') {
-    app.appendChild(await RedeemConsole({ onBack: () => { view = 'home'; render(); } }));
+    root.appendChild(await RedeemConsole({ onBack: () => { view = 'welfare'; render(); } }));
   } else if (view === 'growth') {
-    app.appendChild(await GrowthDashboard({ onBack: () => { view = 'home'; render(); } }));
+    root.appendChild(await GrowthDashboard({ onBack: () => { view = 'welfare'; render(); } }));
   } else if (view === 'reasoning') {
-    app.appendChild(await ReasoningPage({
+    root.appendChild(await ReasoningPage({
       userId,
       onBack: () => { view = 'home'; render(); },
       goDetail,
@@ -77,18 +119,19 @@ async function render() {
       initialText: reasoningInitial,
     }));
   } else if (view === 'upload') {
-    app.appendChild(await UploadShop({
+    root.appendChild(await UploadShop({
       userId,
-      goBack: () => { view = 'home'; render(); },
+      goBack: () => { view = 'map'; render(); },
       goHome: () => { view = 'home'; render(); },
       goUpload: () => goUpload(),
     }));
   } else {
-    app.appendChild(await Home({
+    root.appendChild(await Home({
       userId,
-      goWallet: () => { view = 'wallet'; render(); },
+      goWallet: () => { view = 'welfare'; render(); },
       goMap,
       goAccount,
+      goWelfare: () => { view = 'welfare'; render(); },
       goDetail,
       goRedeem: () => { view = 'redeem'; render(); },
       goReasoning,
@@ -96,6 +139,7 @@ async function render() {
       refresh: render
     }));
   }
+  if (!immersive) app.appendChild(renderTabbar());
 }
 
 // 微信回跳落地：/auth/wechat/callback 302 到 ?cb=wechat&token=&state= 时，校验 state 后把 token 写入本地会话。

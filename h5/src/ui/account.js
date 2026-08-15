@@ -5,7 +5,7 @@
 import { h, clear, toast } from './dom.js';
 import { auth, maskContact } from '../core/auth.js';
 import { allMerchants as merchants } from '../data/all-merchants.js';
-import { Wallet } from './home.js';
+import { Wallet } from './wallet.js';
 import { LoginView } from './login.js';
 import * as authApi from '../api/auth-client.js';
 import { analytics, EVENTS } from '../core/analytics.js';

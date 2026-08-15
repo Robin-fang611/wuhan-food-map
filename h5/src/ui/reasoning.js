@@ -404,6 +404,15 @@ export function ReasoningPage(ctx) {
       convo.appendChild(followWrap);
     }
 
+    // W2：记录上次推荐（首页「继续上次」回访抓手；含主推名与原始问句）
+    const recPrimaryId = (decision && decision.primaryId) || (merchants.length ? merchants[0].id : null);
+    if (recPrimaryId && merchants.length) {
+      try {
+        const rec = merchants.find((m) => m.id === recPrimaryId) || merchants[0];
+        localStorage.setItem('myw:lastRec', JSON.stringify({ name: rec.name, ts: Date.now(), intent: text }));
+      } catch { /* ignore */ }
+    }
+
     scrollToBottom();
   }
 
