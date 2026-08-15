@@ -164,7 +164,7 @@ export function ReasoningPage(ctx) {
       if (p && p.zone) vals.push(p.zone);
       if (p && Array.isArray(p.mealTime) && p.mealTime.length) vals.push(...p.mealTime);
       addNoteBubble(vals.length ? `你常去：${vals.join(' / ')}` : '还没有常去记录，多聊几次我就记住了~');
-    }).catch(() => addNoteBubble('口味档案在后端：:8799 未连接，连上后我就能记住你常去哪。'));
+    }).catch(() => addNoteBubble('口味档案暂时没连上，稍后再试试~'));
   }
   function showFavorites() {
     Promise.resolve(store.getFavorites ? store.getFavorites(userId) : [])
@@ -204,7 +204,7 @@ export function ReasoningPage(ctx) {
       },
     }));
     const empty = !profile || Object.values(profile).every((x) => x == null || x === '' || (Array.isArray(x) && !x.length));
-    if (empty) tastePanelRoot.appendChild(h('div', { class: 'taste-empty', text: '后端未连接或暂无记录；连上 :8799 后多聊几次我就越懂你。' }));
+    if (empty) tastePanelRoot.appendChild(h('div', { class: 'taste-empty', text: '暂无口味记录；多聊几次我就越懂你。' }));
   }
 
   // —— 解析 chips ——
@@ -531,7 +531,7 @@ export function ReasoningPage(ctx) {
     } catch (e) {
       convo.appendChild(h('div', { class: 'agent-error' }, [
         h('div', { class: 'agent-error-title', text: '暂时连不上 Agent 后端' }),
-        h('div', { class: 'agent-error-hint', text: '如果你刚启动后端，请等 2 秒后重试；或运行：MYWO_PORT=8799 DEEPSEEK_API_KEY=... node src/httpServer.js' }),
+        h('div', { class: 'agent-error-hint', text: '服务开小差了，请稍后重试；若一直不行，刷新页面再来~' }),
       ]));
       scrollToBottom();
     }

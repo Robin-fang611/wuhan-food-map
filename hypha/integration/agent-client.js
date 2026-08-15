@@ -2,15 +2,29 @@
 // 供前端以 h() 安全渲染。
 //
 // 后端切换（无缝）：
-//  - 'local'（默认规则大脑）：指向本机后端（:8799）/run，跑确定性 FSM（无需 LLM）。
-//  - 'server'（LLM 大脑，Phase 5 目标）：同样指向 :8799，但走 /agent —— 由后端 Agent Loop
+//  - 'local'（默认规则大脑）：指向后端 /run，跑确定性 FSM（无需 LLM）。
+//  - 'server'（LLM 大脑，Phase 5 目标）：走 /agent —— 由后端 Agent Loop
 //    调 DeepSeek tool_calling 驱动 10 工具。后端在 LLM 不可用时自动降级 /run（前端无感）。
+// 基址（LOCAL_AGENT / SERVER_AGENT）：浏览器取 __MANYOUWEI_CONFIG__.apiBase
+// （本地开发 = http://127.0.0.1:8799；生产构建 = '/api' 同源反代，见 deploy/static-server.cjs），
+// Node 环境兜底 http://127.0.0.1:8799。
 //
 // 该模块纯 fetch，无 DOM、无 innerHTML，可在浏览器与 Node 同构运行。
-// 安全红线：前端永不持有 DeepSeek Key、永不直连模型 API——所有 LLM 调用都在 :8799 后端中转。
+// 安全红线：前端永不持有 DeepSeek Key、永不直连模型 API——所有 LLM 调用都在后端中转。
 
-const LOCAL_AGENT = 'http://127.0.0.1:8799';
-const SERVER_AGENT = 'http://127.0.0.1:8799';
+// 基址解析（2026-08-15 修复线上「连不上 Agent 后端」）：
+//   - 浏览器：读 h5/src/config.js 注入的 __MANYOUWEI_CONFIG__.apiBase（生产构建 = '/api'，
+//     经 deploy/static-server.cjs 同源反代到 :8799，无 CORS、无「连到用户自己电脑」问题）；
+//   - Node（测试/CLI）/ 本地未配置：兜底本机 8799 直连。
+function resolveAgentBase() {
+  try {
+    const cfg = globalThis.__MANYOUWEI_CONFIG__;
+    if (cfg && typeof cfg.apiBase === 'string' && cfg.apiBase) return cfg.apiBase;
+  } catch { /* ignore */ }
+  return 'http://127.0.0.1:8799';
+}
+const LOCAL_AGENT = resolveAgentBase();
+const SERVER_AGENT = resolveAgentBase();
 // 默认 'local'（2026-08-15 Robin 拍板：方案 B——确定性脚本模拟推理为主）：
 //  - local：走 /run 确定性 FSM（关键词→数据库检索→推荐），秒回、零成本、零网络依赖，
 //    返回完整推理时间线（intake→filter→geo→rank→decide→why）可审计可复现；
@@ -36,12 +50,14 @@ async function fetchWithTimeout(url, init = {}, ms = FETCH_TIMEOUT_MS) {
 }
 
 // task.food-discovery（规则大脑 /run）：发意图，拿 output.food-recommendation。
+// 超时 30s：后端 /run 内部有 25s LLM 升级护栏（httpServer.js），前端超时必须大于它，
+// 否则健康语义/模糊表达触发升级时会被前端提前 abort，误报「连不上后端」。
 export async function discover(input = {}) {
   const res = await fetchWithTimeout(`${base()}/run`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(input),
-  }, 15000);
+  }, 30000);
   if (!res.ok) throw new Error(`agent /run ${res.status}`);
   return res.json(); // { success, output:{ merchants, summary } }
 }
