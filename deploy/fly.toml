@@ -1,0 +1,27 @@
+# 蛮有味后端 · Fly.io 部署配置（免费层方案 A）
+# 用法：
+#   flyctl auth login
+#   flyctl launch --no-deploy   # 生成 app（选 fra/ams 区域，国内延迟相对低）
+#   flyctl secrets set AUTH_JWT_SECRET=... AUTH_DATA_KEY=... DEEPSEEK_API_KEY=... AMAP_SERVER_KEY=... #     ADMIN_TOKEN=... ALLOWED_ORIGINS=https://xxx.fly.dev FRONTEND_ORIGIN=https://xxx.fly.dev
+#   flyctl deploy
+app = "manyouwei"
+primary_region = "fra"
+
+[build]
+  # 根目录 Dockerfile 或直接跑 node（用 fly 默认 node builder 需显式 build 命令）
+  [build.args]
+
+[env]
+  NODE_ENV = "production"
+  MYWO_PORT = "8799"
+  MYWO_DATASOURCE = "wuhan"
+
+[http_service]
+  internal_port = 8799
+  force_https = true
+  auto_stop_machines = true      # 免费层：空闲自动休眠
+  auto_start_machines = true     # 有请求自动唤醒
+
+[[vm]]
+  size = "shared-cpu-1x"         # 免费共享实例（256MB）
+  memory = "256mb"
