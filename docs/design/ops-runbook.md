@@ -18,8 +18,10 @@
 | SMS_PROVIDER / TENCENT_SMS_SECRET_ID / TENCENT_SMS_SECRET_KEY | 短信网关 | 腾讯云 SMS + 签名模板备案 |
 | WECHAT_APPID / WECHAT_APPSECRET / WECHAT_REDIRECT_URI | 微信登录 | 开放平台 |
 | NODE_ENV=production | 错误脱敏/真实校验 | 部署时设置 |
+| MYWO_DATASOURCE=wuhan | **数据源（必须）**：不设则默认 sample 合成数据 | ecosystem.config.cjs 已含 |
 
 验证：`node scripts/deploy-check.mjs` 全绿。
+> **生产演练结论（2026-08-15）**：NODE_ENV=production 下短信/微信未配置如实报错 ✓、错误脱敏 ✓、健康/推荐正常 ✓；数据源必须显式 MYWO_DATASOURCE=wuhan。
 
 ## 1. 服务器初始化（Ubuntu/Debian 示例）
 
