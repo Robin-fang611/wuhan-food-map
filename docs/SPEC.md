@@ -365,7 +365,9 @@ docs/BFF接口契约.md：RewardStore 后端契约（checkin / coupons CRUD / �
 ## 15. 问题反馈清单（2026-08-15 Robin，待统一方案后实施）
 
 > 本节记录 Robin 实测反馈的问题与需求，**待方案 = 未经拍板不实施**；统一方案定稿后回写 §11 并逐项闭环。用户还在持续反馈中。
-> **2026-08-15 方案进度**：Q1/Q2/Q3/Q5 统一实施蓝图已出 → docs/design/dual-track-agent-plan.md（双轨智能体）；Q3 细化 → docs/design/product-restructure-design.md（界面重构）；Q4 双方案 → docs/design/vision-adapter-design.md（视觉适配，方案 A 已落地：scripts/vision-desc.mjs 实测可用）。待 Robin 确认后实施。
+> **2026-08-15 方案进度**：统一实施蓝图 → docs/design/dual-track-agent-plan.md；界面重构 → docs/design/product-restructure-design.md；视觉适配 → docs/design/vision-adapter-design.md（方案 A 已落地）；上线路线图 → docs/design/go-live-roadmap.md。
+> **2026-08-15 实施状态（W0–W8 纯代码全部完成并推送）**：W5 安全加固（写操作全 JWT/CORS 白名单/全局限流/治理鉴权/手机号加密）✅ · W1 双轨引擎（FIT 语义/口味筛选/诚实回落/路由升级/统一推演）✅ · W2 界面重构（4Tab/首页聚焦/福利页）✅ · W3.1 南湖坐标补全（geocode 58→138）✅ · W4 注册流程（协议同意/昵称/注销/会话吊销）✅ · W7 部署准备（成本日志/错误脱敏/部署脚本）✅ · W8 内容合规（隐私页/引导/code-split 710→41KB）✅ · 54 测试全绿。
+> **待 Robin 补充（外部依赖）**：R1 服务器 · R2 域名+备案 · R3 短信密钥+模板备案 · R4 微信凭据 · R5 首批实地探店（30–50 家）· R6 品牌资产 · 另需 .env 补 AUTH_DATA_KEY / ADMIN_TOKEN / ALLOWED_ORIGINS（生产）。
 
 | # | 问题 / 需求 | 现状（实查） | 用户预期 | 初步方案方向（待确认） |
 |---|------------|-------------|----------|------------------------|
