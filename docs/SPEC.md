@@ -325,11 +325,32 @@ docs/BFF接口契约.md：RewardStore 后端契约（checkin / coupons CRUD / �
 - **结果**：首页新增确定性入口条（常去滚动到发现区 / 收藏进账号中心 / 附近进地图，缓解冷启动空屏）；推理页每次回复后新增**多轮追问快捷条（换一家 / 再便宜点 / 换个附近 / 收藏这家）**——追问走既有会话链路（server 后端 agentChat 带 history / 本地 agentDiscover），收藏走 auth（云端/本地自动兜底）；逻辑抽为纯模块 h5/src/ui/chatFollowups.js（可单测）。
 - 验收达成：首页意图栏 → 推理页 → 多轮追问链路可用（vite build 51 模块 + 静态服务 200）；**新增 h5/test/chat-followups.test.mjs（3 组）**；43 子测试全绿。
 
-### 后置（不阻塞，另行规划）
-- 短信网关生产化（SMS_PROVIDER=tencent + TENCENT_SMS_SECRET_ID/KEY）与微信凭据配置（WECHAT_APPID/SECRET/REDIRECT_URI）。
-- V4.1 券 / 核销 BFF 化（等真实商家载体，风险 R4）；V4.2 商户入驻签约；V4.3 分润对账（支付分润隔离为独立项目，跑通后拼装）。
-- 增长实验（KOL / 社群 / 地推，2026-08-13 起暂缓，待单独规划试点校区 / 域名 / 节奏）。
-- 微信小程序壳（h5 验证价值信号后启动）；V5 多城数据框架 + 出海拓扑 + 排行榜演进 + 手册互嵌。
+### S7 Demo 收尾（✅ 2026-08-15 · Robin 拍板「Demo 就做到这」）
+**声明：本版本即为第一版产品 Demo（线上 http://47.102.141.67:8080），功能至此冻结；以下全部转为「下一阶段升级点」，不再列入近期开发清单。**
+- 探店采集双入口（用户点不到问题修复）：
+  - 根因：地图页「贡献野店」FAB `bottom:18px + z-index:30` 被底部 Tab 栏（z-index:90）完全盖住；
+  - 修复：FAB 抬高至底栏上方（bottom:78px, z-index:80）；新增「我的」页主按钮入口「探店采集 · 贡献野店」；上传页返回按来源（我的/附近）回跳。
+- 管理员审核面板（h5/src/ui/admin.js，内部工具）：
+  - 入口：「我的」页底部「管理员审核（内部·需令牌）」；令牌由管理员输入（仅 sessionStorage，不写包/localStorage，守密钥红线）；
+  - 能力：待核验列表（/upload/pending）→ 逐条「收录 / 驳回」+ 可选备注（/upload/govern，记审计）；审核轨迹（/upload/audit，新增 GET 端点，仅 at/action/uploadId/by/note，无 PII）；
+  - CLI 并行可用：scripts/govern-uploads.mjs（list/promote/reject，--dry-run/--note/--by）。
+- 测试：upload.test.mjs 新增 listAudit 4 断言；engage.test.mjs 新增 /upload/audit HTTP 契约 2 断言；全量 65 测试全绿。
+
+### 下一阶段升级点（Demo 收尾后，2026-08-15 起冻结，按需重启）
+> 以下不再属于当前 Demo 范围。每一项都有明确触发条件 / 外部依赖；触发后再拉入开发清单，按守门工作流推进。
+
+| # | 升级点 | 触发条件 / 依赖 | 状态 |
+|---|--------|----------------|------|
+| U1 | **实地探店采集（R5）**：583 家 estimated → verified，评分/推荐语补齐（清单 docs/visit-list-2026-08-15.md，流程 scripts/collect-visit.mjs） | Robin 实地探店 30–50 家（或招募本地采集者） | ⏸ 待 R5 |
+| U2 | **短信网关生产化（R3）**：SMS_PROVIDER=tencent + TENCENT_SMS_SECRET_ID/KEY + 签名模板备案 | 腾讯云密钥 + 模板备案 | ⏸ 待 R3 |
+| U3 | **微信登录（R4）**：WECHAT_APPID/SECRET/REDIRECT_URI + 回调验收 | 微信开放平台凭据 | ⏸ 待 R4 |
+| U4 | **正式域名 + HTTPS（R2）**：备案域名 + 证书，替换 IP:8080 | 域名购买 + ICP 备案（周期 1–2 周） | ⏸ 待 R2 |
+| U5 | **券 / 核销 BFF 化（V4.1）**：核销从本地原型升级为服务端闭环 | 真实商家载体（R4 风险解除） | ⏸ 待商家 |
+| U6 | **商户入驻与分润（V4.2/V4.3）**：签约、对账、支付分润（独立项目拼装） | 商户拓展 + 支付资质 | ⏸ 未启动 |
+| U7 | **品牌资产（R6）**：logo/分享卡启用（代码已就绪） | Robin 提供品牌素材 | ⏸ 待 R6 |
+| U8 | **增长实验**：KOL / 社群 / 地推；试点校区 + 节奏单独规划 | 校区试点决策 | ⏸ 暂缓 |
+| U9 | **微信小程序壳**：h5 验证价值信号后启动 | 产品价值验证 | ⏸ 未启动 |
+| U10 | **V5 规模化**：多城数据框架 + 出海拓扑 + 排行榜演进（M15）+ 手册互嵌（M16） | 依赖 V4 全链路 | ⛔ 未启动 |
 
 ---
 

@@ -24,7 +24,7 @@ import rewardCheckin from './tools/checkin.js';
 import rewardWallet from './tools/wallet.js';
 import rewardClaim from './tools/claim.js';
 import analyticsTrack from './tools/track.js';
-import { handleUpload, listPendingUploads, governUpload } from './upload.js';
+import { handleUpload, listPendingUploads, listAudit, governUpload } from './upload.js';
 import { submitExplore, listPendingExplores, governExplore } from './explores.js';
 import {
   createCaptcha, sendSms, loginWithPhone, loginWithCaptcha, getUserByToken, wechatAuthorizeUrl, wechatCallback,
@@ -276,6 +276,17 @@ const server = createServer(async (req, res) => {
       return send(res, 200, out);
     } catch (err) {
       return send(res, 400, { success: false, error: 'pending 列表失败', detail: errDetail(err) });
+    }
+  }
+
+  // GET /upload/audit —— 审核审计轨迹（管理后台查看；记录本身无 PII；需 ADMIN_TOKEN）
+  if (req.method === 'GET' && url.pathname === '/upload/audit') {
+    if (!adminOk(req)) return send(res, 401, { success: false, error: '未授权（治理接口需管理员令牌）' });
+    try {
+      const out = await listAudit({ limit: url.searchParams.get('limit') ? Number(url.searchParams.get('limit')) : undefined });
+      return send(res, 200, out);
+    } catch (err) {
+      return send(res, 400, { success: false, error: 'audit 列表失败', detail: errDetail(err) });
     }
   }
 

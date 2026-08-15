@@ -10,7 +10,7 @@ import { LoginView } from './login.js';
 import * as authApi from '../api/auth-client.js';
 import { analytics, EVENTS } from '../core/analytics.js';
 
-export async function AccountView({ onBack, goDetail, goRedeem, goGrowth }) {
+export async function AccountView({ onBack, goDetail, goRedeem, goGrowth, goUpload, goAdmin }) {
   const root = h('div');
 
   async function mount() {
@@ -30,6 +30,13 @@ export async function AccountView({ onBack, goDetail, goRedeem, goGrowth }) {
 
     root.appendChild(h('div', { class: 'footnote', text: '原型说明：账号与收藏存于本地（localStorage）。微信登录与云端同步需 v1.5 后端（M13 BFF）。' }));
 
+    // 探店采集入口（2026-08-15：从「我的」直达，与地图页「贡献野店」双入口，保证可点可达）
+    if (goUpload) {
+      root.appendChild(h('div', { class: 'section', style: 'padding-top:0' }, [
+        h('button', { class: 'btn btn-primary btn-block', text: '🧭 探店采集 · 贡献野店', style: 'margin-top:6px', onclick: () => goUpload() })
+      ]));
+    }
+
     // 商家核销台入口（内部工具，v1.5）
     if (goRedeem) {
       root.appendChild(h('div', { class: 'section', style: 'padding-top:0' }, [
@@ -41,6 +48,13 @@ export async function AccountView({ onBack, goDetail, goRedeem, goGrowth }) {
     if (goGrowth) {
       root.appendChild(h('div', { class: 'section', style: 'padding-top:0' }, [
         h('button', { class: 'btn btn-ghost btn-block', text: '增长看板（内部·v3.4）', style: 'margin-top:6px', onclick: () => goGrowth() })
+      ]));
+    }
+
+    // 管理员审核入口（内部工具，Demo 收尾 2026-08-15）：待核验上传 收录/驳回 + 审计轨迹。
+    if (goAdmin) {
+      root.appendChild(h('div', { class: 'section', style: 'padding-top:0' }, [
+        h('button', { class: 'btn btn-ghost btn-block admin-entry', text: '管理员审核（内部·需令牌）', style: 'margin-top:6px', onclick: () => goAdmin() })
       ]));
     }
   }

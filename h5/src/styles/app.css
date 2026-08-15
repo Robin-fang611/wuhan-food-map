@@ -880,8 +880,10 @@ body {
 .upload-result-actions { display: flex; flex-direction: column; gap: 10px; margin: 16px 18px 0; }
 
 /* 地图页「贡献野店」浮动按钮（不抢地图主内容；详见 SPEC §7.4） */
+/* 2026-08-15 修复：此前 bottom:18px + z-index:30 被底部 Tab 栏(z-index:90)完全盖住，用户点不到；
+   现抬高到底栏之上并提高层级。 */
 .map-fab {
-  position: fixed; right: 16px; bottom: 18px; z-index: 30;
+  position: fixed; right: 16px; bottom: 78px; z-index: 80;
   display: inline-flex; align-items: center; gap: 8px;
   background: var(--seal-red); color: #fff; border: 2px solid var(--gold);
   border-radius: 999px; padding: 11px 18px;
@@ -892,6 +894,29 @@ body {
 .map-fab:active { transform: scale(.97); }
 .map-fab .fab-icon { font-size: 18px; line-height: 1; }
 .map-fab .fab-text { white-space: nowrap; }
+
+/* ===== 管理员审核面板（Demo 内部工具，2026-08-15）===== */
+.admin-entry { color: var(--ink-2); font-size: 13px; }
+.admin-stat { font-size: 13px; padding: 4px 2px 10px; }
+.admin-pending-card { margin-bottom: 12px; }
+.admin-desc { font-size: 13px; color: var(--ink-1); margin: 6px 0; white-space: pre-wrap; }
+.admin-gov-actions { display: flex; gap: 8px; }
+.admin-gov-actions .btn { white-space: nowrap; }
+.admin-audit-head {
+  display: flex; align-items: center; justify-content: space-between;
+  font-size: 14px; font-weight: 600; padding: 4px 2px 8px;
+}
+.admin-audit { font-size: 12px; }
+.admin-audit-row {
+  display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap;
+  padding: 6px 2px; border-bottom: 1px dashed var(--line);
+}
+.admin-audit-act { font-weight: 700; }
+.admin-audit-act.act-promote { color: var(--ticket-green); }
+.admin-audit-act.act-reject { color: var(--seal-red); }
+.admin-audit-id { color: var(--ink-2); font-family: var(--font-mono, monospace); }
+.admin-audit-note { color: var(--ink-1); }
+.admin-audit-by { color: var(--ink-2); margin-left: auto; }
 
 /* ===== 登录视图（小程序式：图形验证码 + 短信验证码 + 微信）===== */
 .login-view { padding: 0 18px; }

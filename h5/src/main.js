@@ -28,6 +28,7 @@ const TABBAR = [
 function tabKeyFor(viewName) {
   if (viewName === 'wallet' || viewName === 'redeem' || viewName === 'growth') return 'welfare';
   if (viewName === 'upload') return 'map';
+  if (viewName === 'admin') return 'account';
   return viewName;
 }
 function renderTabbar() {
@@ -55,7 +56,10 @@ function goRedeem() { view = 'redeem'; render(); }
 function goGrowth() { view = 'growth'; render(); }
 // 从首页带初始问句跳转推理页（首页元素多，开始对话即切到沉浸式推理页）。
 function goReasoning(text) { reasoningInitial = text || null; view = 'reasoning'; render(); }
-function goUpload() { view = 'upload'; render(); }
+// 探店采集：记录来源页（我的/附近），返回时回到来源（体验一致）。
+let uploadFrom = 'map';
+function goUpload(from) { uploadFrom = from || uploadFrom; view = 'upload'; render(); }
+function goAdmin() { view = 'admin'; render(); }
 
 let firstRender = true; // 首屏由 hm.js 自动记，后续 SPA 切换才手动上报，避免重复计数
 async function render() {
@@ -90,7 +94,14 @@ async function render() {
       goDetail,
       goRedeem,
       goGrowth,
-      goWelfare: () => { view = 'welfare'; render(); }
+      goWelfare: () => { view = 'welfare'; render(); },
+      goUpload: () => goUpload('account'),
+      goAdmin: () => goAdmin()
+    }));
+  } else if (view === 'admin') {
+    const { AdminPanel } = await import('./ui/admin.js');
+    root.appendChild(await AdminPanel({
+      onBack: () => { view = 'account'; render(); }
     }));
   } else if (view === 'welfare') {
     const { WelfareView } = await import('./ui/welfare.js');
@@ -125,7 +136,7 @@ async function render() {
     const { UploadShop } = await import('./ui/uploadShop.js');
     root.appendChild(await UploadShop({
       userId,
-      goBack: () => { view = 'map'; render(); },
+      goBack: () => { view = uploadFrom === 'account' ? 'account' : 'map'; render(); },
       goHome: () => { view = 'home'; render(); },
       goUpload: () => goUpload(),
     }));

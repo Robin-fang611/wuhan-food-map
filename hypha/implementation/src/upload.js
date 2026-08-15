@@ -243,6 +243,15 @@ export async function listPendingUploads({ limit } = {}) {
   return { ok: true, count: out.length, total: items.length, items: out };
 }
 
+// 审计轨迹列表（新→旧，管理后台展示用）。audit 记录仅含 at/action/uploadId/by/note，
+// 天然无 PII（不含 userId/联系方式/原始 source），可安全输出。
+export async function listAudit({ limit } = {}) {
+  const data = await readStore();
+  const items = data.audit.slice().reverse();
+  const out = typeof limit === 'number' && limit > 0 ? items.slice(0, limit) : items;
+  return { ok: true, count: out.length, total: items.length, items: out };
+}
+
 // 治理动作：promote（人工确认收录 → verified，标注 governance）/ reject（驳回 → rejected，保留轨迹）。
 // dryRun=true 只预演不落盘。by/note 记入审计日志（默认 'admin-cli'）。
 export async function governUpload({ uploadId, action = 'promote', dryRun = false, by = 'admin-cli', note = '' } = {}) {

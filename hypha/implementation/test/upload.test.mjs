@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { mkdtempSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { decideUpload, verifyWithAmap, handleUpload, nameSimilarity, listPendingUploads, governUpload } from '../src/upload.js';
+import { decideUpload, verifyWithAmap, handleUpload, nameSimilarity, listPendingUploads, listAudit, governUpload } from '../src/upload.js';
 
 let passed = 0;
 function ok(name, cond) { assert.ok(cond, '✗ ' + name); passed++; console.log('  ✓', name); }
@@ -110,6 +110,14 @@ ok('store：audit 累计 2 条', store2.audit.length === 2);
 const unknown = await governUpload({ uploadId: 'u_nonexist', action: 'promote' });
 ok('未知 uploadId → 报错', unknown.ok === false && /未找到/.test(unknown.error));
 ok('重复处理 → 报错（原记录已移出 pending）', (await governUpload({ uploadId: seedP1.uploadId, action: 'reject' })).ok === false);
+
+// 审计轨迹查询（管理后台 /upload/audit 用）：新→旧，无 PII。
+const audit = await listAudit();
+ok('listAudit：total=2（promote+reject）', audit.ok && audit.total === 2 && audit.count === 2);
+ok('listAudit：新→旧排序（reject 在前）', audit.items[0].action === 'reject' && audit.items[1].action === 'promote');
+ok('listAudit：记录无 PII（无 userId/tel/phone）', audit.items.every((a) => !('userId' in a) && !('tel' in a) && !('phone' in a)));
+const audit1 = await listAudit({ limit: 1 });
+ok('listAudit：limit 生效', audit1.count === 1);
 
 delete process.env.UPLOAD_STORE_FILE;
 

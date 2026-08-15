@@ -170,6 +170,10 @@ const govBad = await fetch(`${BASE}/upload/govern`, {
   body: JSON.stringify({ uploadId: 'u_nope', action: 'promote' }),
 }).then((r) => r.json());
 ok('未知 uploadId → 404 + 错误体', govBad.ok === false && /未找到/.test(govBad.error));
+const audNoAuth = await fetch(`${BASE}/upload/audit`).then((r) => r.json());
+ok('GET /upload/audit 无令牌 → 401', audNoAuth.success === false);
+const aud = await fetch(`${BASE}/upload/audit`, { headers: ADMIN_HDR }).then((r) => r.json());
+ok('GET /upload/audit（带令牌）→ 含刚才的 reject 记录且无 PII', aud.ok && aud.total >= 1 && aud.items.some((a) => a.action === 'reject' && a.uploadId === up.uploadId) && aud.items.every((a) => !('userId' in a)));
 const badOrigin = await fetch(`${BASE}/health`, {
   method: 'POST',
   headers: { 'Content-Type': 'application/json', Origin: 'https://evil.example.com' },
