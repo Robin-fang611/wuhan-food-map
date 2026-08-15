@@ -5,17 +5,7 @@ import { store, DEMO_USER } from './core/store.js';
 import { auth, activeUserId } from './core/auth.js';
 import { analytics, EVENTS } from './core/analytics.js';
 import { initTongji, trackPage } from './core/tongji.js';
-import { Home } from './ui/home.js';
-import { WelfareView } from './ui/welfare.js';
-import { PrivacyPage } from './ui/privacy.js';
-import { MerchantDetail } from './ui/detail.js';
-import { MapView } from './ui/map.js';
-import { AccountView } from './ui/account.js';
-import { RedeemConsole } from './ui/redeem.js';
-import { ReasoningPage } from './ui/reasoning.js';
-import { GrowthDashboard } from './ui/growth-dashboard.js';
-import { UploadShop } from './ui/uploadShop.js';
-import * as authApi from './api/auth-client.js';
+import * as authApi from './api/auth-client.js'; // 视图组件按需动态 import（W8.1 首屏瘦身：数据/地图/Agent 分包懒加载）
 import './plays/index.js'; // 注册所有玩法插件（新增玩法只需在 plays/ 加文件并 register）
 
 const app = document.getElementById('app');
@@ -77,20 +67,24 @@ async function render() {
   const root = h('div', { class: 'view-root' });
   app.appendChild(root);
   if (view === 'wallet') {
+    const { Wallet } = await import('./ui/wallet.js');
     root.appendChild(await Wallet({ userId, onBack: () => { view = 'welfare'; render(); } }));
   } else if (view === 'detail') {
+    const { MerchantDetail } = await import('./ui/detail.js');
     root.appendChild(await MerchantDetail({
       id: detailId,
       userId,
       onBack: () => { view = 'home'; render(); }
     }));
   } else if (view === 'map') {
+    const { MapView } = await import('./ui/map.js');
     root.appendChild(await MapView({
       goDetail,
       onBack: () => { view = 'home'; render(); },
       goUpload: () => goUpload()
     }));
   } else if (view === 'account') {
+    const { AccountView } = await import('./ui/account.js');
     root.appendChild(await AccountView({
       onBack: () => { view = 'home'; render(); },
       goDetail,
@@ -99,6 +93,7 @@ async function render() {
       goWelfare: () => { view = 'welfare'; render(); }
     }));
   } else if (view === 'welfare') {
+    const { WelfareView } = await import('./ui/welfare.js');
     root.appendChild(await WelfareView({
       userId,
       goWallet: () => { view = 'wallet'; render(); },
@@ -107,12 +102,16 @@ async function render() {
       onChanged: () => render()
     }));
   } else if (view === 'privacy') {
+    const { PrivacyPage } = await import('./ui/privacy.js');
     root.appendChild(await PrivacyPage({ onBack: () => { view = 'home'; render(); } }));
   } else if (view === 'redeem') {
+    const { RedeemConsole } = await import('./ui/redeem.js');
     root.appendChild(await RedeemConsole({ onBack: () => { view = 'welfare'; render(); } }));
   } else if (view === 'growth') {
+    const { GrowthDashboard } = await import('./ui/growth-dashboard.js');
     root.appendChild(await GrowthDashboard({ onBack: () => { view = 'welfare'; render(); } }));
   } else if (view === 'reasoning') {
+    const { ReasoningPage } = await import('./ui/reasoning.js');
     root.appendChild(await ReasoningPage({
       userId,
       onBack: () => { view = 'home'; render(); },
@@ -123,6 +122,7 @@ async function render() {
       initialText: reasoningInitial,
     }));
   } else if (view === 'upload') {
+    const { UploadShop } = await import('./ui/uploadShop.js');
     root.appendChild(await UploadShop({
       userId,
       goBack: () => { view = 'map'; render(); },
@@ -130,6 +130,7 @@ async function render() {
       goUpload: () => goUpload(),
     }));
   } else {
+    const { Home } = await import('./ui/home.js');
     root.appendChild(await Home({
       userId,
       goWallet: () => { view = 'welfare'; render(); },
