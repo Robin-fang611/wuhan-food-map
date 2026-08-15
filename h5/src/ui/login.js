@@ -131,7 +131,7 @@ export function LoginView({ onLoggedIn } = {}) {
   const agreementBox = h('label', { class: 'login-agreement-check' }, [
     h('input', { type: 'checkbox', class: 'login-agree-input' }),
     h('span', { text: '我已阅读并同意 ' }),
-    h('a', { href: '#privacy', target: '_blank', rel: 'noopener', text: '《用户协议与隐私政策》' }),
+    h('a', { href: '#privacy', text: '《用户协议与隐私政策》' }), // 同页 hash 路由（main.js hashchange 处理）
   ]);
   root.appendChild(form);
   root.appendChild(agreementBox);
