@@ -26,7 +26,10 @@ import analyticsTrack from './tools/track.js';
 import { handleUpload, listPendingUploads, governUpload } from './upload.js';
 import {
   createCaptcha, sendSms, loginWithPhone, getUserByToken, wechatAuthorizeUrl, wechatCallback,
+  revokeToken, updateProfile, deleteAccount,
 } from './auth-server.js';
+import { deleteUserFavorites } from './tools/favorite.js';
+import { deleteUserUploads } from './upload.js';
 
 // 工具表：id -> handler（对齐 domain.yaml 的 10 个 ToolSpec）。
 const TOOLS = {
@@ -292,6 +295,35 @@ const server = createServer(async (req, res) => {
     const token = authz.startsWith('Bearer ') ? authz.slice(7) : '';
     const u = getUserByToken(token);
     return send(res, u ? 200 : 401, u ? { ok: true, user: u } : { ok: false, error: '未登录或登录已过期' });
+  }
+
+  // POST /auth/logout —— 登出（吊销当前 JWT，W4 会话管理）
+  if (req.method === 'POST' && url.pathname === '/auth/logout') {
+    const authz = req.headers['authorization'] || '';
+    const token = authz.startsWith('Bearer ') ? authz.slice(7) : '';
+    if (!token) return send(res, 400, { ok: false, error: '缺少凭证' });
+    return send(res, 200, revokeToken(token));
+  }
+
+  // POST /auth/profile —— 更新昵称（登录态）
+  if (req.method === 'POST' && url.pathname === '/auth/profile') {
+    const input = await readBody(req);
+    if (!input || typeof input !== 'object') return send(res, 400, { ok: false, error: '请求体非 JSON' });
+    const authz = req.headers['authorization'] || '';
+    const token = authz.startsWith('Bearer ') ? authz.slice(7) : '';
+    const r = updateProfile({ token, nickname: input.nickname });
+    return send(res, r.ok ? 200 : 400, r);
+  }
+
+  // POST /auth/delete —— 注销账号（删用户 + 收藏 + 上传记录 + 吊销会话，合规）
+  if (req.method === 'POST' && url.pathname === '/auth/delete') {
+    const authz = req.headers['authorization'] || '';
+    const token = authz.startsWith('Bearer ') ? authz.slice(7) : '';
+    const r = deleteAccount({ token });
+    if (!r.ok) return send(res, 400, r);
+    deleteUserFavorites(r.deletedId);
+    await deleteUserUploads(r.deletedId);
+    return send(res, 200, r);
   }
 
   // /memory/:sessionId —— 后端化口味档案（R5）

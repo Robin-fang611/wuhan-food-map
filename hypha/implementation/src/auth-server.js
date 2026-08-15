@@ -69,17 +69,19 @@ const smsLimit = new Map();   // phone -> number[]（最近发送时间戳）
 const users = new Map();      // id -> user
 const phoneIndex = new Map(); // phone -> id
 const unionIndex = new Map(); // unionid -> id
+const revokedTokens = new Set(); // W4：登出/注销后吊销的 JWT（持久化，重启不复活）
 
 // —— 账号持久化（S3）：users / phoneIndex / unionIndex 落盘，验证码与频控保持内存态 ——
 function persistAccounts() {
   try {
     mkdirSync(DATA_DIR, { recursive: true });
     const payload = {
-      version: 2, // W5.3：敏感字段加密（enc: 前缀）+ 索引哈希化
+      version: 3, // W4：协议同意版本 + 昵称可改 + 会话吊销黑名单
       savedAt: new Date().toISOString(),
       users: [...users.values()].map((u) => ({ ...u, phone: encField(u.phone || '') || null })),
       phoneIndex: Object.fromEntries([...phoneIndex].map(([k, v]) => [hashId(k), v])),
       unionIndex: Object.fromEntries([...unionIndex].map(([k, v]) => [hashId(k), v])),
+      revokedTokens: [...revokedTokens],
     };
     const tmp = USERS_FILE + '.tmp';
     writeFileSync(tmp, JSON.stringify(payload), 'utf8');
@@ -103,6 +105,9 @@ function loadAccounts() {
       if (plain.phone) phoneIndex.set(hashId(plain.phone), u.id);
       if (u.wechat && u.wechat.unionid) unionIndex.set(hashId(u.wechat.unionid), u.id);
     }
+    if (Array.isArray(raw.revokedTokens)) {
+      for (const t of raw.revokedTokens) if (typeof t === 'string') revokedTokens.add(t);
+    }
   } catch (err) {
     // 文件缺失/损坏：静默降级为空账号（原型语义，不阻断启动）
     // eslint-disable-next-line no-console
@@ -111,6 +116,7 @@ function loadAccounts() {
 }
 loadAccounts();
 
+const AGREEMENT_VERSION = '2026-08-15'; // W4：注册协议版本（前端展示一致文案；后端校验同意）
 const CAPTCHA_TTL = 5 * 60 * 1000;
 const SMS_TTL = 10 * 60 * 1000;
 const LIMIT = {
@@ -243,6 +249,7 @@ function signJwt(payload) {
 }
 export function verifyJwt(token) {
   if (!JWT_SECRET) return null;
+  if (revokedTokens.has(String(token))) return null; // W4：登出/注销后吊销
   const parts = String(token).split('.');
   if (parts.length !== 3) return null;
   const expected = b64url(createHmac('sha256', JWT_SECRET).update(`${parts[0]}.${parts[1]}`).digest());
@@ -252,6 +259,42 @@ export function verifyJwt(token) {
     if (p.exp && Date.now() > p.exp * 1000) return null;
     return p;
   } catch { return null; }
+}
+
+// W4：登出吊销（加入黑名单并持久化）
+export function revokeToken(token) {
+  if (!token) return { ok: false, error: '缺少 token' };
+  revokedTokens.add(String(token));
+  persistAccounts();
+  return { ok: true };
+}
+
+// W4：更新昵称（登录态，本人）
+export function updateProfile({ token, nickname } = {}) {
+  const p = verifyJwt(token);
+  if (!p || !p.sub) return { ok: false, error: '未登录或登录已过期' };
+  const u = users.get(p.sub);
+  if (!u) return { ok: false, error: '账号不存在' };
+  const n = String(nickname || '').trim();
+  if (!n || n.length < 2 || n.length > 20) return { ok: false, error: '昵称需 2~20 字' };
+  u.nickname = n;
+  persistAccounts();
+  return { ok: true, user: publicUser(u) };
+}
+
+// W4：注销账号（删用户 + 吊销全部会话；收藏/券等数据由调用方按 userId 清理）
+export function deleteAccount({ token } = {}) {
+  const p = verifyJwt(token);
+  if (!p || !p.sub) return { ok: false, error: '未登录或登录已过期' };
+  const uid = p.sub;
+  const u = users.get(uid);
+  if (!u) return { ok: false, error: '账号不存在' };
+  users.delete(uid);
+  if (u.phone) phoneIndex.delete(hashId(u.phone));
+  if (u.wechat && u.wechat.unionid) unionIndex.delete(hashId(u.wechat.unionid));
+  revokedTokens.add(String(token)); // 吊销当前会话
+  persistAccounts();
+  return { ok: true, deletedId: uid };
 }
 
 // ——————————————————————————————————————————————
@@ -291,8 +334,12 @@ function issueJwt(user, scene) {
 // ——————————————————————————————————————————————
 // 5) 手机登录（验证码交换 JWT）
 // ——————————————————————————————————————————————
-export function loginWithPhone({ phone, smsCode, scene = 'login' } = {}) {
+export function loginWithPhone({ phone, smsCode, scene = 'login', agreement } = {}) {
   if (!PHONE_RE.test(String(phone || ''))) return { ok: false, error: '手机号格式不正确' };
+  // W4：注册/登录须同意《用户协议与隐私政策》（版本对齐前端展示）
+  if (agreement !== AGREEMENT_VERSION) {
+    return { ok: false, error: '请先阅读并同意《用户协议与隐私政策》' };
+  }
   const rec = smsCodes.get(phone);
   if (!rec || rec.used) return { ok: false, error: '验证码不存在或已使用' };
   if (Date.now() > rec.exp) { smsCodes.delete(phone); return { ok: false, error: '验证码已过期，请重新获取' }; }

@@ -44,7 +44,7 @@ async function obtainToken(phone) {
   const cap = authApi.createCaptcha();
   const sms = await authApi.sendSms({ phone, captchaToken: cap.token, captchaInput: cap._devText });
   if (!sms.ok || !sms.devCode) throw new Error('sms failed: ' + JSON.stringify(sms));
-  const login = authApi.loginWithPhone({ phone, smsCode: sms.devCode });
+  const login = authApi.loginWithPhone({ phone, smsCode: sms.devCode, agreement: '2026-08-15' });
   if (!login.ok) throw new Error('login failed: ' + JSON.stringify(login));
   return login.token;
 }

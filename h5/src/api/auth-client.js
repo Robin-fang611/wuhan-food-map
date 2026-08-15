@@ -46,6 +46,24 @@ export async function getMe(token) {
   return res.json().catch(() => null);
 }
 
+// —— W4 会话与账号管理 ——
+export async function logout(token) {
+  const res = await fetch(`${API}/auth/logout`, { method: 'POST', headers: { Authorization: `Bearer ${token}` } });
+  return res.json().catch(() => null);
+}
+export async function updateProfile(token, nickname) {
+  const res = await fetch(`${API}/auth/profile`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ nickname }),
+  });
+  return res.json().catch(() => null);
+}
+export async function deleteAccount(token) {
+  const res = await fetch(`${API}/auth/delete`, { method: 'POST', headers: { Authorization: `Bearer ${token}` } });
+  return res.json().catch(() => null);
+}
+
 // token 本地存取（会话凭证，不含密钥）。
 export function getStoredToken() { return localStorage.getItem(TOKEN_KEY) || ''; }
 export function setStoredToken(t) {

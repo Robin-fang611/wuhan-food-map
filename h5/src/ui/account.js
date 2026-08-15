@@ -59,13 +59,42 @@ export async function AccountView({ onBack, goDetail, goRedeem, goGrowth }) {
       h('h2', { text: '账号' })
     ]);
     const contact = session.phoneMasked || maskContact(session.phone || session.email || '') || '未绑定联系方式';
+    // W4：昵称编辑（登录态）
+    const nickInput = h('input', { class: 'ac-nick-input', type: 'text', value: session.nickname || '', maxlength: '20', placeholder: '昵称（2~20 字）', 'aria-label': '昵称' });
+    const saveNick = h('button', { class: 'btn btn-ghost btn-sm', type: 'button', text: '保存' });
+    saveNick.addEventListener('click', async () => {
+      const token = session.token;
+      if (!token) { toast('请先登录'); return; }
+      const r = await authApi.updateProfile(token, nickInput.value.trim());
+      if (r && r.ok) {
+        session.nickname = r.user.nickname;
+        auth.applyRemoteSession({ id: session.id, nickname: r.user.nickname, phoneMasked: session.phoneMasked, token });
+        toast('昵称已更新');
+      } else {
+        toast((r && r.error) || '昵称更新失败（2~20 字）');
+      }
+    });
     const card = h('div', { class: 'card' }, [
       h('div', { class: 'ac-name', text: session.nickname || '蛮友' }),
       h('div', { class: 'muted', text: contact }),
+      h('div', { class: 'ac-nick-row' }, [nickInput, saveNick]),
       h('button', { class: 'btn btn-ghost btn-block', text: '退出登录', style: 'margin-top:12px', onclick: async () => {
+        const token = session.token;
+        if (token) authApi.logout(token); // W4：吊销服务端会话
         await auth.logout();
         authApi.setStoredToken('');
         toast('已退出');
+        mount();
+      } }),
+      // W4：注销账号（合规：删除账号与数据）
+      h('button', { class: 'btn btn-danger-ghost btn-block', text: '注销账号（删除全部数据）', style: 'margin-top:6px', onclick: async () => {
+        if (!window.confirm('注销后手机号、收藏、券与上传记录将被永久删除，且不可恢复。确定注销吗？')) return;
+        const token = session.token;
+        const r = token ? await authApi.deleteAccount(token) : null;
+        if (!r || !r.ok) { toast((r && r.error) || '注销失败'); return; }
+        await auth.logout();
+        authApi.setStoredToken('');
+        toast('账号已注销');
         mount();
       } })
     ]);

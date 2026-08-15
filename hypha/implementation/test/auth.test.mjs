@@ -71,20 +71,20 @@ test('短信验证码：格式/图形前置/频控/成功', async () => {
 
 test('手机登录：JWT + 脱敏 + 一次性码 + /me', async () => {
   // 无验证码
-  const noCode = auth.loginWithPhone({ phone: '13800000002', smsCode: '' });
+  const noCode = auth.loginWithPhone({ phone: '13800000002', smsCode: '', agreement: '2026-08-15' });
   assert.equal(noCode.ok, false);
   assert.ok(noCode.error.includes('验证码不存在'));
   // 正确流程
   const cap = auth.createCaptcha();
   const sms = await auth.sendSms({ phone: '13800000002', captchaToken: cap.token, captchaInput: cap._devText });
-  const login = auth.loginWithPhone({ phone: '13800000002', smsCode: sms.devCode });
+  const login = auth.loginWithPhone({ phone: '13800000002', smsCode: sms.devCode, agreement: '2026-08-15' });
   assert.equal(login.ok, true);
   assert.ok(login.token.split('.').length === 3);
   assert.equal(login.user.phoneMasked.length > 4, true);
   assert.equal(login.user.phone, undefined, '完整手机号永不下发前端');
   assert.equal(login.user.id.startsWith('u_'), true);
   // 码一次性
-  const reuse = auth.loginWithPhone({ phone: '13800000002', smsCode: sms.devCode });
+  const reuse = auth.loginWithPhone({ phone: '13800000002', smsCode: sms.devCode, agreement: '2026-08-15' });
   assert.equal(reuse.ok, false);
   assert.ok(reuse.error.includes('已使用'));
   // /me
@@ -112,7 +112,7 @@ test('W5.3 加密模式：AUTH_DATA_KEY 下手机号密文落盘，重启后仍�
     import { createCaptcha, sendSms, loginWithPhone } from '${AUTH_MODULE}';
     const cap = createCaptcha();
     const sms = await sendSms({ phone: '13800000041', captchaToken: cap.token, captchaInput: cap._devText });
-    const login = loginWithPhone({ phone: '13800000041', smsCode: sms.devCode });
+    const login = loginWithPhone({ phone: '13800000041', smsCode: sms.devCode, agreement: '2026-08-15' });
     if (!login.ok) throw new Error(JSON.stringify(login));
     console.log(JSON.stringify({ id: login.user.id }));
   `, { AUTH_DATA_DIR: encDir, AUTH_DATA_KEY: KEY });
@@ -126,7 +126,7 @@ test('W5.3 加密模式：AUTH_DATA_KEY 下手机号密文落盘，重启后仍�
     import { createCaptcha, sendSms, loginWithPhone } from '${AUTH_MODULE}';
     const cap = createCaptcha();
     const sms = await sendSms({ phone: '13800000041', captchaToken: cap.token, captchaInput: cap._devText });
-    const login = loginWithPhone({ phone: '13800000041', smsCode: sms.devCode });
+    const login = loginWithPhone({ phone: '13800000041', smsCode: sms.devCode, agreement: '2026-08-15' });
     console.log(JSON.stringify({ id: login.user.id }));
   `, { AUTH_DATA_DIR: encDir, AUTH_DATA_KEY: KEY });
   assert.equal(b.id, a.id, '加密模式重启后同号登录命中同一账号');
@@ -138,7 +138,7 @@ test('重启后旧 JWT 仍有效 + 同号重登返回同一账号（子进程模
     import { createCaptcha, sendSms, loginWithPhone } from '${AUTH_MODULE}';
     const cap = createCaptcha();
     const sms = await sendSms({ phone: '13800000009', captchaToken: cap.token, captchaInput: cap._devText });
-    const login = loginWithPhone({ phone: '13800000009', smsCode: sms.devCode });
+    const login = loginWithPhone({ phone: '13800000009', smsCode: sms.devCode, agreement: '2026-08-15' });
     if (!login.ok) throw new Error(JSON.stringify(login));
     console.log(JSON.stringify({ token: login.token, id: login.user.id }));
   `);
@@ -149,7 +149,7 @@ test('重启后旧 JWT 仍有效 + 同号重登返回同一账号（子进程模
     const me = getUserByToken(token);
     const cap = createCaptcha();
     const sms = await sendSms({ phone: '13800000009', captchaToken: cap.token, captchaInput: cap._devText });
-    const relogin = loginWithPhone({ phone: '13800000009', smsCode: sms.devCode });
+    const relogin = loginWithPhone({ phone: '13800000009', smsCode: sms.devCode, agreement: '2026-08-15' });
     console.log(JSON.stringify({ me: me && me.id, relogin: relogin.user.id }));
   `);
   assert.equal(b.me, a.id, '重启后旧 JWT 仍有效（同一账号）');
@@ -165,7 +165,7 @@ test('跨设备收藏同步：设备A收藏 → 设备B同账号可见（独立�
     import userFavorite from '${FAV_MODULE}';
     const cap = createCaptcha();
     const sms = await sendSms({ phone: '13800000031', captchaToken: cap.token, captchaInput: cap._devText });
-    const login = loginWithPhone({ phone: '13800000031', smsCode: sms.devCode });
+    const login = loginWithPhone({ phone: '13800000031', smsCode: sms.devCode, agreement: '2026-08-15' });
     const r = await userFavorite({ merchantId: 'm-cross-a', action: 'add', token: login.token });
     if (!r.success) throw new Error(JSON.stringify(r));
     console.log(JSON.stringify({ token: login.token, id: login.user.id }));
@@ -176,10 +176,54 @@ test('跨设备收藏同步：设备A收藏 → 设备B同账号可见（独立�
     import userFavorite from '${FAV_MODULE}';
     const cap = createCaptcha();
     const sms = await sendSms({ phone: '13800000031', captchaToken: cap.token, captchaInput: cap._devText });
-    const login = loginWithPhone({ phone: '13800000031', smsCode: sms.devCode });
+    const login = loginWithPhone({ phone: '13800000031', smsCode: sms.devCode, agreement: '2026-08-15' });
     const list = await userFavorite({ action: 'list', token: login.token });
     console.log(JSON.stringify({ id: login.user.id, has: !!(list.output && list.output.favorites.includes('m-cross-a')) }));
   `);
   assert.equal(b.id, a.id, '设备 B 与设备 A 同一账号');
   assert.equal(b.has, true, '设备 B 可见设备 A 的收藏（跨设备同步达成）');
+});
+
+// —— W4 · 注册协议 / 昵称 / 注销 / 会话吊销 ——
+test('W4 协议：未同意协议 → 拒绝登录', async () => {
+  const cap = auth.createCaptcha();
+  const sms = await auth.sendSms({ phone: '13800000051', captchaToken: cap.token, captchaInput: cap._devText });
+  const noAgree = auth.loginWithPhone({ phone: '13800000051', smsCode: sms.devCode }); // 无 agreement
+  assert.equal(noAgree.ok, false);
+  assert.ok(noAgree.error.includes('协议'));
+  // 同意后成功（复用未消耗的验证码，避免同号 1 分钟频控）
+  const okLogin = auth.loginWithPhone({ phone: '13800000051', smsCode: sms.devCode, agreement: '2026-08-15' });
+  assert.equal(okLogin.ok, true);
+});
+
+test('W4 昵称：更新成功且持久化', async () => {
+  const cap = auth.createCaptcha();
+  const sms = await auth.sendSms({ phone: '13800000052', captchaToken: cap.token, captchaInput: cap._devText });
+  const login = auth.loginWithPhone({ phone: '13800000052', smsCode: sms.devCode, agreement: '2026-08-15' });
+  const bad = auth.updateProfile({ token: login.token, nickname: 'x' });
+  assert.equal(bad.ok, false);
+  const good = auth.updateProfile({ token: login.token, nickname: '爱吃的阿伟' });
+  assert.equal(good.ok, true);
+  assert.equal(good.user.nickname, '爱吃的阿伟');
+  assert.equal(auth.getUserByToken(login.token).nickname, '爱吃的阿伟');
+});
+
+test('W4 注销 + 会话吊销：删除后 token 失效、账号不可再登录命中', async () => {
+  const cap = auth.createCaptcha();
+  const sms = await auth.sendSms({ phone: '13800000053', captchaToken: cap.token, captchaInput: cap._devText });
+  const login = auth.loginWithPhone({ phone: '13800000053', smsCode: sms.devCode, agreement: '2026-08-15' });
+  const uid = login.user.id;
+  const del = auth.deleteAccount({ token: login.token });
+  assert.equal(del.ok, true);
+  assert.equal(auth.getUserByToken(login.token), null, '注销后旧 token 失效（账号已删 + 会话已吊销）');
+});
+
+test('W4 登出吊销：revokeToken 后旧 token 失效', async () => {
+  const cap = auth.createCaptcha();
+  const sms = await auth.sendSms({ phone: '13800000054', captchaToken: cap.token, captchaInput: cap._devText });
+  const login = auth.loginWithPhone({ phone: '13800000054', smsCode: sms.devCode, agreement: '2026-08-15' });
+  assert.ok(auth.getUserByToken(login.token));
+  const rv = auth.revokeToken(login.token);
+  assert.equal(rv.ok, true);
+  assert.equal(auth.getUserByToken(login.token), null, '登出后 token 失效');
 });

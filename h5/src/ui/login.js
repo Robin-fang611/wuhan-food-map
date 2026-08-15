@@ -89,11 +89,13 @@ export function LoginView({ onLoggedIn } = {}) {
     const code = smsInput.value.trim();
     if (!PHONE_RE.test(phone)) { toast('请输入正确的 11 位手机号'); return; }
     if (!/^\d{6}$/.test(code)) { toast('请输入 6 位短信验证码'); return; }
+    const agreeEl = root.querySelector('.login-agree-input');
+    if (agreeEl && !agreeEl.checked) { toast('请先勾选同意《用户协议与隐私政策》'); return; }
 
     submitBtn.disabled = true;
     submitBtn.textContent = '登录中…';
     try {
-      const r = await authApi.loginWithPhone({ phone, smsCode: code, scene: 'login' });
+      const r = await authApi.loginWithPhone({ phone, smsCode: code, scene: 'login', agreement: '2026-08-15' });
       if (!r || !r.ok) { toast(r && r.error || '登录失败'); submitBtn.disabled = false; submitBtn.textContent = '登录 / 注册'; return; }
       auth.applyRemoteSession({ id: r.user.id, nickname: r.user.nickname, phoneMasked: r.user.phoneMasked, token: r.token });
       authApi.setStoredToken(r.token);
@@ -125,10 +127,17 @@ export function LoginView({ onLoggedIn } = {}) {
     h('div', { class: 'login-title', text: '欢迎来到蛮有味' }),
     h('div', { class: 'login-sub', text: '武汉好吃的，真人探过的' }),
   ]));
+  // W4：注册协议同意（必填，版本与后端 AGREEMENT_VERSION 对齐）
+  const agreementBox = h('label', { class: 'login-agreement-check' }, [
+    h('input', { type: 'checkbox', class: 'login-agree-input' }),
+    h('span', { text: '我已阅读并同意 ' }),
+    h('a', { href: '#privacy', target: '_blank', rel: 'noopener', text: '《用户协议与隐私政策》' }),
+  ]);
   root.appendChild(form);
+  root.appendChild(agreementBox);
   root.appendChild(h('div', { class: 'login-divider', text: '或' }));
   root.appendChild(wechatBtn);
-  root.appendChild(h('div', { class: 'login-agreement muted', text: '登录即代表同意《用户协议》《隐私政策》' }));
+  root.appendChild(h('div', { class: 'login-agreement muted', text: '不收集无关信息；手机号仅用于登录；可随时注销账号并删除数据' }));
 
   refreshCaptcha(); // 初始加载图形验证码
   return root;

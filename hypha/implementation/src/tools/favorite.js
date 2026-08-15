@@ -72,3 +72,10 @@ export default async function userFavorite(input = {}) {
   persistFavorites();
   return { success: true, output: { ok: true, favorited: action === 'add', favorites: [...set] } };
 }
+
+
+// W4：注销账号时删除该用户全部收藏（合规：用户有权删除数据）
+export function deleteUserFavorites(uid) {
+  if (!uid) return;
+  if (byUser.delete(uid)) persistFavorites();
+}

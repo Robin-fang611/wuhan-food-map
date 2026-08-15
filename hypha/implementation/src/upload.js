@@ -269,3 +269,21 @@ export async function governUpload({ uploadId, action = 'promote', dryRun = fals
   await writeStore(data);
   return { ok: true, action, uploadId, by, note, pendingTotal: data.pending.length, audit };
 }
+
+
+// W4：注销账号时删除该用户的上传记录（verified/pending/rejected 中 userId 匹配项；审计保留）
+export async function deleteUserUploads(uid) {
+  if (!uid) return;
+  const data = await readStore();
+  const isMine = (e) => (e.userId || (e.source && e.source.userId)) === uid;
+  const before = data.verified.length + data.pending.length + data.rejected.length;
+  data.verified = data.verified.filter((e) => !isMine(e));
+  data.pending = data.pending.filter((e) => !isMine(e));
+  data.rejected = data.rejected.filter((e) => !isMine(e));
+  const after = data.verified.length + data.pending.length + data.rejected.length;
+  if (before !== after) {
+    data.audit = data.audit || [];
+    data.audit.push({ at: new Date().toISOString(), action: 'delete-user-data', uid, by: 'account-delete' });
+    await writeStore(data);
+  }
+}
