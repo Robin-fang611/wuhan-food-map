@@ -26,6 +26,13 @@ function lastRecommendation() {
   } catch { return null; }
 }
 
+// 本地生活速览统计（动态，不硬编码）：南湖总店数 / 流动摊数（source 含网络公开资料）
+function nanhuStats() {
+  const nh = allMerchants.filter((m) => m.zone === '财大南湖周边');
+  const stalls = nh.filter((m) => String(m.source || '').includes('网络公开'));
+  return { total: nh.length, stalls: stalls.length };
+}
+
 // 本地生活速览：财大南湖周边有坐标的店按评分取 3 家（就近参考）
 function nearbyPreview() {
   const campus = CAMPUS_COORDS['财大南湖周边'];
@@ -116,7 +123,7 @@ export async function Home(ctx) {
   root.appendChild(h('div', { class: 'section', style: 'padding-top:0' }, [
     h('h2', {}, [document.createTextNode('今天附近'), h('span', { class: 'tag', text: '本地生活' })]),
     h('div', { class: 'card' }, [
-      h('div', { class: 'muted', text: '财大南湖 · 185 家（含高德没有的流动摊 62 家）' }),
+      h('div', { class: 'muted', text: `财大南湖 · ${nanhuStats().total} 家（含高德没有的流动摊 ${nanhuStats().stalls} 家）` }),
       h('button', { class: 'btn btn-ghost btn-block', text: '去地图看看', style: 'margin-top:8px', onclick: goMap }),
     ]),
     nearby.length ? h('div', { class: 'nearby-row' }, nearby.map((m) => h('button', {
