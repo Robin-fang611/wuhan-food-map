@@ -5,6 +5,10 @@
 // 4) 切回 sample 不影响后续。
 // 运行：node hypha/implementation/test/datasource.test.mjs
 import assert from 'node:assert/strict';
+import { mkdtempSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+process.env.RUNTIME_STORE_FILE = join(mkdtempSync(join(tmpdir(), 'mywo-ds-store-')), 'runtime-store.json'); // W7.2 测试隔离
 import { getDataSource, setDefaultDataSource, createDataSource, knownDataSources } from '../src/datasource/index.js';
 import '../src/datasource/wuhan.js'; // 触发 wuhan 数据源注册（真实数据集接入点）
 import { runFoodDiscovery } from '../src/orchestrator.js';

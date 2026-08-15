@@ -9,12 +9,39 @@ import { LocalAnalytics, EVENTS } from '../../../../wuhan-food-map/h5/src/core/a
 import { checkinPlugin } from '../../../../wuhan-food-map/h5/src/plays/checkin.js';
 import { claimPlugin } from '../../../../wuhan-food-map/h5/src/plays/claim.js';
 
-// —— 内存 localStorage 兜底（仅本进程；store.js 直接用全局 localStorage，无 memoryFallback）——
-const _mem = new Map();
+// —— localStorage 兜底（W7.2 升级：文件持久化，重启不丢券/签到；内存仅作快速缓存）——
+// 数据文件：data/runtime-store.json（gitignored，原子写 tmp+rename）；键值结构与 LocalStore 一致。
+import { readFileSync, writeFileSync, renameSync, mkdirSync, existsSync } from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+const _rtDir = path.dirname(fileURLToPath(import.meta.url));
+const RT_DATA = process.env.RUNTIME_STORE_FILE || path.resolve(_rtDir, '..', 'data', 'runtime-store.json');
+const _cache = new Map();
+function _rtLoad() {
+  try {
+    if (!existsSync(RT_DATA)) return {};
+    return JSON.parse(readFileSync(RT_DATA, 'utf8'));
+  } catch { return {}; }
+}
+function _rtSave() {
+  try {
+    mkdirSync(path.dirname(RT_DATA), { recursive: true });
+    const d = {};
+    for (const [k, v] of _cache) d[k] = v;
+    const tmp = RT_DATA + '.tmp';
+    writeFileSync(tmp, JSON.stringify(d), 'utf8');
+    renameSync(tmp, RT_DATA);
+  } catch { /* 磁盘失败降级内存 */ }
+}
 const memStorage = {
-  getItem: (k) => (_mem.has(k) ? _mem.get(k) : null),
-  setItem: (k, v) => _mem.set(k, String(v)),
-  removeItem: (k) => _mem.delete(k),
+  getItem: (k) => {
+    if (_cache.has(k)) return _cache.get(k);
+    const v = _rtLoad()[k];
+    if (v !== undefined) _cache.set(k, v);
+    return v !== undefined ? v : null;
+  },
+  setItem: (k, v) => { _cache.set(k, String(v)); _rtSave(); },
+  removeItem: (k) => { _cache.delete(k); _rtSave(); },
 };
 if (typeof globalThis.localStorage === 'undefined' || globalThis.localStorage == null) {
   globalThis.localStorage = memStorage;

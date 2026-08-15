@@ -19,6 +19,7 @@ process.env.AUTH_DEV_EXPOSE_CAPTCHA = '1';
 process.env.AUTH_DATA_DIR = mkdtempSync(join(tmpdir(), 'mywo-engage-'));
 process.env.RATE_LIMIT = 'off';
 process.env.ADMIN_TOKEN = 'engage-admin-token';
+process.env.RUNTIME_STORE_FILE = join(mkdtempSync(join(tmpdir(), 'mywo-engage-store-')), 'runtime-store.json'); // W7.2 隔离券存储
 const { server } = await import('../src/httpServer.js');
 const authApi = await import('../src/auth-server.js');
 const { getAnalytics } = await import('../src/runtime.js');
@@ -113,6 +114,11 @@ ok('viewWallet count≥1（含已领券）', w.output.count >= 1);
 ok('viewWallet 券无 user_id', w.output.coupons.every((c) => !('user_id' in c)));
 const wIntrude = await callTool('reward.view-wallet', { userId: 'victim-user' }, TOKEN_A);
 ok('客户端传 userId 查他人券包被忽略（仍为本人数据）', wIntrude.success && !('userId' in (wIntrude.output || {})));
+// W7.2：券/签到数据文件持久化（重启不丢）
+const { existsSync: rtExists, readFileSync: rtRead } = await import('node:fs');
+ok('runtime-store.json 已落盘（券/签到持久化）', rtExists(process.env.RUNTIME_STORE_FILE));
+const rtBlob = rtRead(process.env.RUNTIME_STORE_FILE, 'utf8');
+ok('落盘内容含券数据（非空存储）', rtBlob.length > 50 && rtBlob.includes('coupon'));
 
 // —— 5. Track：analytics.track 入库剥离 PII ——
 console.log('Track · analytics.track');
