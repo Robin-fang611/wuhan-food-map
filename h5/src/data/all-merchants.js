@@ -17,7 +17,11 @@ function normName(n) {
 
 // W3.1 坐标补全（真实 geocode，非伪造）：robin-99/web-stalls 缺坐标店按店名应用高德解析坐标，
 // 带 coordsSource:'geocode' 审计标记；无标记的外源坐标仍视为违规（见 reconcile）。
-const GEO = (extrasCoords && extrasCoords.nanhu) || {};
+const GEO = Object.assign(
+  {},
+  (extrasCoords && extrasCoords.nanhu) || {},
+  (extrasCoords && extrasCoords.wuhan) || {}
+); // W3.1：南湖 + 全城 geocode 坐标补全（真实解析，coordsSource 审计标记）
 
 const seen = new Set();
 const merged = [];
