@@ -60,6 +60,9 @@ function goReasoning(text) { reasoningInitial = text || null; view = 'reasoning'
 let uploadFrom = 'map';
 function goUpload(from) { uploadFrom = from || uploadFrom; view = 'upload'; render(); }
 function goAdmin() { view = 'admin'; render(); }
+// 已有店铺补充资料（S8）：从详情页进入，带当前商户 id/名。
+let extrasMerchant = null;
+function goExtras(merchant) { extrasMerchant = merchant || null; view = 'extras'; render(); }
 
 let firstRender = true; // 首屏由 hm.js 自动记，后续 SPA 切换才手动上报，避免重复计数
 async function render() {
@@ -67,7 +70,7 @@ async function render() {
   firstRender = false;
   clear(app);
   const userId = activeUserId(); // 登录后用真实用户 id，未登录回退 DEMO_USER
-  const immersive = view === 'reasoning' || view === 'detail'; // 沉浸式全屏视图不显示底部 Tab
+  const immersive = view === 'reasoning' || view === 'detail' || view === 'extras'; // 沉浸式全屏视图不显示底部 Tab
   const root = h('div', { class: 'view-root' });
   app.appendChild(root);
   if (view === 'wallet') {
@@ -78,7 +81,15 @@ async function render() {
     root.appendChild(await MerchantDetail({
       id: detailId,
       userId,
-      onBack: () => { view = 'home'; render(); }
+      onBack: () => { view = 'home'; render(); },
+      goExtras: (merchant) => goExtras(merchant)
+    }));
+  } else if (view === 'extras') {
+    const { MerchantExtrasView } = await import('./ui/merchantExtras.js');
+    root.appendChild(await MerchantExtrasView({
+      merchantId: extrasMerchant && extrasMerchant.id,
+      merchantName: extrasMerchant && extrasMerchant.name,
+      onBack: () => { view = 'detail'; render(); }
     }));
   } else if (view === 'map') {
     const { MapView } = await import('./ui/map.js');

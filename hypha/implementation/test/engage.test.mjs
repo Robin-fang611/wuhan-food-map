@@ -19,6 +19,7 @@ process.env.AUTH_DEV_EXPOSE_CAPTCHA = '1';
 process.env.AUTH_DATA_DIR = mkdtempSync(join(tmpdir(), 'mywo-engage-'));
 process.env.RATE_LIMIT = 'off';
 process.env.ADMIN_TOKEN = 'engage-admin-token';
+process.env.UPLOAD_DATA_DIR = mkdtempSync(join(tmpdir(), 'mywo-engage-upload-data-')); // S8：图片落临时目录
 process.env.RUNTIME_STORE_FILE = join(mkdtempSync(join(tmpdir(), 'mywo-engage-store-')), 'runtime-store.json'); // W7.2 隔离券存储
 const { server } = await import('../src/httpServer.js');
 const authApi = await import('../src/auth-server.js');
@@ -174,6 +175,39 @@ const audNoAuth = await fetch(`${BASE}/upload/audit`).then((r) => r.json());
 ok('GET /upload/audit 无令牌 → 401', audNoAuth.success === false);
 const aud = await fetch(`${BASE}/upload/audit`, { headers: ADMIN_HDR }).then((r) => r.json());
 ok('GET /upload/audit（带令牌）→ 含刚才的 reject 记录且无 PII', aud.ok && aud.total >= 1 && aud.items.some((a) => a.action === 'reject' && a.uploadId === up.uploadId) && aud.items.every((a) => !('userId' in a)));
+
+// —— 8. S8：/upload/extras（已有店铺补充照片/描述）+ 图片鉴权 HTTP 契约 ——
+console.log('S8 · extras + 图片读取端点（HTTP）');
+const tinyPng = 'data:image/png;base64,' + Buffer.from('s8-fake-png').toString('base64');
+const extReq = await fetch(`${BASE}/upload/extras`, {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ merchantId: 'm-s8-http', merchantName: 'HTTP补充店', description: '补充：店面新装修', images: [tinyPng] }),
+}).then((r) => r.json());
+ok('POST /upload/extras → pending + 图片路径', extReq.ok && extReq.decision === 'pending' && extReq.images.length === 1);
+const extReqBad = await fetch(`${BASE}/upload/extras`, {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ images: [] }),
+}).then((r) => r.json());
+ok('POST /upload/extras 空内容 → 400', extReqBad.ok === false);
+const imgPath = extReq.images[0].split('/').slice(-2).join('/');
+const photoNoAuth = await fetch(`${BASE}/upload/photo/${imgPath}`);
+ok('pending 图片无令牌 → 401', photoNoAuth.status === 401);
+const photoBadName = await fetch(`${BASE}/upload/photo/${extReq.uploadId}/%2E%2E%2Fx.png`);
+ok('图片路径穿越 → 400', photoBadName.status === 400);
+const photoNone = await fetch(`${BASE}/upload/photo/u_none_1/img_1.png`);
+ok('不存在记录图片 → 404', photoNone.status === 404);
+const extGov2 = await fetch(`${BASE}/upload/govern`, {
+  method: 'POST',
+  headers: ADMIN_HDR,
+  body: JSON.stringify({ uploadId: extReq.uploadId, action: 'promote', by: 'engage-test', note: '照片通过' }),
+}).then((r) => r.json());
+ok('extras promote → ok', extGov2.ok === true);
+const extPub = await fetch(`${BASE}/upload/merchant-extras?merchantId=m-s8-http`).then((r) => r.json());
+ok('GET /upload/merchant-extras（公开）→ 描述+图片+治理标记', extPub.ok && extPub.count === 1 && extPub.items[0].description.includes('装修') && extPub.items[0].images.length === 1 && extPub.items[0].governance);
+const photoPub = await fetch(`${BASE}/upload/photo/${imgPath}`);
+ok('promote 后图片公开可读（200 + image/png）', photoPub.status === 200 && (photoPub.headers.get('content-type') || '').includes('image/png'));
 const badOrigin = await fetch(`${BASE}/health`, {
   method: 'POST',
   headers: { 'Content-Type': 'application/json', Origin: 'https://evil.example.com' },

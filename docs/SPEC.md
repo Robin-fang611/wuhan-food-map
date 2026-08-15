@@ -336,6 +336,14 @@ docs/BFF接口契约.md：RewardStore 后端契约（checkin / coupons CRUD / �
   - CLI 并行可用：scripts/govern-uploads.mjs（list/promote/reject，--dry-run/--note/--by）。
 - 测试：upload.test.mjs 新增 listAudit 4 断言；engage.test.mjs 新增 /upload/audit HTTP 契约 2 断言；全量 65 测试全绿。
 
+### S8 探店采集升级：图片 + 已有店铺补充（✅ 2026-08-15 · Robin 拍板）
+**需求**：野店上传支持传图片；已有店铺支持补充照片和文字描述。
+- **图片链路**：前端压缩（utils/imageCompress.js：最长边 1280px / jpeg 0.72 / 最多 3 张）→ data URL 随表单提交 → 后端解码落盘 `data/uploads/<uploadId>/`（JSON 只存相对路径，防 JSON 膨胀）；`/upload` 请求体上限放宽至 12MB（其余接口保持 1MB，readBody 参数化）。
+- **图片访问鉴权**：GET `/upload/photo/<uploadId>/<file>` —— pending（未审核）仅 ADMIN_TOKEN 可读，promote/verified 后公开（Cache-Control 1 天）；文件名白名单防路径穿越（photoFileNameSafe）。
+- **已有店铺补充（extras）**：POST `/upload/extras`（merchantId + 描述 + 图片，图或文至少其一）→ 进待核验（kind='extras'，带 merchantId/merchantName）→ 管理员 promote 后进 verified；GET `/upload/merchant-extras?merchantId=` 公开查询（脱敏：描述/图片/治理标记，无 PII）。
+- **前端**：uploadShop.js 表单加 PhotoPicker（预览/删除/张数上限）；商户详情页新增「📷 补充这家店的照片 / 描述」入口（view 'extras'，MerchantExtrasView）；详情页渲染「蛮友补充」区块（诚实标注"用户补充、管理员核验后展示"）；管理员审核面板展示待审图片缩略图（fetch blob + objectURL 带令牌）+ extras 类型标识（补充给哪家店）。
+- **验收**：upload.test.mjs 新增 16 断言（saveImages/validateImages/photoFileNameSafe/extras 全流程）+ engage.test.mjs 新增 9 项 HTTP 契约（extras 提交/图片 401/穿越 400/404/promote 后公开 200）；**全量 65 测试全绿**；本地端到端实测 7 步全过。
+
 ### 下一阶段升级点（Demo 收尾后，2026-08-15 起冻结，按需重启）
 > 以下不再属于当前 Demo 范围。每一项都有明确触发条件 / 外部依赖；触发后再拉入开发清单，按守门工作流推进。
 

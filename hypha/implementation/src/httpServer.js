@@ -7,6 +7,11 @@
 //
 // 红线：DeepSeek Key 仅由 deepseek.js 从 env 读取，本文件不持有；前端永不直连模型 API。
 import { createServer } from 'node:http';
+import path from 'node:path';
+import { readFile } from 'node:fs/promises';
+import { fileURLToPath } from 'node:url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 import { runFoodDiscovery } from './orchestrator.js';
 import { agentChat, AgentFallbackError } from './agent-loop.js';
@@ -24,7 +29,7 @@ import rewardCheckin from './tools/checkin.js';
 import rewardWallet from './tools/wallet.js';
 import rewardClaim from './tools/claim.js';
 import analyticsTrack from './tools/track.js';
-import { handleUpload, listPendingUploads, listAudit, governUpload } from './upload.js';
+import { handleUpload, handleMerchantExtras, listMerchantExtras, findUploadRecord, listPendingUploads, listAudit, governUpload, photoFileNameSafe, getUploadsDir } from './upload.js';
 import { submitExplore, listPendingExplores, governExplore } from './explores.js';
 import {
   createCaptcha, sendSms, loginWithPhone, loginWithCaptcha, getUserByToken, wechatAuthorizeUrl, wechatCallback,
@@ -59,7 +64,8 @@ const ALLOWED_ORIGINS = new Set(
 );
 const ADMIN_TOKEN = process.env.ADMIN_TOKEN || '';           // 治理接口（/upload/govern 等）管理令牌
 const RATE_LIMIT_DISABLED = process.env.RATE_LIMIT === 'off'; // 测试环境可关
-const MAX_BODY_BYTES = 1024 * 1024;                           // 请求体上限 1MB
+const MAX_BODY_BYTES = 1024 * 1024;                           // 请求体上限 1MB（默认）
+const MAX_BODY_UPLOAD_BYTES = 12 * 1024 * 1024;               // 上传接口上限 12MB（S8：图片 base64）
 
 // 全局限流（内存滑动窗口，按 IP）：敏感接口（auth/upload/agent/run）更严，防注册刷号与 LLM 成本滥用。
 const hitWindow = new Map(); // key -> number[]
@@ -89,14 +95,14 @@ function send(res, status, obj) {
   res.end(body);
 }
 
-function readBody(req) {
+function readBody(req, maxBytes = MAX_BODY_BYTES) {
   return new Promise((resolve) => {
     const chunks = [];
     let size = 0;
     let tooBig = false;
     req.on('data', (c) => {
       size += c.length;
-      if (size > MAX_BODY_BYTES) { tooBig = true; req.destroy(); return; }
+      if (size > maxBytes) { tooBig = true; req.destroy(); return; }
       chunks.push(c);
     });
     req.on('end', () => {
@@ -121,11 +127,14 @@ const server = createServer(async (req, res) => {
   if (req.method === 'OPTIONS') return send(res, 204, {});
 
   // W5.2 请求体上限预检（流式超限在 readBody 内兜底）
+  // S8：/upload*（含图片 base64）放宽到 12MB，其余接口保持 1MB。
+  const url0 = new URL(req.url, `http://localhost:${PORT}`);
+  const isUploadRoute = url0.pathname === '/upload' || url0.pathname === '/upload/extras';
+  const maxBody = isUploadRoute ? MAX_BODY_UPLOAD_BYTES : MAX_BODY_BYTES;
   const contentLen = Number(req.headers['content-length'] || 0);
-  if (contentLen > MAX_BODY_BYTES) return send(res, 413, { success: false, error: '请求体过大' });
+  if (contentLen > maxBody) return send(res, 413, { success: false, error: '请求体过大' });
 
   // W5.2 全局限流（敏感接口更严：auth/upload/agent/run）
-  const url0 = new URL(req.url, `http://localhost:${PORT}`);
   const sensitive = url0.pathname.startsWith('/auth') || url0.pathname.startsWith('/upload')
     || url0.pathname === '/agent' || url0.pathname === '/run' || url0.pathname === '/log/error'
     || url0.pathname === '/explore';
@@ -218,15 +227,63 @@ const server = createServer(async (req, res) => {
     }
   }
 
-  // POST /upload —— 探店采集：用户上传店铺 → 高德校验 → 三分支决策（SPEC §11 S5）
+  // POST /upload —— 探店采集：用户上传店铺 → 高德校验 → 三分支决策（SPEC §11 S5；S8 支持图片）
   if (req.method === 'POST' && url.pathname === '/upload') {
-    const input = await readBody(req);
+    const input = await readBody(req, maxBody);
     if (!input || typeof input !== 'object') return send(res, 400, { success: false, error: '请求体非 JSON' });
     try {
       const out = await handleUpload(input);
       return send(res, 200, out);
     } catch (err) {
       return send(res, 400, { success: false, error: 'upload 失败', detail: errDetail(err) });
+    }
+  }
+
+  // POST /upload/extras —— 已有店铺补充资料（照片 + 文字描述，S8）：进待核验，管理员 promote 后公开。
+  if (req.method === 'POST' && url.pathname === '/upload/extras') {
+    const input = await readBody(req, maxBody);
+    if (!input || typeof input !== 'object') return send(res, 400, { success: false, error: '请求体非 JSON' });
+    try {
+      const out = await handleMerchantExtras(input);
+      return send(res, out.ok ? 200 : 400, out);
+    } catch (err) {
+      return send(res, 400, { success: false, error: 'extras 失败', detail: errDetail(err) });
+    }
+  }
+
+  // GET /upload/merchant-extras?merchantId= —— 某商户已核验的补充资料（公开，脱敏）。
+  if (req.method === 'GET' && url.pathname === '/upload/merchant-extras') {
+    try {
+      const out = await listMerchantExtras(url.searchParams.get('merchantId'));
+      return send(res, out.ok ? 200 : 400, out);
+    } catch (err) {
+      return send(res, 400, { success: false, error: 'merchant-extras 失败', detail: errDetail(err) });
+    }
+  }
+
+  // GET /upload/photo/<uploadId>/<file> —— 上传照片读取：
+  //   verified（含 extras 已收录）→ 公开；pending → 需 ADMIN_TOKEN（未审核内容不泄露）。
+  //   文件名白名单防路径穿越；单测可用 UPLOAD_DATA_DIR 指向临时目录。
+  {
+    const m = /^\/upload\/photo\/([A-Za-z0-9_]+)\/([^/]+)$/.exec(url.pathname);
+    if (req.method === 'GET' && m) {
+      try {
+        const [, uploadId, file] = m;
+        if (!photoFileNameSafe(file)) return send(res, 400, { success: false, error: '非法文件名' });
+        const rec = await findUploadRecord(uploadId);
+        if (!rec) return send(res, 404, { success: false, error: '记录不存在' });
+        const isVerified = rec.decision === 'verified' || rec.decision === 'verified_stall' || rec.governance;
+        if (!isVerified && !adminOk(req)) return send(res, 401, { success: false, error: '未授权（图片待审核）' });
+        const p = path.join(getUploadsDir(), uploadId, file);
+        if (!p.startsWith(path.join(getUploadsDir(), uploadId))) return send(res, 400, { success: false, error: '非法路径' });
+        const buf = await readFile(p);
+        const ct = file.endsWith('.png') ? 'image/png' : file.endsWith('.webp') ? 'image/webp' : 'image/jpeg';
+        res.writeHead(200, { 'Content-Type': ct, 'Cache-Control': 'public, max-age=86400' });
+        res.end(buf);
+        return;
+      } catch (err) {
+        return send(res, 404, { success: false, error: '图片不存在' });
+      }
     }
   }
 

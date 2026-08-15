@@ -3,6 +3,7 @@
 // 入口由 main.js 经 ctx.goUpload 挂载；ctx 提供 goBack / goHome / goUpload / userId。
 import { h, toast, clear } from './dom.js';
 import { uploadShop } from '../../../hypha/integration/agent-client.js';
+import { PhotoPicker } from './photoPicker.js';
 
 function resultHead(d) {
   if (d === 'verified') return '已收录';
@@ -18,6 +19,7 @@ function resultSub(d) {
 export async function UploadShop(ctx) {
   const { goBack, goHome, goUpload, userId } = ctx;
   const root = h('div', { class: 'upload-view' });
+  const photoPicker = PhotoPicker(); // S8：照片（最多 3 张）
 
   // 顶部返回条
   root.appendChild(h('div', { class: 'detail-top' }, [
@@ -91,6 +93,7 @@ export async function UploadShop(ctx) {
       ]),
       h('span', { class: 'upload-toggle-switch' }, [stallToggle, h('span', { class: 'upload-toggle-slider' })])
     ]),
+    photoPicker.wrap, // S8：照片（最多 3 张，前端压缩后随表单提交）
     hiddenLng, hiddenLat
   ]);
 
@@ -143,6 +146,8 @@ export async function UploadShop(ctx) {
     if (isStall && !address && !(lng && lat)) { toast('流动摊请填地址或点「使用我的位置」'); return; }
     const location = (lng && lat) ? { lng: Number(lng), lat: Number(lat) } : undefined;
     const payload = { name, address, description, category, isStall, location };
+    const images = photoPicker.getImages();
+    if (images.length) payload.images = images; // S8：随表单提交（后端落盘 + 审核）
     if (userId) payload.userId = userId;
     doUpload(payload);
   }
@@ -163,6 +168,21 @@ export async function UploadShop(ctx) {
     ]));
 
     const card = h('div', { class: 'card upload-result-card' });
+    // S8：随记录展示已上传照片（pending 图仅管理员可见，这里只提示不渲染裂图）
+    if (Array.isArray(data.images) && data.images.length) {
+      if (decision === 'pending') {
+        card.appendChild(h('div', { class: 'detail-block' }, [
+          h('div', { class: 'detail-block-title', text: '照片已随记录进入待核验' }),
+          h('div', { class: 'muted', text: `共 ${data.images.length} 张，管理员核验通过后展示。` })
+        ]));
+      } else {
+        card.appendChild(h('div', { class: 'detail-block' }, [
+          h('div', { class: 'detail-block-title', text: '已收录照片' }),
+          h('div', { class: 'extras-photos' }, data.images.map((p) =>
+            h('img', { class: 'extras-photo', src: (globalThis.__MANYOUWEI_CONFIG__ && globalThis.__MANYOUWEI_CONFIG__.apiBase || 'http://127.0.0.1:8799') + p, alt: '上传照片', loading: 'lazy' })))
+        ]));
+      }
+    }
     if (decision === 'verified') {
       card.appendChild(h('div', { class: 'detail-block' }, [
         h('div', { class: 'detail-block-title', text: '高德匹配到' }),

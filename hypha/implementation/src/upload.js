@@ -4,17 +4,67 @@
 //  - 高德 Key 仅本模块从 env 读取（AMAP_SERVER_KEY），绝不进前端 / 仓库。
 //  - 坐标不伪造：流动摊坐标取自用户上传定位；高德未匹配且非摊类 → 存待核验，不删、不编造。
 //  - verified / verified_stall 进「正式库」（独立 merchant-uploads.json，不污染 ALL_MERCHANTS）；pending 进待核验数组。
+//  - 图片（2026-08-15 S8）：data URL 解码后落盘 data/uploads/<uploadId>/，JSON 只存相对路径；
+//    最多 3 张/次；pending 图片仅管理员（ADMIN_TOKEN）可读，verified 后公开。
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const DATA_DIR = path.resolve(__dirname, '..', 'data');
+// 惰性读取：调用时才读 env（UPLOAD_DATA_DIR 供单测隔离；生产走 hypha/implementation/data）。
+function getDataDir() {
+  return process.env.UPLOAD_DATA_DIR ? path.resolve(process.env.UPLOAD_DATA_DIR) : path.resolve(__dirname, '..', 'data');
+}
 // UPLOAD_STORE_FILE 可覆盖存储路径（单测用临时文件；生产/默认走 data/merchant-uploads.json）。
 // 惰性读取：调用时才读 env，测试可在 import 后设置临时路径。
 function getStoreFile() {
-  return process.env.UPLOAD_STORE_FILE || path.join(DATA_DIR, 'merchant-uploads.json');
+  return process.env.UPLOAD_STORE_FILE || path.join(getDataDir(), 'merchant-uploads.json');
+}
+export function getUploadsDir() {
+  return path.join(getDataDir(), 'uploads');
+}
+
+// —— 图片落盘（2026-08-15 S8）——
+// images: data URL 数组（前端已压缩，最大边 1280px）；返回相对路径数组（JSON 内只存路径）。
+const MAX_IMAGES = 3;
+const IMAGE_MIME = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp' };
+export async function saveImages(uploadId, images = []) {
+  if (!Array.isArray(images) || !images.length) return [];
+  const list = images.slice(0, MAX_IMAGES);
+  const saved = [];
+  for (let i = 0; i < list.length; i++) {
+    const raw = String(list[i] || '');
+    const m = /^data:(image\/(?:jpeg|png|webp));base64,([A-Za-z0-9+/=]+)$/.exec(raw);
+    if (!m) continue;
+    const ext = IMAGE_MIME[m[1]];
+    const buf = Buffer.from(m[2], 'base64');
+    if (!buf.length || buf.length > 2 * 1024 * 1024) continue; // 单张 ≤ 2MB（解码后）
+    const dir = path.join(getUploadsDir(), uploadId);
+    if (!existsSync(dir)) await mkdir(dir, { recursive: true });
+    const file = `img_${i + 1}.${ext}`;
+    await writeFile(path.join(dir, file), buf);
+    saved.push(`/uploads/${uploadId}/${file}`);
+  }
+  return saved;
+}
+
+// 图片文件名白名单（防路径穿越；仅字母数字 + 合法图片扩展名）。
+export function photoFileNameSafe(name) {
+  return /^[A-Za-z0-9_]+\.(jpg|png|webp)$/.test(String(name || ''));
+}
+
+// 校验图片清单合法性与数量（纯函数，供入口复用）。
+export function validateImages(images) {
+  if (images == null) return { ok: true };
+  if (!Array.isArray(images)) return { ok: false, error: 'images 必须是数组' };
+  if (images.length > MAX_IMAGES) return { ok: false, error: `最多 ${MAX_IMAGES} 张照片` };
+  for (const it of images) {
+    if (typeof it !== 'string' || !/^data:image\/(?:jpeg|png|webp);base64,/.test(it)) {
+      return { ok: false, error: '照片格式不支持（仅 jpg/png/webp）' };
+    }
+  }
+  return { ok: true };
 }
 
 function makeId(prefix) {
@@ -149,7 +199,7 @@ export function decideUpload({ name, address, description, category, isStall, lo
 async function persistUpload(record) {
   if (process.env.MYWO_NO_PERSIST) return; // 单测用：跳过文件 IO
   try {
-    if (!existsSync(DATA_DIR)) await mkdir(DATA_DIR, { recursive: true });
+    if (!existsSync(getDataDir())) await mkdir(getDataDir(), { recursive: true });
     const storeFile = getStoreFile();
     let data = { verified: [], pending: [] };
     if (existsSync(storeFile)) {
@@ -166,7 +216,7 @@ async function persistUpload(record) {
   }
 }
 
-// 编排：读 env Key → 调高德 → 决策 → 持久化 → 返回决策。
+// 编排：读 env Key → 调高德 → 决策 → 保存图片 → 持久化 → 返回决策。
 export async function handleUpload(payload = {}, { amapKey, fetchImpl } = {}) {
   const key = amapKey != null ? amapKey : process.env.AMAP_SERVER_KEY;
   const amapEnabled = !!key;
@@ -178,8 +228,62 @@ export async function handleUpload(payload = {}, { amapKey, fetchImpl } = {}) {
     category: payload.category, isStall: !!payload.isStall, location: payload.location,
     amapMatch, amapEnabled,
   });
-  await persistUpload({ ...decision, source: payload, userId: payload.userId || null });
-  return decision;
+  const images = await saveImages(decision.uploadId || decision.merchantId, payload.images);
+  await persistUpload({ ...decision, images, source: payload, userId: payload.userId || null });
+  return { ...decision, images };
+}
+
+// —— 已有店铺补充资料（照片 + 文字描述，2026-08-15 S8）——
+// 用户对库内已有商户（merchantId）贡献照片/描述；一律先进 pending（kind='extras'），
+// 管理员 promote 后进入 verified 并可供公开查询（诚实标注来源，不污染主数据）。
+export async function handleMerchantExtras({ merchantId, merchantName, description = '', images = [], userId = null } = {}) {
+  if (!merchantId) return { ok: false, error: '缺少 merchantId' };
+  if (!String(description || '').trim() && (!Array.isArray(images) || !images.length)) {
+    return { ok: false, error: '至少补充一张照片或一段描述' };
+  }
+  const vImg = validateImages(images);
+  if (!vImg.ok) return { ok: false, error: vImg.error };
+  const uploadId = makeId('u');
+  const saved = await saveImages(uploadId, images);
+  const record = {
+    decision: 'pending',
+    uploadId,
+    label: '待核验',
+    reason: '已有店铺补充资料（照片/描述）',
+    kind: 'extras',
+    merchantId,
+    merchantName: String(merchantName || ''),
+    description: String(description || '').trim(),
+    images: saved,
+    source: { merchantId, merchantName, description: String(description || '').trim(), imageCount: saved.length },
+    userId: userId || null,
+  };
+  await persistUpload(record);
+  return { ok: true, decision: 'pending', uploadId, label: '待核验', reason: record.reason, images: saved };
+}
+
+// 公开查询：某商户已核验（verified）的补充资料（脱敏视图，无 userId/原始 source）。
+export async function listMerchantExtras(merchantId) {
+  if (!merchantId) return { ok: false, error: '缺少 merchantId' };
+  const data = await readStore();
+  const items = data.verified
+    .filter((e) => e.kind === 'extras' && e.merchantId === merchantId)
+    .map((e) => ({
+      uploadId: e.uploadId,
+      description: e.description || '',
+      images: Array.isArray(e.images) ? e.images : [],
+      receivedAt: e.receivedAt || null,
+      governance: e.governance || null,
+    }));
+  return { ok: true, count: items.length, items };
+}
+
+// 图片读取辅助：uploadId 对应的记录（用于鉴权：pending 需管理员，verified 公开）。
+export async function findUploadRecord(uploadId) {
+  const data = await readStore();
+  return data.pending.find((e) => e.uploadId === uploadId)
+    || data.verified.find((e) => e.uploadId === uploadId)
+    || null;
 }
 
 // ——————————————————————————————————————————————
@@ -208,7 +312,7 @@ async function writeStore(data) {
   if (process.env.MYWO_NO_PERSIST) return;
   try {
     const storeFile = getStoreFile();
-    if (!existsSync(DATA_DIR)) await mkdir(DATA_DIR, { recursive: true });
+    if (!existsSync(getDataDir())) await mkdir(getDataDir(), { recursive: true });
     await writeFile(storeFile, JSON.stringify(data, null, 2), 'utf8');
   } catch (err) {
     // eslint-disable-next-line no-console
@@ -224,11 +328,15 @@ export function toGovernanceView(entry) {
     name: src.name || entry.name || '',
     address: src.address || '',
     category: src.category || '',
-    description: src.description || '',
+    description: src.description || (entry.kind === 'extras' ? entry.description : ''),
     location: src.location || null,
     isStall: !!src.isStall,
     reason: entry.reason || '',
     receivedAt: entry.receivedAt || null,
+    kind: entry.kind || 'new_shop',          // S8：new_shop（野店）| extras（已有店铺补充）
+    merchantId: entry.merchantId || null,     // S8：extras 关联的已有店铺
+    merchantName: entry.merchantName || '',
+    images: Array.isArray(entry.images) ? entry.images : [], // S8：图片相对路径（无 PII）
   };
 }
 

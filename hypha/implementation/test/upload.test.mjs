@@ -1,10 +1,10 @@
 // 探店采集：decideUpload 三分支 + verifyWithAmap + handleUpload（高德用 mock fetch，无外网）。
 // 运行：node hypha/implementation/test/upload.test.mjs
 import assert from 'node:assert/strict';
-import { mkdtempSync, readFileSync } from 'node:fs';
+import { mkdtempSync, readFileSync, existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { decideUpload, verifyWithAmap, handleUpload, nameSimilarity, listPendingUploads, listAudit, governUpload } from '../src/upload.js';
+import { decideUpload, verifyWithAmap, handleUpload, nameSimilarity, listPendingUploads, listAudit, governUpload, saveImages, validateImages, photoFileNameSafe, handleMerchantExtras, listMerchantExtras, findUploadRecord } from '../src/upload.js';
 
 let passed = 0;
 function ok(name, cond) { assert.ok(cond, '✗ ' + name); passed++; console.log('  ✓', name); }
@@ -120,5 +120,43 @@ const audit1 = await listAudit({ limit: 1 });
 ok('listAudit：limit 生效', audit1.count === 1);
 
 delete process.env.UPLOAD_STORE_FILE;
+
+// —— S8 · 图片落盘 + 已有店铺补充资料（照片/描述）——
+console.log('S8 · 图片存储 + merchant extras（临时目录，真 IO）');
+const TMP_DATA = mkdtempSync(join(tmpdir(), 'mywo-upload-data-'));
+process.env.UPLOAD_DATA_DIR = TMP_DATA;
+process.env.UPLOAD_STORE_FILE = join(TMP_DATA, 'merchant-uploads.json');
+
+const png1 = 'data:image/png;base64,' + Buffer.from('fake-png-1').toString('base64');
+const png2 = 'data:image/png;base64,' + Buffer.from('fake-png-2').toString('base64');
+const badImg = 'data:image/gif;base64,AAAA';
+const paths = await saveImages('u_s8a', [png1, png2, badImg]);
+ok('saveImages：合法 2 张落盘 + 非法跳过', paths.length === 2 && paths[0] === '/uploads/u_s8a/img_1.png' && paths[1] === '/uploads/u_s8a/img_2.png');
+ok('saveImages：文件真实存在', existsSync(join(TMP_DATA, 'uploads/u_s8a/img_1.png')) && existsSync(join(TMP_DATA, 'uploads/u_s8a/img_2.png')));
+ok('validateImages：超 3 张拒绝', validateImages([png1, png1, png1, png1]).ok === false);
+ok('validateImages：非支持格式拒绝', validateImages([badImg]).ok === false);
+ok('validateImages：空/null 放行', validateImages(null).ok === true && validateImages([]).ok === true);
+ok('photoFileNameSafe：白名单防穿越', photoFileNameSafe('img_1.png') === true && photoFileNameSafe('../x.jpg') === false && photoFileNameSafe('a.html') === false);
+
+const ext = await handleMerchantExtras({ merchantId: 'm1000', merchantName: '测试面馆', description: '老板很热情，牛肉面分量足', images: [png1], userId: null });
+ok('extras：进 pending 且带 kind/merchantId', ext.ok && ext.decision === 'pending' && ext.uploadId && ext.images.length === 1);
+const extNoContent = await handleMerchantExtras({ merchantId: 'm1000', images: [] });
+ok('extras：无图无描述拒绝', extNoContent.ok === false && /至少/.test(extNoContent.error));
+const extBadMerchant = await handleMerchantExtras({ images: [png1] });
+ok('extras：缺 merchantId 拒绝', extBadMerchant.ok === false);
+
+const extListBefore = await listMerchantExtras('m1000');
+ok('extras：promote 前不可查（pending 不公开）', extListBefore.count === 0);
+const extGov = await governUpload({ uploadId: ext.uploadId, action: 'promote', by: 'test', note: '照片可用' });
+ok('extras：promote 成功', extGov.ok === true);
+const extList = await listMerchantExtras('m1000');
+ok('extras：promote 后可查（描述+图片+治理标记，无 PII）', extList.ok && extList.count === 1 && extList.items[0].description.includes('牛肉面') && extList.items[0].images.length === 1 && extList.items[0].governance && !('userId' in extList.items[0]));
+const extListOther = await listMerchantExtras('m9999');
+ok('extras：其他商户查不到', extListOther.count === 0);
+const recPending = await findUploadRecord(ext.uploadId);
+ok('findUploadRecord：promote 后记录可在 verified 找到（governance 标记 → 图片公开判定）', recPending && recPending.governance && recPending.governance.action === 'promote');
+
+delete process.env.UPLOAD_STORE_FILE;
+delete process.env.UPLOAD_DATA_DIR;
 
 

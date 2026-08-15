@@ -155,7 +155,25 @@ export async function uploadShop(payload = {}) {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
-  }, 20000);
+  }, 30000);
   if (!res.ok) throw new Error(`upload ${res.status}`);
+  return res.json();
+}
+
+// 已有店铺补充资料（S8）：照片 + 文字描述 → /upload/extras（进待核验，管理员收录后公开）。
+export async function uploadMerchantExtras(payload = {}) {
+  const res = await fetchWithTimeout(`${SERVER_AGENT}/upload/extras`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  }, 30000);
+  if (!res.ok) throw new Error(`extras ${res.status}`);
+  return res.json();
+}
+
+// 某商户已核验的补充资料（公开）。
+export async function merchantExtras(merchantId) {
+  const res = await fetchWithTimeout(`${SERVER_AGENT}/upload/merchant-extras?merchantId=${encodeURIComponent(merchantId)}`, {}, 15000);
+  if (!res.ok) throw new Error(`merchant-extras ${res.status}`);
   return res.json();
 }

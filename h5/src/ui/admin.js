@@ -116,13 +116,27 @@ export async function AdminPanel({ onBack } = {}) {
   function pendingCard(it, wrap, stat) {
     const noteInput = h('input', { class: 'ac-nick-input', type: 'text', placeholder: '备注（可选，记入审计）', 'aria-label': '审核备注' });
     const btnWrap = h('div', { class: 'admin-gov-actions' });
+    const photoWrap = h('div', { class: 'extras-photos' });
+    // S8：待审图片预览（img 无法带 X-Admin-Token，用 fetch blob + objectURL）
+    for (const p of (Array.isArray(it.images) ? it.images : [])) {
+      const img = h('img', { class: 'extras-photo admin-photo', alt: '待审照片' });
+      fetch(API + p, { headers: { 'X-Admin-Token': getToken() } })
+        .then((r) => (r.ok ? r.blob() : null))
+        .then((b) => { if (b) img.src = URL.createObjectURL(b); })
+        .catch(() => { /* 单张失败不阻断 */ });
+      photoWrap.appendChild(img);
+    }
     const card = h('div', { class: 'card admin-pending-card' }, [
       h('div', { class: 'm-head' }, [
-        h('div', { class: 'm-name', text: it.name || '（无名）' }),
-        h('span', { class: 'm-tag', text: it.isStall ? '流动摊' : (it.category || '未分类') }),
+        h('div', { class: 'm-name', text: it.name || (it.kind === 'extras' ? (it.merchantName || '已有店铺补充') : '（无名）') }),
+        h('span', { class: 'm-tag', text: it.kind === 'extras' ? '补充资料' : (it.isStall ? '流动摊' : (it.category || '未分类')) }),
       ]),
+      it.kind === 'extras' && it.merchantName
+        ? h('div', { class: 'muted', text: `补充给：${it.merchantName}` })
+        : null,
       it.address ? h('div', { class: 'muted', text: it.address }) : null,
       it.description ? h('div', { class: 'admin-desc', text: it.description }) : null,
+      photoWrap,
       h('div', { class: 'muted', text: `${fmtTime(it.receivedAt)} · ${it.reason || ''}` }),
       h('div', { class: 'ac-nick-row', style: 'margin-top:10px' }, [noteInput, btnWrap]),
     ]);

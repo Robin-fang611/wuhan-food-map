@@ -12,6 +12,8 @@ import { auth } from '../core/auth.js';
 import { analytics, EVENTS } from '../core/analytics.js';
 import { ClaimPanel } from './claimPanel.js';
 
+const API_BASE = (globalThis.__MANYOUWEI_CONFIG__ && globalThis.__MANYOUWEI_CONFIG__.apiBase) || 'http://127.0.0.1:8799';
+
 // 构造高德公开标注/导航 URI。纯函数、可在 node 直接测试。
 // 关键：uri.amap.com 是网页跳转协议，不需要 Key，因此前端不持有任何密钥（§8 红线）。
 export function buildAmapUrl(m) {
@@ -48,7 +50,7 @@ function mealTags(m) {
     : null;
 }
 
-export async function MerchantDetail({ id, userId, onBack }) {
+export async function MerchantDetail({ id, userId, onBack, goExtras }) {
   const m = merchants.find((x) => x.id === id);
   const root = h('div');
 
@@ -170,7 +172,23 @@ export async function MerchantDetail({ id, userId, onBack }) {
     info.appendChild(explorePanel({ merchant: m }));
   }
 
+  // S8 · 蛮友补充（已核验的照片/描述，公开展示，诚实标注来源）
+  info.appendChild(h('div', { id: 'detail-extras' }));
+
   root.appendChild(info);
+
+  // S8 · 给已有店铺补充照片/描述入口（所有店铺可用）
+  if (goExtras) {
+    root.appendChild(h('div', { class: 'section detail-claim-wrap' }, [
+      h('button', {
+        class: 'btn btn-ghost btn-block', type: 'button', text: '📷 补充这家店的照片 / 描述',
+        onclick: () => goExtras({ id: m.id, name: m.name })
+      })
+    ]));
+  }
+
+  // 异步加载「蛮友补充」区块（失败静默：本地无后端/网络差不阻塞详情页）
+  loadExtras(m.id).catch(() => { /* ignore */ });
 
   // 领券按钮（claim 玩法，对应 §4.3 领券闭环；仅对有券商户展示）
   if (m.has_coupon) {
@@ -206,4 +224,27 @@ export async function MerchantDetail({ id, userId, onBack }) {
   root.appendChild(h('div', { class: 'footnote', text: '距离为直线参考距离；导航将跳转高德地图（公开链接，无需密钥）。v1.5 接入账号后坐标更精准。' }));
 
   return root;
+}
+
+// S8 · 拉取并渲染「蛮友补充」区块（已核验的 extras：照片 + 描述）。
+async function loadExtras(merchantId) {
+  const wrap = document.getElementById('detail-extras');
+  if (!wrap) return;
+  const { merchantExtras } = await import('../../../hypha/integration/agent-client.js');
+  const r = await merchantExtras(merchantId);
+  if (!r || !r.ok || !r.items.length) return;
+  const items = r.items;
+  wrap.appendChild(h('div', { class: 'detail-block' }, [
+    h('div', { class: 'detail-block-title', text: '蛮友补充' }),
+    h('div', { class: 'extras-note muted', text: '以下内容由用户补充、管理员核验后展示' }),
+    ...items.flatMap((it) => [
+      it.description
+        ? h('div', { class: 'extras-desc', text: it.description })
+        : null,
+      Array.isArray(it.images) && it.images.length
+        ? h('div', { class: 'extras-photos' }, it.images.map((p) =>
+            h('img', { class: 'extras-photo', src: API_BASE + p, alt: '蛮友补充照片', loading: 'lazy' })))
+        : null,
+    ]),
+  ]));
 }
