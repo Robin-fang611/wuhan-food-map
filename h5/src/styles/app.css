@@ -647,6 +647,13 @@ body {
 .nearby-name { font-size: 13px; color: var(--ink-1); }
 .nearby-dist { font-size: 11px; color: var(--ink-2); }
 
+/* W8.3 流动摊标记（本地生活差异化：高德没有的流动摊贩） */
+.map-pin.stall .map-pin-dot { background: #8e5bd9; }
+.map-pin-stall { position: absolute; top: -8px; right: -10px; font-size: 9px; color: #fff; background: #8e5bd9; border-radius: 4px; padding: 0 3px; line-height: 1.4; }
+.m-rating.stall { background: #8e5bd9; }
+.amap-pin-stall { width: 20px; height: 20px; border-radius: 50% 50% 50% 0; background: #8e5bd9; color: #fff; font-size: 11px; display: flex; align-items: center; justify-content: center; transform: rotate(-45deg); }
+.amap-pin-stall { transform: none; border-radius: 8px; }
+
 /* W8 新用户引导 + 隐私页 */
 .onboard-banner { margin: 10px 16px 0; padding: 12px 14px; border-radius: 12px; background: #fdf3e3; border: 1px solid #ecd9ae; }
 .onboard-title { font-weight: 600; color: var(--ink-1); font-size: 14px; }

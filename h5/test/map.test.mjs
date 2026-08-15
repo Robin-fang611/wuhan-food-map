@@ -95,3 +95,13 @@ ok('源码无硬编码高德 Key（32 位 hex / 明文 key 赋值）', () => {
 });
 
 console.log(`\nmap.test: ${pass} 个用例全部通过 ✅`);
+
+// W8.3 流动摊判定
+import { test } from 'node:test';
+import { isStallMerchant } from '../src/ui/map.js';
+test('isStallMerchant：web-stalls 源识别为流动摊', () => {
+  assert.equal(isStallMerchant({ source: '网络公开资料(文旅/腾讯地图/大众点评公开页/校周边攻略) 2026-08' }), true);
+  assert.equal(isStallMerchant({ source: '地推' }), false);
+  assert.equal(isStallMerchant({ source: '编辑' }), false);
+  assert.equal(isStallMerchant(null), false);
+});

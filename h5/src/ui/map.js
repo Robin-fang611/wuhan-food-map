@@ -51,6 +51,11 @@ export function projectPoint(m, bbox, pad = PAD) {
   };
 }
 
+// 流动摊判定（W8.3 · 本地生活差异化）：web-stalls 源（网络公开资料补充，高德无 POI）。
+export function isStallMerchant(m) {
+  return !!m && String(m.source || '').includes('网络公开');
+}
+
 // 按校区筛选并投影出标记列表；按评分权重降序（必吃在前）。
 // 返回 [{ ...m, xPct, yPct }]；只含有坐标的商户（缺坐标的无法落点，由 UI 计数提示）。
 export function markersForZone(list, zone, pad = PAD) {
@@ -160,13 +165,16 @@ export async function MapView({ zone = '武汉全城', goDetail, onBack, goUploa
     } else {
       for (const m of markers) {
         const isSel = m.id === state.selectedId;
-        const cls = `map-pin ${isSel ? 'sel' : ''} ${m.rating === '必吃' ? 'best' : m.rating === '推荐' ? 'good' : ''}`;
+        const cls = `map-pin ${isSel ? 'sel' : ''} ${m.rating === '必吃' ? 'best' : m.rating === '推荐' ? 'good' : ''} ${isStallMerchant(m) ? 'stall' : ''}`;
         canvas.appendChild(h('button', {
           class: cls, type: 'button', role: 'listitem',
           style: `left:${m.xPct}%;top:${m.yPct}%`,
           'aria-label': m.name || '商户', title: m.name || '',
           onclick: () => { state.selectedId = m.id; renderInfo(markers); }
-        }, [h('span', { class: 'map-pin-dot' })]));
+        }, [
+          h('span', { class: 'map-pin-dot' }),
+          isStallMerchant(m) ? h('span', { class: 'map-pin-stall', text: '摊' }) : null,
+        ]));
       }
     }
     renderInfo(markers);
@@ -180,7 +188,11 @@ export async function MapView({ zone = '武汉全城', goDetail, onBack, goUploa
     const map = new AMap.Map(canvas, { zoom: bbox ? 12 : 11, center, viewMode: '2D' });
     state.map = map;
     for (const m of list) {
-      const mk = new AMap.Marker({ position: [m.lng, m.lat], title: m.name, anchor: 'bottom-center' });
+      const isStall = isStallMerchant(m);
+      const mk = new AMap.Marker({
+        position: [m.lng, m.lat], title: (isStall ? '【摊】' : '') + m.name, anchor: 'bottom-center',
+        ...(isStall ? { content: '<div class="amap-pin amap-pin-stall">摊</div>' } : {}),
+      });
       mk.on('click', () => { state.selectedId = m.id; renderInfo(list); });
       map.add(mk);
     }
@@ -200,6 +212,7 @@ export async function MapView({ zone = '武汉全城', goDetail, onBack, goUploa
     info.appendChild(h('div', { class: 'card' }, [
       h('div', { class: 'm-head' }, [
         h('div', { class: 'm-name', text: m.name || '未命名商户' }),
+        isStallMerchant(m) ? h('span', { class: 'm-rating stall', text: '流动摊' }) : null,
         m.rating === '必吃' ? h('span', { class: 'm-rating best', text: '必吃' })
           : m.rating === '推荐' ? h('span', { class: 'm-rating good', text: '推荐' })
           : null
